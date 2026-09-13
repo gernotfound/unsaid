@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@unsaid/domain";
-import { READY_PRODUCTS, archiveStats } from "@unsaid/catalog";
+import { getCatalogStats, listPublicCatalog } from "@unsaid/db";
 
-export default function HomePage() {
-  const stats = archiveStats();
-  const featured = READY_PRODUCTS[0];
+export default async function HomePage() {
+  const [stats, records] = await Promise.all([getCatalogStats(), listPublicCatalog()]);
+  const featured = records.find((record) => record.status === "ready" && record.images.front);
 
   return (
     <main id="main">
@@ -17,7 +17,7 @@ export default function HomePage() {
           <p className="hero-lede">Frasi che normalmente restano nella tua testa. Qui diventano capi: diretti, strani, sporchi, romantici o completamente fuori contesto.</p>
           <div className="hero-actions">
             <Link className="button button--dark" href="/shop">Esplora l&apos;archivio</Link>
-            {featured ? <Link className="text-link" href={`/product/${featured.slug}`}>Vedi UNS-0001 ↗</Link> : null}
+            {featured ? <Link className="text-link" href={`/product/${featured.slug}`}>Vedi {featured.id} ↗</Link> : null}
           </div>
         </div>
         <div className="home-hero__media">
