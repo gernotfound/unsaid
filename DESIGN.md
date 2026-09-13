@@ -42,8 +42,10 @@ One accent only. The acid tone is a brand cue, not a decoration.
 - Desktop container max width: 1560px.
 - Hero is asymmetrical 7/5 split.
 - Catalog is a 12-column editorial grid: selected entries span more columns; never a uniform 3-card feature row.
-- Mobile catalog uses 2 columns above 360px, 1 column below 360px.
-- Product detail uses a right-hand sheet on desktop and a full-height sheet on mobile, not a centered modal.
+- Tablet/mobile transition starts at 760px: desktop navigation disappears and the page becomes a deliberate single-column editorial flow.
+- Mobile catalog uses 2 columns from 431–760px and 1 column at 430px and below so long phrases remain readable rather than becoming miniature desktop cards.
+- Product detail uses a right-hand sheet on desktop; on mobile the media becomes full-bleed and the information sheet follows below it.
+- Mobile navigation uses a fixed rectangular bottom dock with Home / Archive / Shop soon. No floating rounded nav or generic app-style pill bar.
 
 ## 7. Product imagery
 - Approved render language: neutral light-gray studio backdrop, white/neutral oversized t-shirt, realistic cotton texture and folds, straight-on product photography.
@@ -64,10 +66,13 @@ One accent only. The acid tone is a brand cue, not a decoration.
 - Visible `:focus-visible` outline on every interactive control.
 - Respect `prefers-reduced-motion`.
 - Search/filter result changes update an ARIA live region.
+- Touch controls are at least 44px high; mobile search/select fields stay at 16px or above to prevent iOS auto-zoom.
 
 ## 10. Responsive and performance
 - No external fonts or UI libraries unless intentionally introduced later.
 - Product images are WebP/AVIF and lazy-loaded outside the hero.
 - Catalog endpoints use pagination/cursors; never render thousands of products at once.
 - Use `content-visibility:auto` on offscreen sections/cards where safe.
-- Use safe-area insets for mobile bottom controls.
+- Use safe-area insets for mobile bottom controls and `viewport-fit=cover`.
+- On mobile, product media uses the garment's native 4:5 visual ratio instead of viewport-height placeholders; this prevents oversized first screens and keeps the product/copy relationship intentional.
+- Sticky filters must not cover the header and horizontal filter strips must remain scrollable without causing page-level horizontal overflow.

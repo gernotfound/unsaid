@@ -1,0 +1,11 @@
+import Link from "next/link";
+
+export function MobileDock() {
+  return (
+    <nav className="mobile-dock" aria-label="Navigazione mobile">
+      <Link href="/">Home</Link>
+      <Link href="/shop">Archive</Link>
+      <span aria-disabled="true">Shop / soon</span>
+    </nav>
+  );
+}
