@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PUBLIC_ARCHIVE, findPublicProductBySlug } from "@unsaid/catalog";
+import { getPublicProductBySlug, listPublicCatalog } from "@unsaid/db";
+import { CommerceControls } from "../../../../components/CommerceControls";
 import { ProductGallery } from "../../../../components/ProductGallery";
+import { FEATURES } from "../../../../lib/features";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return PUBLIC_ARCHIVE.map((record) => ({ slug: record.slug }));
+export async function generateStaticParams() {
+  const records = await listPublicCatalog();
+  return records.map((record) => ({ slug: record.slug }));
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = findPublicProductBySlug(slug);
+  const product = await getPublicProductBySlug(slug);
   if (!product) return {};
   return {
     title: product.title,
@@ -22,7 +25,7 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = findPublicProductBySlug(slug);
+  const product = await getPublicProductBySlug(slug);
   if (!product) notFound();
   const ready = product.status === "ready" && Boolean(product.images.front);
 
@@ -52,8 +55,20 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <div><dt>Categoria</dt><dd>{product.category}</dd></div>
             <div><dt>Stato</dt><dd>{product.status}</dd></div>
           </dl>
-          {ready ? (
-            <div className="product-state product-state--ready"><strong>Render approvato.</strong><p>Fronte e retro sono asset separati. Il checkout verrà attivato quando collegheremo il commerce backend.</p></div>
+          {ready && product.price ? (
+            <>
+              <CommerceControls
+                productId={product.id}
+                slug={product.slug}
+                title={product.title}
+                price={product.price}
+                shopEnabled={FEATURES.shopEnabled}
+              />
+              <div className="product-state product-state--ready">
+                <strong>Render approvato.</strong>
+                <p>Fronte e retro sono asset separati. Lo shop resterà spento finché <code>NEXT_PUBLIC_SHOP_ENABLED</code> non verrà impostato a true.</p>
+              </div>
+            </>
           ) : (
             <div className="product-state"><strong>Concept archiviato.</strong><p>Prima della vendita servono art direction, rendering e approvazione finale.</p></div>
           )}
