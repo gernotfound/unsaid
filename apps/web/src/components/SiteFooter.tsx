@@ -9,11 +9,11 @@ export function SiteFooter() {
         <em>{BRAND.tagline}</em>
       </div>
       <div className="site-footer__links">
-        <Link href="/shop">Shop</Link>
+        <Link href="/shop">Archive</Link>
         <Link href="/privacy">Privacy</Link>
         <Link href="/terms">Termini</Link>
       </div>
-      <p className="site-footer__note">Independent streetwear archive · built to scale.</p>
+      <p className="site-footer__note">Independent streetwear archive · shop coming later.</p>
     </footer>
   );
 }
