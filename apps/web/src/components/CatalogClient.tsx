@@ -66,6 +66,18 @@ export function CatalogClient({ initialRecords }: Props) {
     setVisible(24);
   }
 
+  if (!initialRecords.length) {
+    return (
+      <section className="catalog-shell" aria-labelledby="catalog-empty-heading">
+        <div className="catalog-empty">
+          <p className="eyebrow">ARCHIVE / 000</p>
+          <strong id="catalog-empty-heading">Nothing published yet.</strong>
+          <p>Il catalogo di test è stato eliminato. La prossima selezione sarà costruita soltanto sulle frasi reali UNSAID.</p>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="catalog-shell" aria-labelledby="catalog-heading">
       <h2 className="sr-only" id="catalog-heading">Catalogo UNSAID</h2>
@@ -101,7 +113,7 @@ export function CatalogClient({ initialRecords }: Props) {
             <article className={`product-card ${index % 11 === 0 ? "product-card--wide" : ""}`} key={record.id}>
               <Link className="product-media" href={`/product/${record.slug}`} aria-label={`Apri ${record.title}`}>
                 {record.status === "ready" && record.images.front ? (
-                  <Image src={assetPath(record.images.front)} alt={`T-shirt ${record.title}, vista frontale`} fill sizes="(max-width: 720px) 50vw, (max-width: 1200px) 33vw, 25vw" />
+                  <Image src={assetPath(record.images.front)} alt={`T-shirt ${record.title}, vista frontale`} fill sizes="(max-width: 430px) 100vw, (max-width: 860px) 50vw, (max-width: 1200px) 33vw, 25vw" />
                 ) : (
                   <div className="concept-card">
                     <span>{record.id} / {record.language.toUpperCase()}</span>

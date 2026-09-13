@@ -9,15 +9,24 @@ import { assetPath } from "../../../../lib/publicPath";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
 
+const EMPTY_ARCHIVE_SLUG = "__archive-empty__";
+
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const records = await listPublicCatalog();
+  if (!records.length && process.env.GITHUB_PAGES === "true") {
+    return [{ slug: EMPTY_ARCHIVE_SLUG }];
+  }
   return records.map((record) => ({ slug: record.slug }));
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
+  if (slug === EMPTY_ARCHIVE_SLUG) {
+    return { title: "Archive", robots: { index: false, follow: false } };
+  }
+
   const product = await getPublicProductBySlug(slug);
   if (!product) return {};
   return {
@@ -28,6 +37,18 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
+
+  if (slug === EMPTY_ARCHIVE_SLUG) {
+    return (
+      <main id="main" className="not-found">
+        <p className="eyebrow">ARCHIVE / 000</p>
+        <h1>Nessun prodotto.</h1>
+        <p>Il catalogo di test è stato rimosso. Le pagine prodotto verranno generate quando entreranno le frasi reali.</p>
+        <Link className="button button--dark" href="/shop">Torna all&apos;archivio</Link>
+      </main>
+    );
+  }
+
   const product = await getPublicProductBySlug(slug);
   if (!product) notFound();
   const ready = product.status === "ready" && Boolean(product.images.front);

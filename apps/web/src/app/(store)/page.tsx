@@ -12,7 +12,7 @@ export default async function HomePage() {
     <main id="main">
       <section className="home-hero">
         <div className="home-hero__copy">
-          <p className="eyebrow">UNSAID / ARCHIVE 001</p>
+          <p className="eyebrow">UNSAID / ARCHIVE</p>
           <h1>WEAR WHAT<br />YOU <span>WOULDN&apos;T</span><br />SAY.</h1>
           <p className="hero-tagline">{BRAND.tagline}</p>
           <p className="hero-lede">Frasi che normalmente restano nella tua testa. Qui diventano capi: diretti, strani, sporchi, romantici o completamente fuori contesto.</p>
@@ -22,9 +22,19 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="home-hero__media">
-          <span className="archive-stamp">UNS-0001 / READY</span>
-          <Image src={assetPath("/products/UNS-0001/front.webp")} alt="T-shirt bianca UNSAID con la scritta FRONTE" width={900} height={1125} priority sizes="(max-width: 800px) 100vw, 44vw" />
-          <span className="media-caption">front / approved render</span>
+          {featured?.images.front ? (
+            <>
+              <span className="archive-stamp">{featured.id} / READY</span>
+              <Image src={assetPath(featured.images.front)} alt={`T-shirt UNSAID ${featured.title}`} width={900} height={1125} priority sizes="(max-width: 860px) 100vw, 44vw" />
+              <span className="media-caption">front / approved render</span>
+            </>
+          ) : (
+            <div className="archive-empty-media" aria-label="Archivio in preparazione">
+              <span>ARCHIVE / 000</span>
+              <strong>EMPTY<br />BY DESIGN.</strong>
+              <p>La selezione reale arriverà qui.</p>
+            </div>
+          )}
         </div>
       </section>
 

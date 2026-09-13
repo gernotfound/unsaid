@@ -42,10 +42,11 @@ One accent only. The acid tone is a brand cue, not a decoration.
 - Desktop container max width: 1560px.
 - Hero is asymmetrical 7/5 split.
 - Catalog is a 12-column editorial grid: selected entries span more columns; never a uniform 3-card feature row.
-- Tablet/mobile transition starts at 760px: desktop navigation disappears and the page becomes a deliberate single-column editorial flow.
+- At `761–860px` the site uses a deliberate tablet composition: primary navigation remains available while hero and product detail become single-column to avoid cropped or oversized media.
+- At `760px` and below desktop navigation is replaced by the fixed rectangular mobile dock.
 - Mobile catalog uses 2 columns from 431–760px and 1 column at 430px and below so long phrases remain readable rather than becoming miniature desktop cards.
-- Product detail uses a right-hand sheet on desktop; on mobile the media becomes full-bleed and the information sheet follows below it.
-- Mobile navigation uses a fixed rectangular bottom dock with Home / Archive / Shop soon. No floating rounded nav or generic app-style pill bar.
+- Product detail uses a right-hand sheet on desktop; on portrait mobile/tablet the media becomes full-bleed and the information sheet follows below it.
+- Short-height landscape phones use a compact two-column editorial layout and expose primary navigation in the header; the bottom dock disappears to preserve vertical space.
 
 ## 7. Product imagery
 - Approved render language: neutral light-gray studio backdrop, white/neutral oversized t-shirt, realistic cotton texture and folds, straight-on product photography.
@@ -59,6 +60,7 @@ One accent only. The acid tone is a brand cue, not a decoration.
 - Buttons: compact, mostly rectangular; filled black reserved for primary action.
 - Filters: horizontal text/chip strip; active state uses ink background.
 - Product sheet: side panel with front/back switch, specs, size selection and clear state (`ready`, `concept`, `review`).
+- Admin/control-room UI uses the same archival language: hard rules, mono metadata, condensed display type and no generic rounded dashboard cards.
 
 ## 9. Interaction
 - 180–260ms transitions using transform/opacity.
@@ -74,5 +76,7 @@ One accent only. The acid tone is a brand cue, not a decoration.
 - Catalog endpoints use pagination/cursors; never render thousands of products at once.
 - Use `content-visibility:auto` on offscreen sections/cards where safe.
 - Use safe-area insets for mobile bottom controls and `viewport-fit=cover`.
-- On mobile, product media uses the garment's native 4:5 visual ratio instead of viewport-height placeholders; this prevents oversized first screens and keeps the product/copy relationship intentional.
+- Portrait product media uses the garment's native 4:5 visual ratio instead of viewport-height placeholders.
 - Sticky filters must not cover the header and horizontal filter strips must remain scrollable without causing page-level horizontal overflow.
+- The no-horizontal-overflow contract is tested down to 280px; 320px remains the primary minimum-design target.
+- Regression checks cover 320px portrait, 430px portrait, 768px portrait and representative landscape widths around 812×375, 844×390 and 932×430.

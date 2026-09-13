@@ -17,8 +17,15 @@ function readConsent(): Consent {
 export function AnalyticsConsent() {
   const [consent, setConsent] = useState<Consent>(null);
   const [ready, setReady] = useState(false);
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
+    if (/\/admin\/?$/.test(window.location.pathname)) {
+      setHidden(true);
+      setReady(true);
+      return;
+    }
+
     const initial = readConsent();
     setConsent(initial);
     setReady(true);
@@ -51,7 +58,7 @@ export function AnalyticsConsent() {
     }
   }
 
-  if (!ready || consent !== null) return null;
+  if (!ready || hidden || consent !== null) return null;
 
   return (
     <aside className={styles.panel} aria-label="Preferenze analytics">

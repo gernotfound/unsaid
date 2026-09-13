@@ -2,26 +2,14 @@ import { readFile } from "node:fs/promises";
 import { cert, getApps, initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 
-const files = [
-  "0001-0020.json",
-  "0021-0040.json",
-  "0041-0060.json",
-  "0061-0080.json",
-  "0081-0081.json",
-];
-
 async function readArchive() {
-  const chunks = await Promise.all(
-    files.map(async (file) => {
-      const url = new URL(`../../../data/catalog/${file}`, import.meta.url);
-      return JSON.parse(await readFile(url, "utf8"));
-    }),
-  );
-
-  return chunks.flat();
+  const url = new URL("../../../data/catalog/archive.json", import.meta.url);
+  return JSON.parse(await readFile(url, "utf8"));
 }
 
 function validate(records) {
+  if (!Array.isArray(records)) throw new Error("Catalog source must be an array.");
+
   const ids = new Set();
   const slugs = new Set();
 
@@ -44,14 +32,14 @@ function stats(records) {
     concepts: records.filter((record) => record.status === "concept").length,
     review: records.filter((record) => record.status === "review").length,
     adult: records.filter((record) => record.audience === "18+").length,
-    schemaVersion: 1,
+    schemaVersion: 2,
   };
 }
 
 function phraseDocument(record) {
   return {
     id: record.id,
-    legacyId: record.legacyId,
+    legacyId: record.legacyId ?? "",
     frontText: record.phrase,
     backText: record.backPhrase,
     language: record.language,
@@ -60,7 +48,7 @@ function phraseDocument(record) {
     editorialStatus: record.status === "review" ? "needs_review" : "approved",
     publishable: record.publishable,
     notes: record.notes,
-    schemaVersion: 1,
+    schemaVersion: 2,
   };
 }
 
@@ -77,7 +65,7 @@ function productDocument(record) {
     color: record.color,
     views: record.views,
     images: record.images,
-    schemaVersion: 1,
+    schemaVersion: 2,
   };
 }
 
@@ -115,18 +103,24 @@ if (!shouldWrite) {
   process.exit(0);
 }
 
-const db = firestore();
-const batch = db.batch();
-
-for (const record of records) {
-  batch.set(db.collection("phrases").doc(record.id), phraseDocument(record));
-  batch.set(db.collection("products").doc(record.id), productDocument(record));
-  batch.set(db.collection("catalog").doc(record.id), { ...record, schemaVersion: 1 });
+if (!records.length) {
+  throw new Error("Archive is empty. Refusing to seed Firestore until real UNSAID records are present.");
 }
 
-batch.set(db.doc("meta/catalogStats"), archiveStats);
-await batch.commit();
+const db = firestore();
 
-console.log(
-  `[UNSAID] Firestore seeded: ${records.length * 3 + 1} document writes across phrases, products, catalog and meta.`,
-);
+for (let index = 0; index < records.length; index += 100) {
+  const chunk = records.slice(index, index + 100);
+  const batch = db.batch();
+
+  for (const record of chunk) {
+    batch.set(db.collection("phrases").doc(record.id), phraseDocument(record));
+    batch.set(db.collection("products").doc(record.id), productDocument(record));
+    batch.set(db.collection("catalog").doc(record.id), { ...record, schemaVersion: 2 });
+  }
+
+  await batch.commit();
+}
+
+await db.doc("meta/catalogStats").set(archiveStats);
+console.log(`[UNSAID] Firestore seeded from ${records.length} real catalog records.`);

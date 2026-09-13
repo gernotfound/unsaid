@@ -10,6 +10,7 @@ export const metadata: Metadata = {
 
 export default async function ShopPage() {
   const [stats, records] = await Promise.all([getCatalogStats(), listPublicCatalog()]);
+  const empty = stats.public === 0;
 
   return (
     <main id="main" className="shop-page">
@@ -17,7 +18,9 @@ export default async function ShopPage() {
         <p className="eyebrow">PUBLIC ARCHIVE / {stats.public} RECORDS</p>
         <h1>EVERYTHING<br />WE <em>COULD</em> SAY.</h1>
         <p>
-          Un archivio vivo. I concept restano visibili mentre vengono disegnati; i render approvati sono già predisposti per taglie e carrello, ma lo shop {FEATURES.shopEnabled ? "è attivo" : "non è ancora attivo"}.
+          {empty
+            ? "L'archivio pubblico è in preparazione. Il catalogo di test è stato rimosso e qui entreranno solo le frasi reali selezionate per UNSAID."
+            : `Un archivio vivo. I concept restano visibili mentre vengono disegnati; i render approvati sono predisposti per taglie e carrello, ma lo shop ${FEATURES.shopEnabled ? "è attivo" : "non è ancora attivo"}.`}
         </p>
       </header>
       <CatalogClient initialRecords={records} />

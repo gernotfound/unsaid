@@ -1,8 +1,4 @@
-import chunk0001 from "../../../data/catalog/0001-0020.json";
-import chunk0021 from "../../../data/catalog/0021-0040.json";
-import chunk0041 from "../../../data/catalog/0041-0060.json";
-import chunk0061 from "../../../data/catalog/0061-0080.json";
-import chunk0081 from "../../../data/catalog/0081-0081.json";
+import archiveSeed from "../../../data/catalog/archive.json";
 
 export type ArchiveStatus = "ready" | "concept" | "review";
 export type ArchiveAudience = "general" | "18+" | "sensitive" | "review";
@@ -28,13 +24,7 @@ export interface CatalogRecord {
   notes: string;
 }
 
-export const ARCHIVE: readonly CatalogRecord[] = [
-  ...(chunk0001 as unknown as CatalogRecord[]),
-  ...(chunk0021 as unknown as CatalogRecord[]),
-  ...(chunk0041 as unknown as CatalogRecord[]),
-  ...(chunk0061 as unknown as CatalogRecord[]),
-  ...(chunk0081 as unknown as CatalogRecord[]),
-];
+export const ARCHIVE: readonly CatalogRecord[] = archiveSeed as unknown as readonly CatalogRecord[];
 
 export const PUBLIC_ARCHIVE = ARCHIVE.filter((record) => record.publishable);
 export const READY_PRODUCTS = PUBLIC_ARCHIVE.filter((record) => record.status === "ready");
