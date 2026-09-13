@@ -1,25 +1,28 @@
 import type { Metadata } from "next";
-import { PUBLIC_ARCHIVE, archiveStats } from "@unsaid/catalog";
+import { getCatalogStats, listPublicCatalog } from "@unsaid/db";
 import { CatalogClient } from "../../../components/CatalogClient";
+import { FEATURES } from "../../../lib/features";
 
 export const metadata: Metadata = {
-  title: "Shop",
-  description: "L'archivio UNSAID: frasi, concept e t-shirt approvate.",
+  title: "Archive",
+  description: "L'archivio UNSAID: frasi, concept e t-shirt approvate. Lo shop non è ancora attivo.",
 };
 
 export const revalidate = 300;
 
-export default function ShopPage() {
-  const stats = archiveStats();
+export default async function ShopPage() {
+  const [stats, records] = await Promise.all([getCatalogStats(), listPublicCatalog()]);
 
   return (
     <main id="main" className="shop-page">
       <header className="shop-intro">
         <p className="eyebrow">PUBLIC ARCHIVE / {stats.public} RECORDS</p>
         <h1>EVERYTHING<br />WE <em>COULD</em> SAY.</h1>
-        <p>Un archivio vivo. I concept restano visibili mentre vengono disegnati; solo i prodotti con render approvato diventano acquistabili.</p>
+        <p>
+          Un archivio vivo. I concept restano visibili mentre vengono disegnati; i render approvati sono già predisposti per taglie e carrello, ma lo shop {FEATURES.shopEnabled ? "è attivo" : "non è ancora attivo"}.
+        </p>
       </header>
-      <CatalogClient initialRecords={PUBLIC_ARCHIVE} />
+      <CatalogClient initialRecords={records} />
     </main>
   );
 }
