@@ -4,7 +4,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { CatalogRecord } from "@unsaid/catalog";
-import { assetPath } from "../lib/publicPath";
 
 type Props = { initialRecords: readonly CatalogRecord[] };
 type Filter = "all" | "ready" | "rimorchio" | "one-liner" | "pensiero" | "concept" | "pop" | "en";
@@ -113,7 +112,7 @@ export function CatalogClient({ initialRecords }: Props) {
             <article className={`product-card ${index % 11 === 0 ? "product-card--wide" : ""}`} key={record.id}>
               <Link className="product-media" href={`/product/${record.slug}`} aria-label={`Apri ${record.title}`}>
                 {record.status === "ready" && record.images.front ? (
-                  <Image src={assetPath(record.images.front)} alt={`T-shirt ${record.title}, vista frontale`} fill sizes="(max-width: 430px) 100vw, (max-width: 860px) 50vw, (max-width: 1200px) 33vw, 25vw" />
+                  <Image src={record.images.front} alt={`T-shirt ${record.title}, vista frontale`} fill sizes="(max-width: 430px) 100vw, (max-width: 860px) 50vw, (max-width: 1200px) 33vw, 25vw" />
                 ) : (
                   <div className="concept-card">
                     <span>{record.id} / {record.language.toUpperCase()}</span>

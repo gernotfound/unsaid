@@ -1,13 +1,14 @@
 # Catalog source
 
-`archive.json` is the versioned source used by the temporary static storefront and by the Firestore seed/import path.
+`archive.json` is the versioned fallback and Firestore seed/import source.
 
-The previous 81-record catalog was test data and has been removed. The archive intentionally starts empty until the real UNSAID phrases are supplied.
+The previous 81-record catalog was test data and has been removed. New records must come from the real UNSAID archive.
 
-Rules for the next import:
+Rules:
 
 - public IDs use `UNS-xxxx`;
 - one record represents one editorial/product concept;
 - rejected or review-only material must not be public;
 - images are referenced by path/URL and are not stored as Firestore bytes;
-- the database can be seeded from this file, but the public GitHub Pages build continues to use this local source until server hosting returns.
+- `CATALOG_SOURCE=local` uses this snapshot as a development/emergency fallback;
+- `CATALOG_SOURCE=firebase` makes Vercel read the server-side Firestore catalog.

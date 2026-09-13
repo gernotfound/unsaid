@@ -2,7 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@unsaid/domain";
 import { getCatalogStats, listPublicCatalog } from "@unsaid/db";
-import { assetPath } from "../../lib/publicPath";
+
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [stats, records] = await Promise.all([getCatalogStats(), listPublicCatalog()]);
@@ -25,7 +26,7 @@ export default async function HomePage() {
           {featured?.images.front ? (
             <>
               <span className="archive-stamp">{featured.id} / READY</span>
-              <Image src={assetPath(featured.images.front)} alt={`T-shirt UNSAID ${featured.title}`} width={900} height={1125} priority sizes="(max-width: 860px) 100vw, 44vw" />
+              <Image src={featured.images.front} alt={`T-shirt UNSAID ${featured.title}`} width={900} height={1125} priority sizes="(max-width: 860px) 100vw, 44vw" />
               <span className="media-caption">front / approved render</span>
             </>
           ) : (

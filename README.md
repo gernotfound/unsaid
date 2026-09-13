@@ -10,7 +10,7 @@ TypeScript monorepo for the UNSAID editorial streetwear archive.
 - `apps/worker` — asynchronous render/image/email boundary
 - `packages/domain` — brand and business contracts
 - `packages/db` — Firebase Admin / Firestore adapter and seed tooling
-- `packages/catalog` — catalog contracts and local static source
+- `packages/catalog` — catalog contracts and local fallback source
 - `packages/ui` — shared UI boundary
 - `data/catalog/archive.json` — versioned catalog source
 - `docs` — architecture, admin, scaling, render and security decisions
@@ -18,9 +18,7 @@ TypeScript monorepo for the UNSAID editorial streetwear archive.
 
 ## Current archive state
 
-The previous 81-record archive was test data and has been removed. The repository now starts from an intentionally empty `data/catalog/archive.json` and will be populated only with the real UNSAID phrases.
-
-The public archive therefore currently renders an intentional empty state rather than placeholder products.
+The previous 81-record archive was test data and has been removed. The repository starts from the real UNSAID catalog only; placeholder records are not restored.
 
 ## Storefront status
 
@@ -29,28 +27,27 @@ The web app includes:
 - branded editorial homepage;
 - `/shop` as the public archive while commerce is disabled;
 - responsive phone/tablet/landscape layouts;
-- search, filters, sorting and 18+ controls once records exist;
-- product detail routes generated from the current public archive;
+- search, filters, sorting and 18+ controls;
+- product detail routes resolved by Next.js at runtime;
 - Firebase Analytics behind explicit consent;
-- `/admin/` control room prepared for Firebase Authentication and Firestore;
+- `/admin/` control room with Firebase Authentication and Firestore;
 - local catalog fallback through `CATALOG_SOURCE=local`;
-- branded 404, draft legal pages, metadata and favicon;
-- GitHub Actions CI and GitHub Pages deployment.
+- branded 404, legal drafts, metadata and favicon;
+- GitHub Actions CI for validation/build only.
 
 The shop remains intentionally **off**:
 
 ```env
 NEXT_PUBLIC_SHOP_ENABLED=false
-CATALOG_SOURCE=local
 ```
 
 ## Firebase
 
 Project: `unsaid-54c7e`, Firestore Standard in `europe-west8`.
 
-Direct browser Firestore access remains deny-all until the owner Authentication UID is explicitly authorized. Server-only credentials never use the `NEXT_PUBLIC_` prefix.
+The admin authenticates through Firebase Email/Password. Public storefront reads can move to Firebase Admin server-side by setting `CATALOG_SOURCE=firebase` once the server credentials are configured in Vercel.
 
-The control room can authenticate first and show the account UID while Firestore is still locked. That is the intended bootstrap sequence.
+Server-only credentials never use the `NEXT_PUBLIC_` prefix and must never be committed.
 
 ## Local development
 
@@ -66,10 +63,10 @@ Catalog seed validation:
 pnpm --filter @unsaid/db seed:catalog
 ```
 
-The seed command refuses to write when the archive is empty.
+## Deployment
 
-## Temporary deployment
+Production target: **Vercel**.
 
-The current public site is built as a static export and deployed with GitHub Pages. This temporary deployment deliberately keeps the catalog local and commerce disabled.
+The app now uses native Next.js deployment: no static export, no repository `basePath`, no GitHub Pages workflow and no Pages-specific asset rewriting. Home, archive and product pages use a short revalidation window so a Firestore-backed catalog can update without requiring a deployment for every editorial change.
 
-A server deployment will be reintroduced later for cached Firestore-backed public reads and commerce. Vercel is not part of the current working loop.
+The repository may be private; the Vercel Git integration simply needs permission to access it.

@@ -5,7 +5,6 @@ import { AnalyticsConsent } from "../components/AnalyticsConsent";
 import { MobileDock } from "../components/MobileDock";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
-import { assetPath } from "../lib/publicPath";
 import "./styles.css";
 import "./mobile.css";
 import "./responsive-polish.css";
@@ -26,7 +25,7 @@ export const metadata: Metadata = {
   title: { default: BRAND.name, template: `%s — ${BRAND.name}` },
   description: `${BRAND.tagline} ${BRAND.description}`,
   applicationName: BRAND.name,
-  icons: { icon: assetPath("/favicon.svg") },
+  icons: { icon: "/favicon.svg" },
   openGraph: {
     type: "website",
     title: BRAND.name,

@@ -3,6 +3,8 @@ import { getCatalogStats, listPublicCatalog } from "@unsaid/db";
 import { CatalogClient } from "../../../components/CatalogClient";
 import { FEATURES } from "../../../lib/features";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Archive",
   description: "L'archivio UNSAID: frasi, concept e t-shirt approvate. Lo shop non è ancora attivo.",
