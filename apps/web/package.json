@@ -12,6 +12,7 @@
     "react": "latest",
     "react-dom": "latest",
     "zod": "latest",
+    "@unsaid/catalog": "workspace:*",
     "@unsaid/domain": "workspace:*"
   },
   "devDependencies": {
