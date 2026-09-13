@@ -10,14 +10,14 @@ Production-oriented TypeScript monorepo for the UNSAID streetwear catalog.
 - `apps/worker` — asynchronous render/image/email job boundary
 - `packages/domain` — brand and business contracts
 - `packages/db` — PostgreSQL schema
-- `packages/catalog` — catalog/search contracts
+- `packages/catalog` — catalog/search contracts and archive loader
 - `packages/ui` — shared UI package boundary
 - `data/catalog` — complete 81-concept creative archive, versioned as migration/seed data
 - `apps/web/public/products/UNS-0001` — approved FRONTE / RETRO front/back assets
 - `docs` — architecture, scaling, brand, data model, render pipeline and security decisions
 - `DESIGN.md` — authoritative visual contract
 
-The earlier static prototype informed the visual contract and OpenDesign audit, but `apps/web` is the only application source of truth going forward. This avoids maintaining two storefront implementations while the Next.js version evolves.
+The earlier static prototype informed the visual contract and OpenDesign audit, but `apps/web` is now the only application source of truth.
 
 ## Brand
 
@@ -26,9 +26,23 @@ The earlier static prototype informed the visual contract and OpenDesign audit, 
 
 Public product IDs use `UNS-xxxx`. Historical prototype IDs are retained as `legacyId` only in migration data.
 
+## Storefront now implemented
+
+The Next.js app already includes:
+
+- branded editorial homepage;
+- `/shop` with live search, category filters, sorting and an explicit 18+ visibility control;
+- progressive catalog rendering so the browser does not mount the full archive at once;
+- `/product/[slug]` routes for every public archive record;
+- approved front/back gallery for `UNS-0001`;
+- concept views for products whose render does not exist yet;
+- branded 404, draft legal pages, metadata and favicon;
+- GitHub Actions CI for install, typecheck and production build.
+
 ## Local development
 
 ```bash
+corepack enable
 pnpm install
 docker compose -f infra/docker-compose.dev.yml up -d
 pnpm dev
@@ -42,4 +56,4 @@ UNSAID starts as a modular monolith: stateless Next.js web, PostgreSQL, object s
 
 ## Current status
 
-The repository is an architecture-first foundation. The catalog model, brand contract, product assets and phrase archive are in place. Storefront implementation can now evolve directly in `apps/web` without changing the underlying data or scaling boundaries.
+The visual storefront and catalog navigation are in place. Commerce, authentication and database-backed administration remain intentionally disconnected until the product/catalog workflow is approved.
