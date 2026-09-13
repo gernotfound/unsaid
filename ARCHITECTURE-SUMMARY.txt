@@ -1,7 +1,10 @@
-Browser -> CDN -> Next.js -> PostgreSQL
-                    |-> Redis/KV (ephemeral)
-                    |-> Object storage/CDN (images)
-                    |-> Payment provider
-                    |-> Queue -> Worker -> image generation/storage/db
+Browser -> Vercel CDN -> Next.js -> Firebase / Firestore
+                          |-> Firebase Storage / image CDN (future)
+                          |-> Payment provider (disabled for now)
+                          |-> Queue -> Worker -> image generation/storage/db
 
-Key rule: stateless web + cache public reads + async render pipeline.
+Key rules:
+- shop is feature-flagged off by default
+- Firestore is accessed server-side through Firebase Admin
+- local JSON remains the safe catalog fallback until Firebase is configured
+- public reads should be cached; render work stays asynchronous
