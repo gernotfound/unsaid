@@ -1,0 +1,8 @@
+{
+  "name": "@unsaid/db",
+  "private": true,
+  "type": "module",
+  "scripts": { "typecheck": "tsc --noEmit -p tsconfig.json", "build": "tsc -p tsconfig.json" },
+  "dependencies": { "drizzle-orm": "latest", "postgres": "latest" },
+  "devDependencies": { "typescript": "latest" }
+}

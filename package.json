@@ -1,0 +1,10 @@
+{
+  "name": "unsaid",
+  "private": true,
+  "packageManager": "pnpm@10",
+  "scripts": {
+    "dev": "pnpm --filter @unsaid/web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

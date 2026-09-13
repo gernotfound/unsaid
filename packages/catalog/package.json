@@ -1,0 +1,1 @@
+{"name":"@unsaid/catalog","private":true,"type":"module","exports":{".":"./src/index.ts"},"scripts":{"typecheck":"tsc --noEmit -p tsconfig.json","build":"tsc -p tsconfig.json"},"dependencies":{"@unsaid/domain":"workspace:*"},"devDependencies":{"typescript":"latest"}}

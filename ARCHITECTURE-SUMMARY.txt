@@ -1,0 +1,7 @@
+Browser -> CDN -> Next.js -> PostgreSQL
+                    |-> Redis/KV (ephemeral)
+                    |-> Object storage/CDN (images)
+                    |-> Payment provider
+                    |-> Queue -> Worker -> image generation/storage/db
+
+Key rule: stateless web + cache public reads + async render pipeline.
