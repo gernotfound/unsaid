@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "pnpm --filter @unsaid/web dev",
     "build": "pnpm --filter @unsaid/web build",
-    "typecheck": "pnpm -r typecheck"
+    "typecheck": "pnpm -r typecheck",
+    "seed:firestore:check": "pnpm --filter @unsaid/db seed:catalog",
+    "seed:firestore": "pnpm --filter @unsaid/db seed:catalog -- --write"
   }
 }

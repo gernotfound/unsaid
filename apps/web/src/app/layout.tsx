@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { BRAND } from "@unsaid/domain";
+import { AnalyticsConsent } from "../components/AnalyticsConsent";
 import { MobileDock } from "../components/MobileDock";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
@@ -41,6 +42,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         {children}
         <SiteFooter />
         <MobileDock />
+        <AnalyticsConsent />
       </body>
     </html>
   );

@@ -12,6 +12,7 @@
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
+    "firebase": "latest",
     "zod": "latest",
     "@unsaid/catalog": "workspace:*",
     "@unsaid/db": "workspace:*",
