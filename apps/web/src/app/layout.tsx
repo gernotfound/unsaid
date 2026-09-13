@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { BRAND } from "@unsaid/domain";
 import { SiteFooter } from "../components/SiteFooter";
 import { SiteHeader } from "../components/SiteHeader";
+import { assetPath } from "../lib/publicPath";
 import "./styles.css";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   title: { default: BRAND.name, template: `%s — ${BRAND.name}` },
   description: `${BRAND.tagline} ${BRAND.description}`,
   applicationName: BRAND.name,
-  icons: { icon: "/favicon.svg" },
+  icons: { icon: assetPath("/favicon.svg") },
   openGraph: {
     type: "website",
     title: BRAND.name,

@@ -8,8 +8,6 @@ export const metadata: Metadata = {
   description: "L'archivio UNSAID: frasi, concept e t-shirt approvate. Lo shop non è ancora attivo.",
 };
 
-export const revalidate = 300;
-
 export default async function ShopPage() {
   const [stats, records] = await Promise.all([getCatalogStats(), listPublicCatalog()]);
 

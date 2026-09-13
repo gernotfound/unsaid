@@ -5,8 +5,11 @@ import { getPublicProductBySlug, listPublicCatalog } from "@unsaid/db";
 import { CommerceControls } from "../../../../components/CommerceControls";
 import { ProductGallery } from "../../../../components/ProductGallery";
 import { FEATURES } from "../../../../lib/features";
+import { assetPath } from "../../../../lib/publicPath";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
+
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const records = await listPublicCatalog();
@@ -35,7 +38,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <div className="product-detail">
         <div className="product-detail__media">
           {ready && product.images.front ? (
-            <ProductGallery title={product.title} front={product.images.front} back={product.images.back} />
+            <ProductGallery
+              title={product.title}
+              front={assetPath(product.images.front)}
+              back={product.images.back ? assetPath(product.images.back) : null}
+            />
           ) : (
             <div className="concept-detail">
               <span>{product.id} / {product.language.toUpperCase()}</span>

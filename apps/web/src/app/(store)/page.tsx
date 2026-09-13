@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@unsaid/domain";
 import { getCatalogStats, listPublicCatalog } from "@unsaid/db";
+import { assetPath } from "../../lib/publicPath";
 
 export default async function HomePage() {
   const [stats, records] = await Promise.all([getCatalogStats(), listPublicCatalog()]);
@@ -22,7 +23,7 @@ export default async function HomePage() {
         </div>
         <div className="home-hero__media">
           <span className="archive-stamp">UNS-0001 / READY</span>
-          <Image src="/products/UNS-0001/front.webp" alt="T-shirt bianca UNSAID con la scritta FRONTE" width={900} height={1125} priority sizes="(max-width: 800px) 100vw, 44vw" />
+          <Image src={assetPath("/products/UNS-0001/front.webp")} alt="T-shirt bianca UNSAID con la scritta FRONTE" width={900} height={1125} priority sizes="(max-width: 800px) 100vw, 44vw" />
           <span className="media-caption">front / approved render</span>
         </div>
       </section>
