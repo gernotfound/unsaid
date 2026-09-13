@@ -9,10 +9,10 @@ export function SiteHeader() {
           {BRAND.name}<span aria-hidden="true">.</span>
         </Link>
         <nav className="main-nav" aria-label="Navigazione principale">
-          <Link href="/shop">Shop</Link>
+          <Link href="/shop">Archive</Link>
           <Link href="/#manifesto">Manifesto</Link>
         </nav>
-        <Link className="header-cta" href="/shop">Archive ↗</Link>
+        <span className="header-cta" aria-disabled="true" title="Shop non ancora attivo">Shop / soon</span>
       </div>
     </header>
   );
