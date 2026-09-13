@@ -1,0 +1,10 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // The storefront reads Firestore through the Firebase Admin SDK on Vercel.
+    // Direct browser access stays closed until authentication/client features exist.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
