@@ -4,6 +4,7 @@ export const COMMERCE_POLICY = {
   market: "IT",
   currency: "EUR",
   requiresAccount: true,
+  requiresVerifiedEmail: true,
   catalogMode: "continuous",
   allowedShippingCountries: ["IT"],
 } as const;
@@ -39,6 +40,18 @@ export interface InventorySnapshot {
   variantId: string;
   onHand: number;
   reserved: number;
+  updatedAt: string;
+}
+
+export type InventoryReservationStatus = "active" | "released" | "committed";
+
+export interface InventoryReservation {
+  id: string;
+  orderId: string;
+  variantId: string;
+  quantity: number;
+  status: InventoryReservationStatus;
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -118,13 +131,31 @@ export interface InventoryRepository {
   getAvailability(variantId: string): Promise<InventorySnapshot | null>;
   reserve(input: { variantId: string; quantity: number; orderId: string }): Promise<void>;
   release(input: { variantId: string; quantity: number; orderId: string }): Promise<void>;
+  commit(input: { variantId: string; quantity: number; orderId: string }): Promise<void>;
 }
 
 export interface OrderRepository {
   getById(orderId: string): Promise<Order | null>;
+  listByCustomer(customerId: string, limit?: number): Promise<readonly Order[]>;
   create(order: Order): Promise<void>;
   updateStatus(orderId: string, status: OrderStatus): Promise<void>;
 }
+
+export interface SellableProductRepository {
+  getProduct(catalogId: string): Promise<SellableProduct | null>;
+  listVariants(catalogId: string): Promise<readonly SellableVariant[]>;
+}
+
+export interface CheckoutEligibilityInput {
+  commerceEnabled: boolean;
+  authenticated: boolean;
+  emailVerified: boolean;
+  shippingCountry?: string;
+}
+
+export type CheckoutEligibility =
+  | { allowed: true }
+  | { allowed: false; reason: "commerce_disabled" | "account_required" | "email_unverified" | "country_unsupported" };
 
 export function isAllowedShippingCountry(value: string): value is SalesCountry {
   return COMMERCE_POLICY.allowedShippingCountries.includes(value as SalesCountry);
@@ -132,4 +163,18 @@ export function isAllowedShippingCountry(value: string): value is SalesCountry {
 
 export function availableInventory(snapshot: Pick<InventorySnapshot, "onHand" | "reserved">) {
   return Math.max(0, snapshot.onHand - snapshot.reserved);
+}
+
+export function checkoutEligibility(input: CheckoutEligibilityInput): CheckoutEligibility {
+  if (!input.commerceEnabled) return { allowed: false, reason: "commerce_disabled" };
+  if (COMMERCE_POLICY.requiresAccount && !input.authenticated) {
+    return { allowed: false, reason: "account_required" };
+  }
+  if (COMMERCE_POLICY.requiresVerifiedEmail && !input.emailVerified) {
+    return { allowed: false, reason: "email_unverified" };
+  }
+  if (input.shippingCountry && !isAllowedShippingCountry(input.shippingCountry)) {
+    return { allowed: false, reason: "country_unsupported" };
+  }
+  return { allowed: true };
 }
