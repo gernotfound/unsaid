@@ -1,13 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@unsaid/domain";
+import { primaryAsset } from "@unsaid/catalog";
 import { getCatalogStats, listPublicCatalog } from "@unsaid/db";
 
-export const revalidate = 60;
+export const revalidate = 300;
 
 export default async function HomePage() {
   const [stats, records] = await Promise.all([getCatalogStats(), listPublicCatalog()]);
-  const featured = records.find((record) => record.status === "ready" && record.images.front);
+  const featured = records.find((record) => primaryAsset(record));
+  const featuredAsset = featured ? primaryAsset(featured) : null;
 
   return (
     <main id="main">
@@ -23,27 +25,23 @@ export default async function HomePage() {
           </div>
         </div>
         <div className="home-hero__media">
-          {featured?.images.front ? (
+          {featured && featuredAsset ? (
             <>
-              <span className="archive-stamp">{featured.id} / READY</span>
-              <Image src={featured.images.front} alt={`T-shirt UNSAID ${featured.title}`} width={900} height={1125} priority sizes="(max-width: 860px) 100vw, 44vw" />
-              <span className="media-caption">front / approved render</span>
+              <span className="archive-stamp">{featured.id} / PUBLISHED</span>
+              <Image src={featuredAsset} alt={`T-shirt UNSAID ${featured.title}`} width={600} height={750} priority unoptimized={featuredAsset.startsWith("http")} sizes="(max-width: 860px) 100vw, 44vw" />
+              <span className="media-caption">{featured.primaryView} / approved render</span>
             </>
           ) : (
-            <div className="archive-empty-media" aria-label="Archivio in preparazione">
-              <span>ARCHIVE / 000</span>
-              <strong>EMPTY<br />BY DESIGN.</strong>
-              <p>La selezione reale arriverà qui.</p>
-            </div>
+            <div className="archive-empty-media" aria-label="Archivio in preparazione"><span>ARCHIVE / 000</span><strong>EMPTY<br />BY DESIGN.</strong><p>La selezione reale arriverà qui.</p></div>
           )}
         </div>
       </section>
 
       <section className="stat-strip" aria-label="Stato archivio">
-        <div><strong>{stats.total}</strong><span>idee archiviate</span></div>
+        <div><strong>{stats.public}</strong><span>maglie pubblicate</span></div>
         <div><strong>{stats.ready}</strong><span>render approvati</span></div>
-        <div><strong>{stats.concepts}</strong><span>concept da lavorare</span></div>
-        <div><strong>{stats.adult}</strong><span>concept 18+</span></div>
+        <div><strong>{stats.adult}</strong><span>contenuti 18+</span></div>
+        <div><strong>{stats.sensitive}</strong><span>contenuti sensibili</span></div>
       </section>
 
       <section className="manifesto" id="manifesto">
@@ -64,7 +62,7 @@ export default async function HomePage() {
           <article><span>01</span><h3>Unsaid</h3><p>La frase entra nell&apos;archivio con un ID permanente.</p></article>
           <article><span>02</span><h3>Designed</h3><p>Decidiamo gerarchia, posizione, colore e fronte/retro.</p></article>
           <article><span>03</span><h3>Rendered</h3><p>Il testo segue davvero pieghe e volume del tessuto.</p></article>
-          <article><span>04</span><h3>Worn</h3><p>Solo il render approvato può diventare prodotto.</p></article>
+          <article><span>04</span><h3>Published</h3><p>Solo i render approvati entrano nell&apos;archivio pubblico.</p></article>
         </div>
       </section>
     </main>

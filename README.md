@@ -8,34 +8,27 @@ TypeScript monorepo for the UNSAID editorial streetwear archive.
 
 - `apps/web` — Next.js storefront and control room
 - `apps/worker` — asynchronous render/image/email boundary
-- `packages/domain` — brand and business contracts
+- `packages/domain` — brand and commerce contracts
 - `packages/db` — Firebase Admin / Firestore adapter and seed tooling
 - `packages/catalog` — catalog contracts and local fallback source
 - `packages/ui` — shared UI boundary
-- `data/catalog/archive.json` — versioned catalog source
-- `docs` — architecture, admin, scaling, render and security decisions
-- `DESIGN.md` — authoritative visual contract
+- `data/catalog/archive.json` — versioned catalog snapshot / bootstrap seed
+- `docs` — architecture, admin and security decisions
+- `DESIGN.md` — visual contract
 
-## Current archive state
+## Catalog architecture
 
-The previous 81-record archive was test data and has been removed. The repository starts from the real UNSAID catalog only; placeholder records are not restored.
+The old test archive is gone. The catalog contains only real UNSAID records.
 
-## Storefront status
+A T-shirt is one canonical `catalog/{id}` Firestore document. Published records are projected to `publicCatalog/{id}` without internal notes or revision metadata. IDs are allocated transactionally and are never reused. Slugs have their own uniqueness/tombstone collection and every save increments a revision so stale admin sessions cannot silently overwrite newer work.
 
-The web app includes:
+The checked-in JSON is a bootstrap/fallback snapshot, not a second editorial database. Once Vercel has Firebase Admin credentials, set `CATALOG_SOURCE=firebase` and the storefront reads the published projection server-side.
 
-- branded editorial homepage;
-- `/shop` as the public archive while commerce is disabled;
-- responsive phone/tablet/landscape layouts;
-- search, filters, sorting and 18+ controls;
-- product detail routes resolved by Next.js at runtime;
-- Firebase Analytics behind explicit consent;
-- `/admin/` control room with Firebase Authentication and Firestore;
-- local catalog fallback through `CATALOG_SOURCE=local`;
-- branded 404, legal drafts, metadata and favicon;
-- GitHub Actions CI for validation/build only.
+## Storefront
 
-The shop remains intentionally **off**:
+The web app includes a branded homepage, `/shop` archive search/filtering, product pages with independent front/back views, responsive layouts, Firebase Analytics behind consent, and `/admin/` with Firebase Authentication + Firestore.
+
+The shop remains intentionally off:
 
 ```env
 NEXT_PUBLIC_SHOP_ENABLED=false
@@ -45,7 +38,7 @@ NEXT_PUBLIC_SHOP_ENABLED=false
 
 Project: `unsaid-54c7e`, Firestore Standard in `europe-west8`.
 
-The admin authenticates through Firebase Email/Password. Public storefront reads can move to Firebase Admin server-side by setting `CATALOG_SOURCE=firebase` once the server credentials are configured in Vercel.
+The admin authenticates through Firebase Email/Password. Browser Firestore access is limited to the owner/admin allowlist. Anonymous storefront traffic does not read Firestore directly; when `CATALOG_SOURCE=firebase`, Vercel reads `publicCatalog` through Firebase Admin.
 
 Server-only credentials never use the `NEXT_PUBLIC_` prefix and must never be committed.
 
@@ -57,16 +50,22 @@ pnpm install
 pnpm dev
 ```
 
-Catalog seed validation:
+Validate the versioned catalog without writing to Firebase:
 
 ```bash
-pnpm --filter @unsaid/db seed:catalog
+pnpm seed:firestore:check
+```
+
+Trusted server-side initial seed:
+
+```bash
+pnpm seed:firestore
 ```
 
 ## Deployment
 
-Production target: **Vercel**.
+Production target: **Vercel** — `https://unsaid-gnf.vercel.app/`.
 
-The app now uses native Next.js deployment: no static export, no repository `basePath`, no GitHub Pages workflow and no Pages-specific asset rewriting. Home, archive and product pages use a short revalidation window so a Firestore-backed catalog can update without requiring a deployment for every editorial change.
+The repository uses native Next.js deployment: no static export, GitHub Pages workflow or repository base path. Storefront pages use a five-minute revalidation window to keep Firestore reads bounded when the remote source is enabled.
 
-The repository may be private; the Vercel Git integration simply needs permission to access it.
+The repository can remain private as long as the Vercel Git integration retains access.

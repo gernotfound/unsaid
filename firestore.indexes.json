@@ -1,13 +1,4 @@
 {
-  "indexes": [
-    {
-      "collectionGroup": "catalog",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "publishable", "order": "ASCENDING" },
-        { "fieldPath": "slug", "order": "ASCENDING" }
-      ]
-    }
-  ],
+  "indexes": [],
   "fieldOverrides": []
 }

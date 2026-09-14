@@ -1,14 +1,15 @@
 # Catalog source
 
-`archive.json` is the versioned fallback and Firestore seed/import source.
-
-The previous 81-record catalog was test data and has been removed. New records must come from the real UNSAID archive.
+`archive.json` is the versioned bootstrap/fallback snapshot. It contains only real UNSAID records; the old test archive is not restored.
 
 Rules:
 
-- public IDs use `UNS-xxxx`;
-- one record represents one editorial/product concept;
-- rejected or review-only material must not be public;
-- images are referenced by path/URL and are not stored as Firestore bytes;
+- public IDs use monotonic `UNS-xxxx` sequences and are never reused;
+- one record represents one complete T-shirt editorial aggregate;
+- front and back copy/media are independent;
+- `published` is the only public lifecycle state;
+- one-sided designs still reference an approved blank garment image on the unprinted side;
+- prices are integer cents (`priceCents`), never floating-point currency;
+- image bytes live in `apps/web/public/products` (or a future CDN), not Firestore;
 - `CATALOG_SOURCE=local` uses this snapshot as a development/emergency fallback;
-- `CATALOG_SOURCE=firebase` makes Vercel read the server-side Firestore catalog.
+- `CATALOG_SOURCE=firebase` makes Vercel read `publicCatalog` server-side.

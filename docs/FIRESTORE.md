@@ -1,69 +1,48 @@
 # Firestore — UNSAID
 
-Firestore is the editorial source of truth, not a database that anonymous visitors access directly.
+Firestore becomes the editorial source of truth when Vercel is configured with Firebase Admin credentials.
 
 ## Project
 
 - Firebase project: `unsaid-54c7e`
-- Region: `europe-west8` (Milan)
-- Database mode: production
-- Authentication: Email/Password for the control room
+- Region: `europe-west8`
+- Authentication: Email/Password for `/admin/`
 - Public runtime: Vercel / Next.js
 
 ## Collections
 
-### `phrases/{id}`
-Creative source. The current model uses the product ID as the phrase ID because the archive is one phrase -> one product today.
+- `catalog/{id}` — canonical private editorial record
+- `publicCatalog/{id}` — published projection without internal notes/revision
+- `slugs/{slug}` — uniqueness lock + deletion tombstone
+- `meta/catalog` — next sequence + aggregate counters
+- `admins/{uid}` — optional additional admin allowlist
 
-Fields include front/back text, language, category, audience, editorial status, publication flag, notes and schema version.
+Schema version: **3**.
 
-### `products/{id}`
-Sellable/editorial design derived from a phrase.
+## Security
 
-Fields include `phraseId`, slug, title, price, product status, publication flag, fit, color, views, image references and schema version.
+The control-room URL is not the security boundary; Firestore Security Rules are. The bootstrap owner UID remains authorized in rules, while extra admin users can be represented by `admins/{uid}` documents.
 
-### `catalog/{id}`
-Denormalized storefront projection matching the current `CatalogRecord` contract. This lets the web application switch between local JSON and Firestore without coupling UI components to Firebase.
+Anonymous browser reads stay closed. Public pages use Firebase Admin server-side, so storefront traffic does not consume Firestore through direct browser reads.
 
-### `meta/catalogStats`
-Precomputed archive counts used by the storefront.
+## Save transaction
 
-## Seed workflow
+Saving a record performs one transaction: read canonical/meta, verify revision, reserve an ID for new records, verify the slug lock, write the canonical record, write/remove the public projection, update the slug lock and aggregate counters.
 
-The checked-in archive remains the reproducible migration/fallback source.
+This prevents duplicate IDs, duplicate slugs and silent concurrent overwrites.
 
-Dry run / validation:
+## Seed / validation
+
+Dry run:
 
 ```bash
 pnpm seed:firestore:check
 ```
 
-Real write, only with Firebase Admin credentials in a trusted server environment:
+Trusted initial write with Firebase Admin credentials:
 
 ```bash
 pnpm seed:firestore
 ```
 
-## Vercel data flow
-
-Keep this while Firebase Admin is not configured:
-
-```env
-CATALOG_SOURCE=local
-```
-
-After adding `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL` and `FIREBASE_PRIVATE_KEY` as server-only Vercel environment variables, switch to:
-
-```env
-CATALOG_SOURCE=firebase
-```
-
-The browser does not receive those credentials. Public pages read Firestore on the server and use Next.js revalidation/caching between Firestore and anonymous traffic.
-
-## Cost discipline
-
-- Do not grant broad anonymous Firestore reads.
-- Read Firestore server-side through Firebase Admin on Vercel.
-- Cache/revalidate public pages instead of reading the entire collection per visitor.
-- Store image references in Firestore, never image bytes.
-- Do not enable Firebase Storage or Functions merely to serve the current archive.
+The seed refuses to write into a non-empty catalog/slug-lock space.

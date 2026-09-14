@@ -1,8 +1,45 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // The storefront reads Firestore through the Firebase Admin SDK on Vercel.
-    // Direct browser access stays closed until authentication/client features exist.
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Bootstrap owner. Additional admins live in /admins/{uid}.
+    function isOwner() {
+      return signedIn() && request.auth.uid == "bFMrDg5iAOcWQ9VZwCuBHDrS1nB3";
+    }
+
+    function isAdmin() {
+      return isOwner() || (
+        signedIn() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    match /catalog/{recordId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Public storefront delivery happens server-side through Firebase Admin.
+    // Browser reads stay closed so anonymous traffic cannot consume Firestore quota.
+    match /publicCatalog/{recordId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /slugs/{slug} {
+      allow read, write: if isAdmin();
+    }
+
+    match /meta/{documentId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /admins/{uid} {
+      allow read: if isAdmin();
+      allow write: if isOwner();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

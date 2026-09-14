@@ -1,37 +1,41 @@
 # UNSAID Admin
 
-The control room lives at `/admin/` and is intentionally separate from the public archive.
+The control room lives at `/admin/`. It is an editorial system, not a second storefront.
 
-## Current phase
+## Editorial aggregate
 
-- Production runs on Vercel.
-- The control room uses Firebase Authentication plus the Firebase Web SDK.
-- Authenticated admin writes go to Firestore.
-- Shop and checkout stay disabled.
-- Firebase Storage and Cloud Functions are not required.
+Each T-shirt is edited as one canonical object: title and slug, copy for front/back, language, category, audience, lifecycle, primary archive view, front/back render state, garment data, optional future price and internal notes.
 
-## Security
+Lifecycle:
 
-The `/admin/` URL is not the security boundary. Firestore Security Rules are.
+`draft -> review -> render_ready -> published -> archived`
 
-Only the authorized Firebase Authentication UID may read/write the editorial collections. Never authorize by email in Firestore rules. Never commit passwords, service-account JSON or private keys.
+There is no independent `publishable` flag. `published` is the only public state, which removes contradictory combinations.
 
-## Editing model
+## IDs, slugs and concurrency
 
-The current control room supports:
+New IDs are allocated from `meta/catalog.nextSequence` in a Firestore transaction. `UNS-xxxx` identifiers are stable and are never recycled after deletion.
 
-- title and front/back phrase;
-- category and language;
-- audience (`general`, `18+`, `sensitive`, `review`);
-- editorial/product state;
-- price, fit and color;
-- front/back media references;
-- notes and publication flag.
+Every canonical record has a numeric `revision`. Saving compares the editor revision with Firestore before writing. A stale session is rejected rather than silently overwriting a newer save.
 
-A save updates `phrases`, `products`, `catalog` and `meta/catalogStats` together in a Firestore batch. Stable IDs remain `UNS-xxxx`; new records can be created directly from the control room.
+`slugs/{slug}` is a uniqueness lock. Permanent deletion turns the lock into a tombstone instead of freeing the public URL, so deleted slugs are not reused.
 
-## Public delivery
+## Front / back media
 
-Vercel is the public runtime. Until Firebase Admin credentials are configured, `CATALOG_SOURCE=local` remains the safe fallback. Once `CATALOG_SOURCE=firebase` is enabled in Vercel, the public app reads Firestore only server-side through Firebase Admin.
+A published or render-ready product requires both front and back assets in `approved` state. One-sided designs still have two product images: the unprinted side can reference `/products/base/front-white.webp` or `/products/base/back-white.webp`.
 
-Home, archive and product routes use Next.js revalidation so repeated public requests are served through the application/cache layer instead of forcing a full catalog read for every visitor.
+If a side contains copy it cannot be marked as a blank base.
+
+## Archive vs delete
+
+**Archive** sets lifecycle to `archived`: the canonical record stays in Firestore but its public projection is removed.
+
+**Delete permanently** removes canonical/public documents, but keeps the ID high-water mark and slug tombstone. Neither identity is reused.
+
+## Scale
+
+Admin browsing is paginated in blocks of 50. Search queries Firestore through indexed `searchTokens` instead of downloading the whole catalog. The storefront uses a server-side published projection and a local versioned fallback.
+
+## Import
+
+The checked-in `data/catalog/archive.json` can bootstrap an empty Firestore catalog from the control room. Import is refused if canonical records or slug locks already exist. After bootstrap, Firestore is the editorial source of truth.

@@ -1,14 +1,27 @@
 # Data model
 
-A **phrase is not a product**. Phrase = creative source. Product = sellable design derived from a phrase. This permits multiple layouts/colorways/garments from one phrase.
+## `catalog/{id}` — canonical private aggregate
 
-- `phrases`: front/back copy, language, tags, rating, editorial review.
-- `products`: public ID/slug, phrase, state, price, fit, publication.
-- `variants`: SKU, color, size, inventory.
-- `product_assets`: immutable front/back/detail/lifestyle media.
-- `render_jobs`: generation attempts and review lifecycle.
-- `orders` / `order_items`: commercial snapshots.
+One document per T-shirt. It contains permanent `id` + numeric `sequence`, stable unique `slug`, title, front/back copy, language/category/audience, lifecycle, primary view, front/back media state, garment fit/color, optional integer-cent price, internal notes, revision/timestamps and indexed search tokens.
 
-State machine: `idea -> designing -> rendering -> ready -> published -> archived`.
+Keeping the editorial object in one aggregate makes a save atomic and removes the previous phrase/product/catalog drift.
 
-Media: front/back are separate assets; database stores metadata/keys, not image bytes; approved asset URLs are immutable/content-hashed.
+## `publicCatalog/{id}` — public projection
+
+Exists only for canonical records with `status: published`. Internal notes and revision are omitted. Vercel reads this collection server-side with Firebase Admin.
+
+## `slugs/{slug}`
+
+Uniqueness lock and tombstone mapping a public slug to one catalog ID. Deleted URLs remain reserved.
+
+## `meta/catalog`
+
+Holds `nextSequence` plus aggregate counters used by admin/storefront. The sequence only moves forward.
+
+## `admins/{uid}`
+
+Optional allowlist for additional control-room users. The bootstrap owner UID remains a Security Rules fallback; the owner can add or revoke other admins without changing application code.
+
+## Future commerce
+
+Inventory, variants, orders and payment state stay separate from the editorial catalog. Stable catalog IDs are the join key; mutable stock/order state must not be embedded in the T-shirt document.
