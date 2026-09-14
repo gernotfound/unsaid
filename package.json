@@ -2,11 +2,19 @@
   "name": "unsaid",
   "private": true,
   "packageManager": "pnpm@10.17.1",
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "pnpm --filter @unsaid/web dev",
     "build": "pnpm --filter @unsaid/web build",
     "typecheck": "pnpm -r typecheck",
+    "test": "tsx --test packages/domain/test/*.test.ts",
+    "check:dependencies": "node scripts/check-dependencies.mjs",
     "seed:firestore:check": "pnpm --filter @unsaid/db seed:catalog",
     "seed:firestore": "pnpm --filter @unsaid/db seed:catalog -- --write"
+  },
+  "devDependencies": {
+    "tsx": "catalog:"
   }
 }
