@@ -1,5 +1,8 @@
 import type { CustomerAddress } from "./account";
 
+export const GARMENT_COLORS = ["white", "black"] as const;
+export const GARMENT_SIZES = ["XS", "S", "M", "L", "XL", "XXL"] as const;
+
 export const COMMERCE_POLICY = {
   market: "IT",
   currency: "EUR",
@@ -11,8 +14,8 @@ export const COMMERCE_POLICY = {
 
 export type SalesCountry = (typeof COMMERCE_POLICY.allowedShippingCountries)[number];
 export type Currency = typeof COMMERCE_POLICY.currency;
-export type GarmentColor = "white" | "black";
-export type GarmentSize = "XS" | "S" | "M" | "L" | "XL" | "XXL";
+export type GarmentColor = (typeof GARMENT_COLORS)[number];
+export type GarmentSize = (typeof GARMENT_SIZES)[number];
 
 export interface Money {
   amountCents: number;
@@ -24,6 +27,7 @@ export interface SellableProduct {
   active: boolean;
   price: Money;
   taxClass: string;
+  garmentColor: GarmentColor;
   updatedAt: string;
 }
 
@@ -53,6 +57,62 @@ export interface InventoryReservation {
   status: InventoryReservationStatus;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CommerceVariantConfiguration {
+  size: GarmentSize;
+  active: boolean;
+  onHand: number;
+}
+
+export interface CommerceConfigurationInput {
+  catalogId: string;
+  active: boolean;
+  priceCents: number;
+  taxClass: string;
+  garmentColor: GarmentColor;
+  variants: readonly CommerceVariantConfiguration[];
+}
+
+const COLOR_CODES: Record<GarmentColor, string> = {
+  white: "WHT",
+  black: "BLK",
+};
+
+export function commerceVariantId(catalogId: string, garmentColor: GarmentColor, size: GarmentSize) {
+  if (!/^UNS-\d{4,}$/.test(catalogId)) throw new Error("INVALID_CATALOG_ID");
+  return `${catalogId}-${COLOR_CODES[garmentColor]}-${size}`;
+}
+
+export function commerceSku(catalogId: string, garmentColor: GarmentColor, size: GarmentSize) {
+  return commerceVariantId(catalogId, garmentColor, size);
+}
+
+export function validateCommerceConfiguration(input: CommerceConfigurationInput) {
+  const errors: string[] = [];
+  if (!/^UNS-\d{4,}$/.test(input.catalogId)) errors.push("INVALID_CATALOG_ID");
+  if (!GARMENT_COLORS.includes(input.garmentColor)) errors.push("INVALID_GARMENT_COLOR");
+  if (!Number.isInteger(input.priceCents) || input.priceCents < 0 || input.priceCents > 10_000_000) {
+    errors.push("INVALID_PRICE");
+  }
+  if (input.active && input.priceCents < 1) errors.push("ACTIVE_PRODUCT_REQUIRES_PRICE");
+  if (!input.taxClass.trim() || input.taxClass.trim().length > 64) errors.push("INVALID_TAX_CLASS");
+  if (!input.variants.length) errors.push("VARIANTS_REQUIRED");
+
+  const seen = new Set<GarmentSize>();
+  let activeVariants = 0;
+  for (const variant of input.variants) {
+    if (!GARMENT_SIZES.includes(variant.size)) errors.push("INVALID_SIZE");
+    if (seen.has(variant.size)) errors.push("DUPLICATE_SIZE");
+    seen.add(variant.size);
+    if (!Number.isInteger(variant.onHand) || variant.onHand < 0 || variant.onHand > 1_000_000) {
+      errors.push(`INVALID_STOCK:${variant.size}`);
+    }
+    if (variant.active) activeVariants += 1;
+  }
+
+  if (input.active && activeVariants === 0) errors.push("ACTIVE_PRODUCT_REQUIRES_VARIANT");
+  return [...new Set(errors)];
 }
 
 export type OrderStatus =

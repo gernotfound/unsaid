@@ -1,5 +1,10 @@
+import type { CatalogRecord } from "@unsaid/catalog";
 import {
   availableInventory,
+  commerceSku,
+  commerceVariantId,
+  validateCommerceConfiguration,
+  type CommerceConfigurationInput,
   type InventoryRepository,
   type InventoryReservation,
   type InventorySnapshot,
@@ -18,6 +23,22 @@ export const INVENTORY_COLLECTION = "inventory";
 export const INVENTORY_RESERVATIONS_COLLECTION = "inventoryReservations";
 export const COMMERCE_ORDERS_COLLECTION = "orders";
 
+export interface AdminCommerceVariantState {
+  variant: SellableVariant;
+  inventory: InventorySnapshot;
+}
+
+export interface AdminCommerceItem {
+  catalog: Pick<CatalogRecord, "id" | "sequence" | "slug" | "title" | "status" | "garment" | "media">;
+  sellable: SellableProduct | null;
+  variants: readonly AdminCommerceVariantState[];
+}
+
+export interface AdminCommercePage {
+  items: readonly AdminCommerceItem[];
+  nextCursor: number | null;
+}
+
 function now() {
   return new Date().toISOString();
 }
@@ -31,6 +52,167 @@ function positiveQuantity(quantity: number) {
     throw new Error("INVALID_QUANTITY");
   }
   return quantity;
+}
+
+function catalogSummary(record: CatalogRecord): AdminCommerceItem["catalog"] {
+  return {
+    id: record.id,
+    sequence: record.sequence,
+    slug: record.slug,
+    title: record.title,
+    status: record.status,
+    garment: record.garment,
+    media: record.media,
+  };
+}
+
+export async function listAdminCommercePage(options: { afterSequence?: number; limit?: number } = {}): Promise<AdminCommercePage> {
+  const db = getAdminFirestore();
+  const pageSize = Math.min(25, Math.max(1, Math.trunc(options.limit ?? 25)));
+  const baseQuery = db.collection("catalog").orderBy("sequence", "desc").limit(pageSize + 1);
+  const query = options.afterSequence == null ? baseQuery : baseQuery.startAfter(options.afterSequence);
+  const snapshot = await query.get();
+  const hasMore = snapshot.docs.length > pageSize;
+  const pageDocs = snapshot.docs.slice(0, pageSize);
+  const records = pageDocs.map((document) => document.data() as CatalogRecord);
+  const ids = records.map((record) => record.id);
+
+  if (!ids.length) return { items: [], nextCursor: null };
+
+  const productSnapshots = await db.getAll(
+    ...ids.map((id) => db.collection(SELLABLE_PRODUCTS_COLLECTION).doc(id)),
+  );
+  const products = new Map<string, SellableProduct>();
+  for (const productSnapshot of productSnapshots) {
+    if (productSnapshot.exists) products.set(productSnapshot.id, productSnapshot.data() as SellableProduct);
+  }
+
+  const variantSnapshot = await db.collection(VARIANTS_COLLECTION).where("catalogId", "in", ids).get();
+  const variants = variantSnapshot.docs.map((document) => document.data() as SellableVariant);
+  const inventorySnapshots = variants.length
+    ? await db.getAll(...variants.map((variant) => db.collection(INVENTORY_COLLECTION).doc(variant.id)))
+    : [];
+  const inventory = new Map<string, InventorySnapshot>();
+  for (const inventorySnapshot of inventorySnapshots) {
+    if (inventorySnapshot.exists) inventory.set(inventorySnapshot.id, inventorySnapshot.data() as InventorySnapshot);
+  }
+
+  const variantsByCatalog = new Map<string, AdminCommerceVariantState[]>();
+  for (const variant of variants) {
+    const state: AdminCommerceVariantState = {
+      variant,
+      inventory: inventory.get(variant.id) ?? {
+        variantId: variant.id,
+        onHand: 0,
+        reserved: 0,
+        updatedAt: "",
+      },
+    };
+    const current = variantsByCatalog.get(variant.catalogId) ?? [];
+    current.push(state);
+    variantsByCatalog.set(variant.catalogId, current);
+  }
+
+  const items = records.map((record) => ({
+    catalog: catalogSummary(record),
+    sellable: products.get(record.id) ?? null,
+    variants: (variantsByCatalog.get(record.id) ?? []).sort((a, b) => a.variant.sku.localeCompare(b.variant.sku)),
+  }));
+
+  return {
+    items,
+    nextCursor: hasMore ? records.at(-1)?.sequence ?? null : null,
+  };
+}
+
+export async function saveAdminCommerceConfiguration(input: CommerceConfigurationInput) {
+  const problems = validateCommerceConfiguration(input);
+  if (problems.length) throw new Error(problems.join(","));
+
+  const db = getAdminFirestore();
+  const timestamp = now();
+  const catalogRef = db.collection("catalog").doc(input.catalogId);
+  const sellableRef = db.collection(SELLABLE_PRODUCTS_COLLECTION).doc(input.catalogId);
+  const variantQuery = db.collection(VARIANTS_COLLECTION).where("catalogId", "==", input.catalogId);
+
+  await db.runTransaction(async (transaction) => {
+    const catalogSnapshot = await transaction.get(catalogRef);
+    if (!catalogSnapshot.exists) throw new Error("CATALOG_NOT_FOUND");
+    const catalog = catalogSnapshot.data() as CatalogRecord;
+
+    if (input.active) {
+      if (catalog.status !== "published") throw new Error("CATALOG_NOT_PUBLISHED");
+      const mediaReady = catalog.media.front.state === "approved" && catalog.media.back.state === "approved";
+      if (!mediaReady || !catalog.media.front.asset || !catalog.media.back.asset) {
+        throw new Error("CATALOG_MEDIA_NOT_READY");
+      }
+    }
+
+    const existingVariants = await transaction.get(variantQuery);
+    const desired = input.variants.map((configuration) => {
+      const id = commerceVariantId(input.catalogId, input.garmentColor, configuration.size);
+      return {
+        configuration,
+        id,
+        variantRef: db.collection(VARIANTS_COLLECTION).doc(id),
+        inventoryRef: db.collection(INVENTORY_COLLECTION).doc(id),
+      };
+    });
+
+    const inventorySnapshots = await Promise.all(desired.map((entry) => transaction.get(entry.inventoryRef)));
+    const desiredIds = new Set(desired.map((entry) => entry.id));
+
+    for (let index = 0; index < desired.length; index += 1) {
+      const entry = desired[index]!;
+      const inventorySnapshot = inventorySnapshots[index]!;
+      const existingInventory = inventorySnapshot.exists
+        ? (inventorySnapshot.data() as InventorySnapshot)
+        : null;
+      const reserved = existingInventory?.reserved ?? 0;
+      if (entry.configuration.onHand < reserved) {
+        throw new Error(`STOCK_BELOW_RESERVED:${entry.configuration.size}`);
+      }
+    }
+
+    const product: SellableProduct = {
+      catalogId: input.catalogId,
+      active: input.active,
+      price: { amountCents: input.priceCents, currency: "EUR" },
+      taxClass: input.taxClass.trim(),
+      garmentColor: input.garmentColor,
+      updatedAt: timestamp,
+    };
+    transaction.set(sellableRef, product);
+
+    for (const entry of desired) {
+      const variant: SellableVariant = {
+        id: entry.id,
+        catalogId: input.catalogId,
+        sku: commerceSku(input.catalogId, input.garmentColor, entry.configuration.size),
+        size: entry.configuration.size,
+        garmentColor: input.garmentColor,
+        active: entry.configuration.active,
+      };
+      transaction.set(entry.variantRef, variant);
+
+      const inventorySnapshot = inventorySnapshots[desired.findIndex((candidate) => candidate.id === entry.id)]!;
+      const existingInventory = inventorySnapshot.exists
+        ? (inventorySnapshot.data() as InventorySnapshot)
+        : null;
+      transaction.set(entry.inventoryRef, {
+        variantId: entry.id,
+        onHand: entry.configuration.onHand,
+        reserved: existingInventory?.reserved ?? 0,
+        updatedAt: timestamp,
+      } satisfies InventorySnapshot);
+    }
+
+    for (const document of existingVariants.docs) {
+      if (desiredIds.has(document.id)) continue;
+      const previous = document.data() as SellableVariant;
+      if (previous.active) transaction.set(document.ref, { ...previous, active: false });
+    }
+  });
 }
 
 export class FirestoreSellableProductRepository implements SellableProductRepository {

@@ -60,21 +60,31 @@ Commercial state is separate from `catalog`.
 - active state;
 - price as integer EUR cents;
 - tax classification/reference;
+- selected phase-one garment color (`white` or `black`);
 - updated timestamp.
 
 The editorial `priceCents` field is transitional and must not be the checkout source of truth when sales open.
 
 ### `variants/{variantId}`
 
-One sellable SKU:
+One permanent sellable SKU:
 
 - `catalogId`;
-- permanent SKU;
+- deterministic SKU/variant ID;
 - size;
 - garment color;
 - active state.
 
-Phase-one garment colors: white / black.
+Phase-one sizes are `XS`, `S`, `M`, `L`, `XL`, `XXL`. Phase-one garment colors are white / black.
+
+SKU examples:
+
+```text
+UNS-0001-WHT-M
+UNS-0001-BLK-XL
+```
+
+Switching a product to another garment color does not delete old variants; the obsolete variants are deactivated so historical references remain stable.
 
 ### `inventory/{variantId}`
 
@@ -84,7 +94,7 @@ Mutable inventory state:
 - `reserved`;
 - updated timestamp.
 
-Available stock is `max(0, onHand - reserved)`.
+Available stock is `max(0, onHand - reserved)`. Admin stock edits cannot set `onHand` below the already reserved quantity.
 
 ### `inventoryReservations/{orderId}__{variantId}`
 

@@ -3,7 +3,8 @@
 ## Trust boundaries
 
 - Anonymous storefront traffic never reads Firestore directly.
-- Admin writes require Firebase identity plus owner/admin allowlist authorization.
+- Admin catalog writes require Firebase identity plus owner/admin allowlist authorization.
+- Commerce admin writes are mediated by a server API: the browser supplies a short-lived Firebase ID token, the server verifies it, checks bootstrap owner/admin allowlist authorization, and only then uses Firebase Admin.
 - Customer profile/address operations require a server-verified Firebase session.
 - Customer profile data can never grant admin access.
 - Customer and commerce Firestore collections are denied to the browser; Firebase Admin is the server authority.
@@ -15,6 +16,7 @@
 - Customer sign-in exchanges a recently issued Firebase ID token for a five-day HttpOnly application session cookie.
 - Sensitive account mutations verify the server session and revocation state.
 - Account mutations apply same-origin checks and `SameSite=Lax` cookies.
+- Admin commerce endpoints do not accept UID/email claims from request bodies; authorization derives from the verified Firebase token.
 - Do not log auth tokens, cookies, passwords, addresses or unnecessary personal data.
 - Use managed secrets in production.
 
@@ -26,6 +28,8 @@
 - Checkout requires an authenticated account and verified email.
 - Inventory reservations use Firestore transactions and separate reservation documents.
 - Reserve/release/commit operations are designed to be idempotent for the same order + variant reservation.
+- Admin stock edits preserve reserved stock and fail if requested `onHand` is lower than `reserved`.
+- Product sale activation requires published editorial state, approved front/back media, a positive price and at least one active size.
 - Use idempotency keys for checkout/payment requests.
 - Persist processed webhook IDs when payments are added.
 - Verify webhook signatures before state transitions.
