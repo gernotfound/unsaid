@@ -2,81 +2,106 @@
 
 ## Product decision
 
-Customers may browse UNSAID anonymously, but an **account is required to purchase**.
+Customers may browse UNSAID anonymously, but an **account is required to purchase**. Initial sales are Italy-only and the catalog is continuous (no drop dependency).
 
-Account functionality is not exposed until commerce work begins.
+## Current implementation
+
+The account foundation is implemented but feature-gated:
+
+```env
+NEXT_PUBLIC_ACCOUNTS_ENABLED=false
+```
+
+Registration becomes available only when the flag is `true` **and** the minimum privacy identity (`LEGAL_CONTROLLER_NAME` + `LEGAL_CONTACT_EMAIL`) is configured.
+
+Implemented public/account flows:
+
+- email/password registration through Firebase Authentication;
+- email/password sign-in;
+- email verification;
+- password-reset email;
+- HttpOnly server session exchange;
+- profile name update;
+- Italian shipping-address creation/deletion/default selection;
+- order-history read boundary;
+- logout/session removal.
+
+The account page is `/account`.
 
 ## Identity provider
 
-Use Firebase Authentication for customer identity. Do not build a password database inside Firestore.
+Firebase Authentication owns credentials. UNSAID never stores customer passwords in Firestore.
 
-Initial supported sign-in can use email/password; additional providers can be added later without changing the customer domain.
+Admin and customer identities can exist in the same Firebase project, but authorization remains separate:
 
-Admin and customer accounts may exist in the same Firebase Auth tenant/project, but authorization is strictly separate:
+- customer identity = valid Firebase user + valid UNSAID server session;
+- admin identity = bootstrap owner or `/admins/{uid}` allowlist.
 
-- customer identity: valid Firebase user;
-- admin identity: owner UID or explicit `/admins/{uid}` allowlist.
-
-A field in `customers/{uid}` must never make a user an admin.
+A customer profile field can never grant admin rights.
 
 ## Server session model
 
-For account-sensitive pages, prefer a server-verifiable session:
+1. Browser completes Firebase sign-in/registration.
+2. The browser obtains a short-lived Firebase ID token.
+3. `POST /api/auth/session` verifies the token with Firebase Admin, requires recent sign-in and establishes an HttpOnly session cookie.
+4. Account APIs verify that session server-side; sensitive mutations check revocation.
+5. The browser does not treat a long-lived local-storage ID token as the application authorization boundary.
 
-1. browser completes Firebase sign-in;
-2. identity token is exchanged/verified server-side;
-3. application establishes an HttpOnly, Secure session cookie;
-4. server verifies the session for account/order routes;
-5. sensitive operations can verify revocation/fresh authentication where appropriate.
+The session cookie currently lives for five days. Same-origin checks and `SameSite=Lax` are applied to account mutations.
 
-Do not store ID tokens in long-lived local storage as the application session strategy.
+## Firestore customer data
 
-## Customer profile
+`customers/{uid}` stores application profile metadata only:
 
-`customers/{uid}` stores application profile metadata, not credentials.
+- UID;
+- email;
+- optional display name;
+- account status;
+- default shipping address ID;
+- timestamps.
 
-Saved addresses live under `customers/{uid}/addresses/{id}`.
+Saved addresses live under:
 
-Initial shipping-country invariant: **IT only**.
+`customers/{uid}/addresses/{addressId}`
 
-The server validates this invariant even if the form already restricts the country.
+They are validated as Italy-only (`country: IT`), with five-digit CAP and two-letter province code. A customer can save at most ten addresses in the current implementation.
 
-## Checkout
+Browser Firestore access to customer documents is denied. Account data is read/written through server endpoints using Firebase Admin.
 
-Checkout requires:
+## Email verification
 
-- authenticated customer;
-- verified server session;
+An account can be created before the email address is verified, but the commerce policy requires verified email before checkout. This is enforced as a server/domain invariant, not just UI copy.
+
+## Checkout boundary
+
+A future checkout requires all of the following:
+
+- `NEXT_PUBLIC_SHOP_ENABLED=true`;
+- legal commerce gate ready;
+- customer-account gate ready;
+- authenticated server session;
+- verified email;
 - valid Italian shipping address;
-- current server-side price;
-- current server-side inventory;
-- accepted applicable terms;
-- legal/commerce feature gates enabled.
+- server-resolved SKU and price;
+- server-resolved inventory;
+- accepted applicable terms.
 
-The browser cannot authoritatively provide totals, stock, tax or payment status.
+The browser never authoritatively provides totals, stock, tax or payment status.
 
 ## Order history
 
-`/account/orders` should query only orders owned by the authenticated customer.
+The repository can list only orders whose `customerId` matches the authenticated UID. Order documents retain snapshots of email, shipping address, line/SKU/title/size/color and monetary totals so historical orders remain correct after profile changes.
 
-Order documents keep snapshots of:
+## Privacy lifecycle before commercial launch
 
-- email used for the order;
-- shipping address;
-- SKU/title/size/color;
-- price/tax/shipping totals.
-
-Historical orders therefore remain correct if a customer later edits profile data.
-
-## Privacy lifecycle
-
-Before accounts launch, implement:
+Before customer registration is enabled publicly for a commercial launch, complete and test:
 
 - account-data export process;
-- address/profile update flow;
-- account closure/deletion workflow;
-- order retention rules required by accounting/legal obligations;
-- separation of data that may be deleted from data that must be retained;
-- no marketing opt-in bundled with account creation.
+- formal account closure/deletion workflow;
+- retention rules for order/accounting records;
+- support path for access/rectification/deletion requests;
+- final privacy wording matching the deployed configuration;
+- Firebase authorized domains and email templates;
+- abuse/rate-limit monitoring.
 
-See `docs/LEGAL.md` before enabling customer registration.
+No marketing opt-in may be bundled with account creation.
