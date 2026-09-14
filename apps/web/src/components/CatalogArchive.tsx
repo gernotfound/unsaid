@@ -2,11 +2,14 @@ import Link from "next/link";
 import type { CatalogRecord, CatalogSort } from "@unsaid/catalog";
 import { ProductCard } from "./ProductCard";
 
+type CommerceSummary = { priceCents: number; available: number };
+
 type Props = {
   records: readonly CatalogRecord[];
   total: number;
   sort: CatalogSort;
   nextCursor?: number | undefined;
+  commerceById?: Readonly<Record<string, CommerceSummary>>;
 };
 
 function archiveHref(sort: CatalogSort, cursor?: number) {
@@ -17,7 +20,7 @@ function archiveHref(sort: CatalogSort, cursor?: number) {
   return query ? `/shop?${query}` : "/shop";
 }
 
-export function CatalogArchive({ records, total, sort, nextCursor }: Props) {
+export function CatalogArchive({ records, total, sort, nextCursor, commerceById = {} }: Props) {
   return (
     <section className="archive-shell" aria-labelledby="archive-heading">
       <div className="archive-toolbar">
@@ -33,7 +36,7 @@ export function CatalogArchive({ records, total, sort, nextCursor }: Props) {
 
       {records.length ? (
         <div className="archive-grid">
-          {records.map((record) => <ProductCard key={record.id} record={record} />)}
+          {records.map((record) => <ProductCard key={record.id} record={record} sale={commerceById[record.id] ?? null} />)}
         </div>
       ) : (
         <div className="archive-empty">
