@@ -157,7 +157,10 @@ export class FirestoreInventoryRepository implements InventoryRepository {
 
       const inventory = inventorySnapshot.data() as InventorySnapshot;
       const reservation = reservationSnapshot.data() as InventoryReservation;
-      if (reservation.status === "committed") return;
+      if (reservation.status === "committed") {
+        if (reservation.quantity === quantity) return;
+        throw new Error("RESERVATION_CONFLICT");
+      }
       if (reservation.status !== "active" || reservation.quantity !== quantity) {
         throw new Error("RESERVATION_CONFLICT");
       }
