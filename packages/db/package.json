@@ -12,10 +12,10 @@
   },
   "dependencies": {
     "@unsaid/catalog": "workspace:*",
-    "firebase-admin": "^13.4.0"
+    "firebase-admin": "catalog:"
   },
   "devDependencies": {
-    "@types/node": "latest",
-    "typescript": "latest"
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
   }
 }
