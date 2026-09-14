@@ -13,4 +13,19 @@ export interface CatalogPage<T> {
   nextCursor?: number | undefined;
 }
 
-export type CatalogRepository<T> = (query?: CatalogQuery) => Promise<CatalogPage<T>>;
+export interface CatalogStats {
+  total: number;
+  public: number;
+  ready: number;
+  concepts: number;
+  review: number;
+  adult: number;
+  sensitive: number;
+}
+
+export interface CatalogRepository<T> {
+  list(query?: CatalogQuery): Promise<CatalogPage<T>>;
+  getBySlug(slug: string): Promise<T | undefined>;
+  getFeatured(): Promise<T | undefined>;
+  getStats(): Promise<CatalogStats>;
+}

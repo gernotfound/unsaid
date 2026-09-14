@@ -6,22 +6,15 @@ import {
   type CatalogQuery,
   type CatalogRecord,
   type CatalogSort,
+  type CatalogStats,
 } from "@unsaid/catalog";
 import { getAdminFirestore, isFirebaseConfigured } from "./firebase";
+
+export type { CatalogStats } from "@unsaid/catalog";
 
 export const CATALOG_COLLECTION = "catalog";
 export const PUBLIC_CATALOG_COLLECTION = "publicCatalog";
 export const CATALOG_META_DOCUMENT = "meta/catalog";
-
-export interface CatalogStats {
-  total: number;
-  public: number;
-  ready: number;
-  concepts: number;
-  review: number;
-  adult: number;
-  sensitive: number;
-}
 
 const DEFAULT_PAGE_SIZE = 24;
 const MAX_PAGE_SIZE = 48;

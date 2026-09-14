@@ -1,163 +1,162 @@
-# Scaling plan
+# UNSAID — Scaling plan
 
 ## Target envelope
 
-The architecture should comfortably support the next growth stages without a rewrite:
+The architecture is designed to grow through:
 
-- thousands to tens of thousands of monthly visitors;
-- bursts primarily absorbed by Vercel/CDN caching;
-- thousands of public products without shipping the entire catalog to the browser;
-- a growing admin catalog with cursor pagination;
-- future commerce, inventory and orders without coupling them to editorial records.
+- thousands to tens of thousands of monthly visitors without a rewrite;
+- bursts absorbed primarily by Vercel/CDN caching;
+- thousands of public products without shipping the full catalog to the browser;
+- a growing authenticated admin catalog;
+- future customer accounts and orders;
+- future payment/inventory integrations kept separate from editorial data.
 
-These are design targets, not guaranteed benchmarks. Production performance must be measured on the actual Vercel/Firebase plans.
+These are design targets, not guaranteed benchmarks. Measure production before adding infrastructure.
 
 ## Current architecture
 
 - Next.js storefront on Vercel.
 - Firestore as the editorial database when `CATALOG_SOURCE=firebase`.
+- Firebase Auth for admin now and customer identity later.
 - Anonymous browsers do not read Firestore directly.
-- Vercel reads `publicCatalog` server-side with Firebase Admin.
-- Public product media currently lives in the repository/Vercel asset layer.
-- Firebase Storage and Cloud Functions are intentionally not required in this phase.
-- Commerce remains disabled and separate from editorial publishing.
+- Vercel reads `publicCatalog` server-side.
+- Product media currently lives in the repository/Vercel asset layer.
+- Commerce remains disabled.
+- Catalog is a continuous archive; there is no drop/collection domain.
 
-## Public catalog rules
+## Public catalog discipline
 
-### Never full-scan for ordinary storefront rendering
+Default public page size: **24**. Maximum repository page size: **48**.
 
-The archive is paginated server-side with a numeric sequence cursor. A browser should receive one page of products, not the full catalog.
+Storefront routes use cursor pagination. A browser receives one bounded page, never the entire archive.
 
-Default public page size: **24**.
+Homepage feature/latest queries are bounded. Counters use `meta/catalog` or aggregate count fallback instead of document downloads.
 
-The homepage uses a dedicated bounded query for the featured/latest product instead of loading the full catalog and searching in application memory.
+## Repository boundary
 
-### Sorting
+Route components consume the catalog through a repository contract.
 
-Sorting by archive sequence happens in Firestore/local repository adapters, not after transferring all records to the client.
+Today:
 
-### Search
+```text
+Next route -> CatalogRepository -> Firestore adapter
+```
 
-Do not implement "search" by downloading the whole catalog into React.
+A future storage change becomes:
 
-When full-text search becomes necessary, use one of these bounded strategies:
+```text
+Next route -> CatalogRepository -> different adapter
+```
 
-1. a deliberately maintained Firestore search projection suitable for the query shape; or
-2. a dedicated search service (for example Algolia, Typesense or Meilisearch) behind the catalog/search interface.
-
-The UI should not be coupled to the eventual search provider.
+The route/component contract remains unchanged.
 
 ## Caching
 
-Storefront routes use short revalidation windows during this phase. This keeps origin reads bounded while allowing editorial changes to become visible without a deploy.
+Current public pages use time-based revalidation while editorial publishing is low-frequency.
 
-As publishing frequency grows, replace broad time-based refreshes with on-demand revalidation triggered by an authorized publish operation.
+When admin publishing is moved behind server mutations, switch to targeted on-demand invalidation:
 
-Recommended public strategy:
+- `home`;
+- `catalog`;
+- `catalog:<sort>:<cursor>`;
+- `product:<slug>`.
 
-- home: cached/revalidated;
-- archive pages: cached per cursor/sort URL where appropriate;
-- product pages: cached/revalidated by slug;
-- checkout/cart (future): dynamic and never cached as public content.
+Do not cache authenticated account data, admin state, carts, checkout, orders or payment responses as public content.
 
-## Firestore read discipline
+## Customer accounts
 
-- Prefer `meta/catalog` for counters rather than counting/scanning documents on every request.
-- If aggregate metadata is missing, use Firestore aggregate count operations rather than downloading all public documents.
-- Keep browser reads to `publicCatalog` closed; public delivery remains server-side.
-- Use cursor pagination for admin and storefront lists.
-- Add composite indexes only when a real query requires them; do not accumulate speculative indexes.
+Accounts do not materially change public-page scaling.
 
-## Media scaling
+Customer identity uses Firebase Auth. Profile/address/order reads are authenticated and bounded to one customer. Orders store immutable purchase snapshots rather than joining mutable profile data during every read.
 
-Current repository-hosted product images are appropriate for the present catalog and keep the project compatible with the Firebase Spark constraints.
+No customer field can grant admin privileges.
 
-Before media volume becomes large:
+## Italy-only commerce
 
-- establish a canonical garment base;
-- maintain front/back clean renders separately from editorial MODEL 01 media;
-- generate responsive derivatives;
-- move high-volume media to a deliberate object-storage/CDN solution only when usage justifies it.
+The initial market is intentionally narrow:
 
-Do not make Firebase Storage a hidden requirement without an explicit plan change.
+- shipping country: IT only;
+- currency: EUR;
+- authenticated customer required for checkout.
 
-## Client JavaScript budget
+This prevents premature multi-country tax/shipping complexity. Country expansion must be an explicit product project, not a string accepted by a generic form.
 
-Use Server Components by default.
+## Inventory and checkout
 
-Client JavaScript is reserved for:
+Inventory is variant/SKU state, not catalog state.
 
-- front/back gallery interaction;
-- consent/preferences;
-- commerce interactions when enabled;
-- authenticated admin tools.
+At checkout:
 
-Catalog grids, product metadata and ordinary navigation do not need to be hydrated client applications.
+1. authenticate customer;
+2. validate shipping country;
+3. reload sellable product and price server-side;
+4. validate/reserve stock transactionally;
+5. create order with immutable line/address/price snapshot;
+6. create provider payment with idempotency key;
+7. handle signed provider webhooks idempotently;
+8. release reservations on failed/expired flows.
 
-## Commerce boundary
+Do not trust price, stock, country or totals posted by the browser.
 
-Editorial records and physical commerce records must remain separate.
+## Search
 
-Future domains:
+No client-side full-catalog search.
 
-- editorial product / artwork;
-- sellable product;
-- variant/SKU;
-- inventory;
-- cart;
-- order;
-- payment state;
-- fulfillment.
+Introduce a dedicated search adapter only when relevance, latency or catalog size make search a product problem. The search index must be rebuildable from the source catalog.
 
-A change to stock or price must not rewrite the creative/editorial identity of a shirt.
+## Media
 
-## Admin scaling
+Keep clean product media and editorial MODEL 01 media as distinct roles.
 
-The control room should continue to use:
+Move to an object-storage/CDN pipeline when one or more becomes material:
 
-- cursor pagination;
-- indexed search/query patterns;
-- optimistic concurrency through `revision`;
-- permanent IDs and slug tombstones;
-- explicit lifecycle state.
+- repository/deploy size;
+- responsive derivative volume;
+- editorial video volume;
+- media transformation cost;
+- asset lifecycle requirements.
 
-When bulk operations are introduced, use bounded batches and clear progress/error reporting rather than thousands of browser-side writes at once.
+## Async worker
+
+Use the worker boundary when operations become genuinely asynchronous:
+
+- image generation;
+- image/video transcodes;
+- email delivery/retries;
+- webhook retry processing;
+- large bounded admin jobs.
+
+Do not put ordinary catalog reads behind a queue.
 
 ## Operational thresholds
 
-Introduce additional infrastructure only when measurements justify it.
+Add infrastructure because of measurements:
 
-### Add dedicated search when
+### Dedicated search
+Add when search ranking/relevance/latency is commercially important.
 
-- search relevance matters commercially;
-- catalog size/query patterns exceed a clean Firestore projection;
-- search latency or ranking becomes a product problem.
+### Object storage
+Add when repository-hosted media becomes operationally expensive.
 
-### Add a media/object pipeline when
+### Queue
+Add when synchronous requests would otherwise wait on long-running work.
 
-- repository size/deploy time becomes material;
-- many responsive derivatives are required;
-- editorial video/image volume grows significantly.
+### Redis/KV
+Add only for an identified ephemeral workload such as rate-limit counters or distributed locks. Do not use it as a second source of truth.
 
-### Add queues/workers when
-
-- rendering, email or media processing becomes asynchronous production work;
-- user requests would otherwise wait for long-running jobs.
-
-### Split services only when
-
-catalog/search, commerce or render orchestration have genuinely different scaling/deployment needs. Preserve shared TypeScript contracts so a later split does not require rewriting the product model.
+### Database migration
+Consider a transactional relational store only if commerce/query requirements materially exceed a clean Firestore design. Keep repository/domain contracts provider-neutral so such a migration is bounded.
 
 ## Performance budgets
 
-Initial budgets:
+Initial expectations:
 
-- cached public HTML should normally be CDN-fast;
-- uncached origin HTML p95 target: < 500 ms in-region where realistic;
-- public archive payload: one bounded page, never the full catalog;
-- LCP asset should be deliberately sized and compressed;
-- avoid layout shift in product media;
+- cached public HTML is CDN-fast;
+- uncached origin HTML p95 target below ~500 ms in-region where realistic;
+- archive response contains one bounded page;
+- product media has explicit dimensions/aspect ratio;
 - no horizontal overflow at 320 px;
-- keep product pages mostly server-rendered.
+- public pages remain mostly Server Components;
+- account/checkout JavaScript is loaded only on the routes that need it.
 
 Measure before optimizing beyond these constraints.

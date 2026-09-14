@@ -2,46 +2,84 @@
 
 > **wear what you wouldn't say.**
 
-TypeScript monorepo for the UNSAID statement-wear archive and future shop.
+TypeScript monorepo for the UNSAID statement-wear archive and future Italy-only shop.
 
 ## Repository
 
 - `apps/web` — Next.js storefront and control room
 - `apps/worker` — asynchronous render/image/email boundary
-- `packages/domain` — brand and commerce contracts
+- `packages/domain` — stable business contracts and policies
 - `packages/db` — Firebase Admin / Firestore adapter and seed tooling
 - `packages/catalog` — catalog contracts and local fallback source
 - `packages/ui` — shared UI boundary
 - `data/catalog/archive.json` — versioned catalog snapshot / bootstrap seed
-- `docs` — architecture, scaling, admin, legal/privacy and security decisions
+- `docs` — architecture, scaling, accounts, commerce, legal/privacy, operations and security
 - `DESIGN.md` — authoritative visual contract
 
-## Brand direction
+## Locked product decisions
 
-The storefront uses the **Fashion Fluo** system documented in `DESIGN.md`: dark-first UI, permanent pink/cyan/violet/amber/orange signal colors, monochrome garments and one recurring humanoid fashion model (`UNSAID MODEL 01`).
+- Fashion Fluo dark-first storefront.
+- One continuous archive; no drops/collections for now.
+- Phase-one garments: white and black.
+- Customer accounts will be required to purchase.
+- Initial commerce market: Italy only.
+- Currency: EUR.
+- Shop remains disabled until implementation and legal readiness are complete.
 
-Current catalog images/copy are working content while the real garment/artwork library is built.
+## Architecture
 
-## Catalog architecture
+UNSAID is a modular monolith.
 
-A T-shirt is one canonical `catalog/{id}` Firestore document. Published records are projected to `publicCatalog/{id}` without internal notes or revision metadata. IDs are allocated transactionally and are never reused. Slugs have their own uniqueness/tombstone collection and every save increments a revision so stale admin sessions cannot silently overwrite newer work.
+Current production path:
 
-The checked-in JSON is a bootstrap/fallback snapshot, not a second editorial database. When Vercel has Firebase Admin credentials and `CATALOG_SOURCE=firebase`, the storefront reads the published projection server-side.
+```text
+Browser
+  -> Vercel CDN
+  -> Next.js
+      -> CatalogRepository
+          -> Firestore adapter
+      -> Firebase Auth
+      -> static media / future object CDN
+```
 
-## Storefront
+Firestore is the current editorial database, not a UI dependency. Storefront route components consume a repository contract so a future storage migration does not require rewriting the product experience.
 
-The public app includes:
+See `docs/ARCHITECTURE.md` and `docs/SCALING.md`.
 
-- a dark Fashion Fluo homepage;
-- `/shop` as a server-rendered, cursor-paginated archive;
-- product pages with independent front/back views;
-- a canonical MODEL 01 editorial language;
-- responsive phone/tablet/landscape layouts;
-- privacy-by-default Firebase/Google Analytics consent;
-- `/privacy`, `/cookies`, `/legal` and `/terms`;
-- `/admin/` as a separate dark technical control room.
+## Catalog
 
-The storefront no longer downloads the complete public catalog into the browser for ordinary archive rendering. Pagination and sorting are resolved server-side.
+A T-shirt is one canonical `catalog/{id}` editorial document. Published records are projected to `publicCatalog/{id}` without internal notes/revision metadata.
+
+Public lists are bounded and cursor-paginated. Anonymous browsers never read Firestore directly and never receive the entire catalog for ordinary rendering.
+
+The archive is continuous. Product identity does not depend on a drop or collection.
+
+## Accounts
+
+Browsing remains anonymous.
+
+Before commerce opens, customer accounts will use Firebase Authentication and a separate customer profile/address domain. Checkout requires a server-verified customer session.
+
+See `docs/ACCOUNTS.md`.
+
+## Commerce
+
+Editorial and commercial state are separate.
+
+Future commerce uses:
+
+```text
+CatalogRecord
+  -> SellableProduct
+      -> SellableVariant / SKU
+          -> Inventory
+
+Customer -> Order -> Payment -> Shipment
+```
+
+Italy is the only shipping market at first launch. Browser-submitted price, stock, country and totals are never authoritative.
+
+See `docs/COMMERCE.md`.
 
 The shop remains intentionally off:
 
@@ -50,34 +88,49 @@ NEXT_PUBLIC_SHOP_ENABLED=false
 LEGAL_COMMERCE_READY=false
 ```
 
-Both gates must be enabled before the application considers commerce active.
+Both gates must be ready before the application considers commerce active.
 
-## Legal / privacy
+## Privacy / legal
 
-The legal pages read their public identity from server-side environment variables. Analytics remains disabled unless the minimum controller identity is configured; commerce has a separate legal readiness gate.
+The public site includes:
 
-See `docs/LEGAL.md` before enabling analytics or checkout.
+- `/privacy`;
+- `/cookies`;
+- `/legal`;
+- `/terms`.
 
-## Firebase
+Analytics is privacy-by-default and remains off until explicit consent and minimum legal identity configuration are present.
 
-Project: `unsaid-54c7e`, Firestore Standard in `europe-west8`.
+See `docs/LEGAL.md`.
 
-The admin authenticates through Firebase Email/Password. Browser Firestore access is limited to the owner/admin allowlist. Anonymous storefront traffic does not read Firestore directly; Vercel reads `publicCatalog` through Firebase Admin.
+## MODEL 01
 
-Server-only credentials never use the `NEXT_PUBLIC_` prefix and must never be committed.
+MODEL 01 is a stable brand asset, not a different generated robot per image. Media contracts distinguish clean product media from editorial/model/campaign/video roles.
+
+See `DESIGN.md` and the domain media contract.
+
+## Dependency reproducibility
+
+Third-party versions are centrally pinned in `pnpm-workspace.yaml` and consumed through the `catalog:` protocol. Internal packages use `workspace:` references.
+
+The repository rejects `latest`/wildcard dependency drift.
 
 ## Local development
 
 ```bash
 corepack enable
-pnpm install
+pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-Validate the versioned catalog without writing to Firebase:
+Validate:
 
 ```bash
+pnpm check:dependencies
 pnpm seed:firestore:check
+pnpm test
+pnpm typecheck
+pnpm build
 ```
 
 Trusted server-side initial seed:
@@ -86,16 +139,10 @@ Trusted server-side initial seed:
 pnpm seed:firestore
 ```
 
-## Scaling
-
-See `docs/SCALING.md`.
-
-The key rule is simple: no ordinary public route should require sending the full catalog to the browser. Storefront lists use bounded server-side reads and cursor pagination; dedicated full-text search/media infrastructure is introduced only when the real catalog and metrics require it.
-
 ## Deployment
 
-Production target: **Vercel** — `https://unsaid-gnf.vercel.app/`.
+Production target: Vercel.
 
-The repository uses native Next.js deployment: no static export, GitHub Pages workflow or repository base path. Storefront pages use a five-minute revalidation window during this phase.
+`main` is production. Prefer validating a complete batch on a candidate branch and moving `main` once after CI succeeds.
 
-The repository can remain private as long as the Vercel Git integration retains access.
+See `docs/OPERATIONS.md`.

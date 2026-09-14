@@ -24,6 +24,10 @@ export interface ProductAsset {
   approved: boolean;
 }
 
+/**
+ * Legacy prototype shape. New storefront/editorial work uses CatalogRecord while
+ * sellable price/inventory lives in the commerce domain.
+ */
 export interface Product {
   id: string;
   slug: string;
@@ -36,6 +40,9 @@ export interface Product {
   assets: readonly ProductAsset[];
 }
 
+/**
+ * Legacy prototype shape. New inventory uses SellableVariant + InventorySnapshot.
+ */
 export interface Variant {
   id: string;
   productId: string;

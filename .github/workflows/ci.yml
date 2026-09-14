@@ -26,10 +26,16 @@ jobs:
         run: corepack enable
 
       - name: Install
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install --frozen-lockfile
+
+      - name: Dependency policy
+        run: pnpm check:dependencies
 
       - name: Validate catalog
         run: pnpm seed:firestore:check
+
+      - name: Test
+        run: pnpm test
 
       - name: Typecheck
         run: pnpm typecheck

@@ -1,10 +1,18 @@
-Browser -> Vercel CDN -> Next.js -> Firebase / Firestore
-                          |-> Firebase Storage / image CDN (future)
-                          |-> Payment provider (disabled for now)
-                          |-> Queue -> Worker -> image generation/storage/db
+Browser
+  -> Vercel CDN
+  -> Next.js modular monolith
+      -> CatalogRepository -> Firestore (server-side only)
+      -> Firebase Auth (admin now, customer accounts future)
+      -> Static media / future object CDN
+      -> Future commerce adapters (payment, inventory, fulfillment)
+      -> Structured logs / future error monitoring
+      -> Future async worker only for long-running jobs
 
-Key rules:
-- shop is feature-flagged off by default
-- Firestore is accessed server-side through Firebase Admin
-- local JSON remains the safe catalog fallback until Firebase is configured
-- public reads should be cached; render work stays asynchronous
+Locked product decisions:
+- continuous archive; no drops/collections for now
+- customer account required to buy
+- sales market: Italy only
+- currency: EUR
+- commerce off until feature + legal gates are both ready
+
+Key rule: provider details stay behind adapters; public browsers never receive the full catalog or direct Firestore access.
