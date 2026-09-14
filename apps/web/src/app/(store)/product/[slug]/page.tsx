@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { primaryCopy } from "@unsaid/catalog";
+import { getPublicCommerceState } from "@unsaid/db";
 import { CommerceControls } from "../../../../components/CommerceControls";
 import { ProductGallery } from "../../../../components/ProductGallery";
 import { FEATURES } from "../../../../lib/features";
@@ -29,11 +30,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const back = product.media.back.asset;
   if (!front || !back) notFound();
 
-  const approved = product.media.front.state === "approved" && product.media.back.state === "approved";
-  const price = product.priceCents == null ? null : product.priceCents / 100;
+  const commerce = await getPublicCommerceState(product.id);
   const statement = primaryCopy(product);
   const printPlacement = product.copy.front && product.copy.back ? "front / back" : product.copy.back ? "back" : "front";
   const tone = TONES[(product.sequence - 1) % TONES.length] ?? "pink";
+  const price = commerce ? commerce.price.amountCents / 100 : null;
 
   return (
     <main id="main" className="product-page" data-tone={tone}>
@@ -52,7 +53,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <h1>{product.title}</h1>
           <p className="product-statement">{statement}</p>
 
-          {price != null ? <p className="detail-price">€{price.toFixed(2).replace(".", ",")}</p> : <p className="detail-price detail-price--archive">ARCHIVE PIECE</p>}
+          {price != null ? (
+            <p className="detail-price">€{price.toFixed(2).replace(".", ",")}</p>
+          ) : (
+            <p className="detail-price detail-price--archive">ARCHIVE PIECE</p>
+          )}
 
           <dl className="spec-list">
             <div><dt>Garment</dt><dd>{product.garment.color}</dd></div>
@@ -66,10 +71,22 @@ export default async function ProductPage({ params }: ProductPageProps) {
             <div><span>BACK</span><p>{product.copy.back ?? "—"}</p></div>
           </div>
 
-          {approved && price != null ? (
-            <CommerceControls productId={product.id} slug={product.slug} title={product.title} price={price} shopEnabled={FEATURES.shopEnabled} />
+          {commerce ? (
+            <CommerceControls
+              productId={product.id}
+              garmentColor={commerce.garmentColor}
+              variants={commerce.variants.map((variant) => ({
+                variantId: variant.variantId,
+                size: variant.size,
+                available: variant.available,
+              }))}
+              shopEnabled={FEATURES.shopEnabled}
+            />
           ) : (
-            <div className="product-state"><strong>SHOP NOT OPEN YET.</strong><p>Il pezzo è visibile nell&apos;archivio continuo. Acquisto e checkout restano spenti finché lo shop non viene attivato.</p></div>
+            <div className="product-state">
+              <strong>ARCHIVE / NOT FOR SALE.</strong>
+              <p>Questo record non ha ancora una configurazione commerce attiva. Il prezzo editoriale non viene usato come prezzo di vendita.</p>
+            </div>
           )}
         </section>
       </div>
