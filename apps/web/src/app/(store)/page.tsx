@@ -2,16 +2,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@unsaid/domain";
 import { primaryAsset, primaryCopy } from "@unsaid/catalog";
-import { getCatalogStats, getFeaturedPublicProduct, listPublicCatalogPage } from "@unsaid/db";
 import { ProductCard } from "../../components/ProductCard";
+import { catalog } from "../../server/catalog";
 
 export const revalidate = 300;
 
 export default async function HomePage() {
   const [stats, featured, latest] = await Promise.all([
-    getCatalogStats(),
-    getFeaturedPublicProduct(),
-    listPublicCatalogPage({ limit: 4, sort: "newest" }),
+    catalog.getStats(),
+    catalog.getFeatured(),
+    catalog.list({ limit: 4, sort: "newest" }),
   ]);
 
   const featuredAsset = featured ? primaryAsset(featured) : null;
@@ -35,7 +35,7 @@ export default async function HomePage() {
           <div className="ff-hero__micro">
             <span>{String(stats.public).padStart(2, "0")} published</span>
             <span>white / black garments</span>
-            <span>front / back statements</span>
+            <span>continuous archive</span>
           </div>
         </div>
 
@@ -82,7 +82,7 @@ export default async function HomePage() {
             {latest.items.map((record) => <ProductCard key={record.id} record={record} />)}
           </div>
         ) : (
-          <div className="archive-empty"><span>DROP / 00</span><strong>EMPTY<br />FOR NOW.</strong></div>
+          <div className="archive-empty"><span>ARCHIVE / EMPTY</span><strong>EMPTY<br />FOR NOW.</strong></div>
         )}
       </section>
 
@@ -118,7 +118,7 @@ export default async function HomePage() {
           {featured && featuredAsset ? (
             <Image src={featuredAsset} alt={`T-shirt UNSAID ${featured.title}`} fill unoptimized={featuredAsset.startsWith("http")} sizes="(max-width: 860px) 100vw, 44vw" />
           ) : (
-            <span>UNSAID / DROP 00</span>
+            <span>UNSAID / ARCHIVE</span>
           )}
         </div>
       </section>
