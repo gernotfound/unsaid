@@ -18,5 +18,14 @@ export function CartIndicator({ className }: { className?: string }) {
     };
   }, []);
 
-  return <Link className={className} href="/cart" aria-label={`Carrello, ${quantity} articoli`}>CART / {quantity}</Link>;
+  return (
+    <Link
+      className={className}
+      href="/cart"
+      aria-label={`Carrello, ${quantity} articoli`}
+      style={{ textDecoration: "none" }}
+    >
+      CART / {quantity}
+    </Link>
+  );
 }
