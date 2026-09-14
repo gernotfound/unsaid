@@ -6,10 +6,10 @@ TypeScript monorepo for the UNSAID statement-wear archive and future Italy-only 
 
 ## Repository
 
-- `apps/web` — Next.js storefront and control room
+- `apps/web` — Next.js storefront, customer account area and control room
 - `apps/worker` — asynchronous render/image/email boundary
 - `packages/domain` — stable business contracts and policies
-- `packages/db` — Firebase Admin / Firestore adapter and seed tooling
+- `packages/db` — Firebase Admin / Firestore adapters, customer/commerce repositories and seed tooling
 - `packages/catalog` — catalog contracts and local fallback source
 - `packages/ui` — shared UI boundary
 - `data/catalog/archive.json` — versioned catalog snapshot / bootstrap seed
@@ -21,10 +21,11 @@ TypeScript monorepo for the UNSAID statement-wear archive and future Italy-only 
 - Fashion Fluo dark-first storefront.
 - One continuous archive; no drops/collections for now.
 - Phase-one garments: white and black.
-- Customer accounts will be required to purchase.
+- Customer account required to purchase.
+- Verified email required before checkout.
 - Initial commerce market: Italy only.
 - Currency: EUR.
-- Shop remains disabled until implementation and legal readiness are complete.
+- Shop remains disabled until payment, operating process and legal readiness are complete.
 
 ## Architecture
 
@@ -36,13 +37,13 @@ Current production path:
 Browser
   -> Vercel CDN
   -> Next.js
-      -> CatalogRepository
-          -> Firestore adapter
-      -> Firebase Auth
+      -> CatalogRepository -> Firestore
+      -> Customer session APIs -> Firebase Auth + Firestore customer data
+      -> Commerce repositories -> Firestore server-only collections
       -> static media / future object CDN
 ```
 
-Firestore is the current editorial database, not a UI dependency. Storefront route components consume a repository contract so a future storage migration does not require rewriting the product experience.
+Firestore is the current application/editorial database, not a public storefront dependency. Anonymous catalog delivery and customer-sensitive data are mediated by Next.js/Firebase Admin.
 
 See `docs/ARCHITECTURE.md` and `docs/SCALING.md`.
 
@@ -56,26 +57,35 @@ The archive is continuous. Product identity does not depend on a drop or collect
 
 ## Accounts
 
-Browsing remains anonymous.
+Browsing remains anonymous. `/account` contains the customer identity area.
 
-Before commerce opens, customer accounts will use Firebase Authentication and a separate customer profile/address domain. Checkout requires a server-verified customer session.
+Implemented foundations include Firebase email/password registration and login, email verification, password reset, an HttpOnly server session, customer profile, Italy-only saved addresses and customer-scoped order-history reads.
+
+Registration is intentionally gated:
+
+```env
+NEXT_PUBLIC_ACCOUNTS_ENABLED=false
+```
+
+The account feature also requires the minimum configured privacy identity. Checkout policy requires an authenticated server session and verified email.
 
 See `docs/ACCOUNTS.md`.
 
 ## Commerce
 
-Editorial and commercial state are separate.
-
-Future commerce uses:
+Editorial and commercial state are separate:
 
 ```text
 CatalogRecord
   -> SellableProduct
       -> SellableVariant / SKU
           -> Inventory
+             -> InventoryReservation
 
 Customer -> Order -> Payment -> Shipment
 ```
+
+Firestore repositories now exist for sellable products, variants, transactional inventory reservation and orders. Payment/checkout remains deliberately unwired.
 
 Italy is the only shipping market at first launch. Browser-submitted price, stock, country and totals are never authoritative.
 
@@ -84,11 +94,12 @@ See `docs/COMMERCE.md`.
 The shop remains intentionally off:
 
 ```env
+NEXT_PUBLIC_ACCOUNTS_ENABLED=false
 NEXT_PUBLIC_SHOP_ENABLED=false
 LEGAL_COMMERCE_READY=false
 ```
 
-Both gates must be ready before the application considers commerce active.
+Account/privacy readiness is also part of the commerce gate.
 
 ## Privacy / legal
 
@@ -99,7 +110,7 @@ The public site includes:
 - `/legal`;
 - `/terms`.
 
-Analytics is privacy-by-default and remains off until explicit consent and minimum legal identity configuration are present.
+Analytics is privacy-by-default and remains off until explicit consent and minimum legal identity configuration are present. Customer registration is separately gated until privacy identity is configured.
 
 See `docs/LEGAL.md`.
 
@@ -113,7 +124,7 @@ See `DESIGN.md` and the domain media contract.
 
 Third-party versions are centrally pinned in `pnpm-workspace.yaml` and consumed through the `catalog:` protocol. Internal packages use `workspace:` references.
 
-The repository rejects `latest`/wildcard dependency drift.
+The repository rejects `latest`/wildcard dependency drift and CI installs with a frozen lockfile.
 
 ## Local development
 
