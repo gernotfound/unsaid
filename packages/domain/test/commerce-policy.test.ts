@@ -4,6 +4,7 @@ import {
   COMMERCE_POLICY,
   GARMENT_SIZES,
   availableInventory,
+  calculateGrossOrderTotals,
   checkoutEligibility,
   commerceSku,
   commerceVariantId,
@@ -54,6 +55,14 @@ test("active commerce configuration requires price and active variants", () => {
       variants: base.variants.map((variant) => ({ ...variant, active: false })),
     }).includes("ACTIVE_PRODUCT_REQUIRES_VARIANT"),
   );
+});
+
+test("gross checkout totals keep VAT inside consumer-facing prices", () => {
+  const totals = calculateGrossOrderTotals({ subtotalCents: 7800, shippingCents: 500, vatRateBps: 2200 });
+  assert.equal(totals.subtotal.amountCents, 7800);
+  assert.equal(totals.shipping.amountCents, 500);
+  assert.equal(totals.total.amountCents, 8300);
+  assert.equal(totals.tax.amountCents, 1497);
 });
 
 test("checkout policy fails closed", () => {
