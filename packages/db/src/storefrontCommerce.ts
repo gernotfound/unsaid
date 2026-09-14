@@ -19,6 +19,8 @@ import { getAdminFirestore, isFirebaseConfigured } from "./firebase";
 const PUBLIC_CATALOG_COLLECTION = "publicCatalog";
 const MAX_CART_LINES = 25;
 const MAX_LINE_QUANTITY = 20;
+const VARIANT_ID_PATTERN = /^UNS-\d{4,}-(?:WHT|BLK)-(?:XS|S|M|L|XL|XXL)$/;
+const CATALOG_ID_PATTERN = /^UNS-\d{4,}$/;
 
 export interface PublicCommerceVariant {
   variantId: string;
@@ -88,19 +90,30 @@ function normalizeCartLines(lines: readonly CartValidationInputLine[]) {
   if (lines.length > MAX_CART_LINES) throw new Error("CART_TOO_LARGE");
 
   const normalized = new Map<string, number>();
+  const rejected = new Set<string>();
   const issues: CartValidationIssue[] = [];
 
   for (const line of lines) {
     const variantId = typeof line.variantId === "string" ? line.variantId.trim() : "";
     const quantity = Number(line.quantity);
-    if (!variantId || !Number.isInteger(quantity) || quantity < 1 || quantity > MAX_LINE_QUANTITY) {
-      issues.push({ variantId: variantId || "unknown", reason: "invalid_line" });
+    if (
+      !VARIANT_ID_PATTERN.test(variantId) ||
+      !Number.isInteger(quantity) ||
+      quantity < 1 ||
+      quantity > MAX_LINE_QUANTITY
+    ) {
+      const issueId = variantId || "unknown";
+      if (!rejected.has(issueId)) issues.push({ variantId: issueId, reason: "invalid_line" });
+      rejected.add(issueId);
+      normalized.delete(variantId);
       continue;
     }
+    if (rejected.has(variantId)) continue;
 
     const nextQuantity = (normalized.get(variantId) ?? 0) + quantity;
     if (nextQuantity > MAX_LINE_QUANTITY) {
       issues.push({ variantId, reason: "invalid_line" });
+      rejected.add(variantId);
       normalized.delete(variantId);
       continue;
     }
@@ -111,7 +124,7 @@ function normalizeCartLines(lines: readonly CartValidationInputLine[]) {
 }
 
 export async function getPublicCommerceState(catalogId: string): Promise<PublicCommerceState | null> {
-  if (!isFirebaseConfigured()) return null;
+  if (!CATALOG_ID_PATTERN.test(catalogId) || !isFirebaseConfigured()) return null;
 
   const db = getAdminFirestore();
   const [catalogSnapshot, productSnapshot] = await Promise.all([
@@ -172,7 +185,7 @@ export async function validatePublicCart(inputLines: readonly CartValidationInpu
     if (snapshot.exists) variants.set(snapshot.id, snapshot.data() as SellableVariant);
   }
 
-  const catalogIds = [...new Set([...variants.values()].map((variant) => variant.catalogId))];
+  const catalogIds = [...new Set([...variants.values()].map((variant) => variant.catalogId).filter((id) => CATALOG_ID_PATTERN.test(id)))];
   const [productSnapshots, catalogSnapshots, inventorySnapshots] = await Promise.all([
     catalogIds.length
       ? db.getAll(...catalogIds.map((catalogId) => db.collection(SELLABLE_PRODUCTS_COLLECTION).doc(catalogId)))
@@ -201,7 +214,7 @@ export async function validatePublicCart(inputLines: readonly CartValidationInpu
   for (const variantId of variantIds) {
     const quantity = normalized.get(variantId)!;
     const variant = variants.get(variantId);
-    if (!variant || !variant.active) {
+    if (!variant || !variant.active || !CATALOG_ID_PATTERN.test(variant.catalogId)) {
       issues.push({ variantId, reason: "variant_unavailable" });
       continue;
     }
