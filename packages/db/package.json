@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@unsaid/catalog": "workspace:*",
+    "@unsaid/domain": "workspace:*",
     "firebase-admin": "catalog:"
   },
   "devDependencies": {
