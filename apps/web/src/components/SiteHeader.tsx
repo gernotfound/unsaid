@@ -17,7 +17,7 @@ export function SiteHeader() {
           <Link href="/#manifesto">Manifesto</Link>
         </nav>
 
-        <span className="header-cta" aria-disabled="true" title="Shop non ancora attivo">DROP 00 / SOON</span>
+        <span className="header-cta" aria-disabled="true" title="Shop non ancora attivo">SHOP / SOON</span>
       </div>
     </header>
   );
