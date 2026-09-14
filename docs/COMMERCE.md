@@ -5,8 +5,27 @@
 - Market: **Italy only**.
 - Currency: **EUR**.
 - Customer account: **required to purchase**.
+- Verified email: **required before checkout**.
 - Catalog: **continuous archive**, no drop/collection dependency.
 - Checkout: disabled until feature + legal gates are both ready.
+
+## Current implementation
+
+The commerce domain and Firestore repository layer now exist even though checkout/payment UI remains disabled.
+
+Implemented server contracts/repositories:
+
+- `SellableProduct` and `SellableVariant` / SKU;
+- `FirestoreSellableProductRepository`;
+- `InventorySnapshot` (`onHand`, `reserved`);
+- transaction-backed `FirestoreInventoryRepository`;
+- idempotent inventory reservation records;
+- reserve / release / commit inventory operations;
+- `Order` and `FirestoreOrderRepository`;
+- customer-scoped order listing;
+- checkout eligibility policy (feature gate + account + verified email + IT-only shipping).
+
+No payment provider is wired yet and no browser route can authoritatively create an order.
 
 ## Separation of concerns
 
@@ -28,11 +47,26 @@ Customer
 
 Price and stock updates must not create editorial revisions.
 
+## Firestore collections
+
+The planned/current server-side commerce collections are:
+
+- `sellableProducts/{catalogId}`;
+- `variants/{variantId}`;
+- `inventory/{variantId}`;
+- `inventoryReservations/{orderId}__{variantId}`;
+- `orders/{orderId}`;
+- future `payments/{paymentId}`;
+- future `shipments/{shipmentId}`.
+
+Browser Firestore access to these collections is denied. Firebase Admin on the application server is the authority.
+
 ## Provider adapters
 
 Domain code defines provider-neutral interfaces for:
 
 - `PaymentProvider`;
+- `SellableProductRepository`;
 - `InventoryRepository`;
 - `OrderRepository`.
 
@@ -44,17 +78,19 @@ The same rule applies to future fulfillment providers.
 
 Recommended first-launch flow:
 
-1. require authenticated customer;
-2. validate legal/commerce gates;
-3. validate Italian shipping address;
-4. load SKU, price and availability server-side;
-5. calculate authoritative totals;
-6. reserve inventory transactionally;
-7. create pending order;
-8. create provider payment with idempotency key;
-9. confirm payment from signed webhook/provider state;
-10. transition order to paid/processing;
-11. release inventory reservation on failed/expired flows.
+1. require authenticated customer session;
+2. require verified email;
+3. validate legal/commerce gates;
+4. validate Italian shipping address;
+5. load SKU, price and availability server-side;
+6. calculate authoritative totals;
+7. reserve inventory transactionally;
+8. create pending order;
+9. create provider payment with idempotency key;
+10. confirm payment from signed webhook/provider state;
+11. commit reserved stock after confirmed payment;
+12. transition order to paid/processing;
+13. release reservation on failed/expired flows.
 
 Never mark an order paid from a browser callback alone.
 
@@ -72,21 +108,19 @@ Do not hard-code a VAT percentage into the domain until the real business/tax co
 
 ## Inventory
 
-Inventory is per SKU/variant.
-
-Maintain at least:
+Inventory is per SKU/variant and stores:
 
 - `onHand`;
 - `reserved`;
-- version/update timestamp.
+- update timestamp.
 
 Availability = `max(0, onHand - reserved)`.
 
-Reservation changes need transactional/atomic semantics to prevent overselling under concurrent checkout.
+Reservations are separate documents tied to order + variant. The repository treats repeated reserve/commit calls idempotently when they refer to the same reservation and rejects conflicting quantities. All reservation/inventory mutations use Firestore transactions.
 
 ## Idempotency
 
-Persist provider event IDs and checkout/payment idempotency keys.
+Persist provider event IDs and checkout/payment idempotency keys when payment integration is added.
 
 The same webhook or client retry must not:
 
@@ -97,7 +131,7 @@ The same webhook or client retry must not:
 
 ## Cart
 
-A pre-checkout cart can be client-friendly, but it is not authoritative.
+A pre-checkout cart can remain client-friendly, but it is not authoritative.
 
 At checkout the server re-resolves:
 
