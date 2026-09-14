@@ -2,9 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   COMMERCE_POLICY,
+  GARMENT_SIZES,
   availableInventory,
   checkoutEligibility,
+  commerceSku,
+  commerceVariantId,
   isAllowedShippingCountry,
+  validateCommerceConfiguration,
 } from "../src/index";
 
 test("commerce requires an account, verified email and is Italy-only", () => {
@@ -25,6 +29,31 @@ test("shipping country guard rejects non-Italian addresses", () => {
 test("available inventory never becomes negative", () => {
   assert.equal(availableInventory({ onHand: 8, reserved: 3 }), 5);
   assert.equal(availableInventory({ onHand: 2, reserved: 5 }), 0);
+});
+
+test("commerce SKU and variant IDs are deterministic", () => {
+  assert.equal(commerceSku("UNS-0001", "white", "M"), "UNS-0001-WHT-M");
+  assert.equal(commerceVariantId("UNS-0042", "black", "XXL"), "UNS-0042-BLK-XXL");
+});
+
+test("active commerce configuration requires price and active variants", () => {
+  const base = {
+    catalogId: "UNS-0001",
+    active: true,
+    priceCents: 3900,
+    taxClass: "standard_it",
+    garmentColor: "white" as const,
+    variants: GARMENT_SIZES.map((size) => ({ size, active: size === "M", onHand: 10 })),
+  };
+
+  assert.deepEqual(validateCommerceConfiguration(base), []);
+  assert.ok(validateCommerceConfiguration({ ...base, priceCents: 0 }).includes("ACTIVE_PRODUCT_REQUIRES_PRICE"));
+  assert.ok(
+    validateCommerceConfiguration({
+      ...base,
+      variants: base.variants.map((variant) => ({ ...variant, active: false })),
+    }).includes("ACTIVE_PRODUCT_REQUIRES_VARIANT"),
+  );
 });
 
 test("checkout policy fails closed", () => {
