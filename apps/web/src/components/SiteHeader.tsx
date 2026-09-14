@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BRAND } from "@unsaid/domain";
+import { CartIndicator } from "./CartIndicator";
 
 export function SiteHeader() {
   return (
@@ -18,7 +19,7 @@ export function SiteHeader() {
           <Link href="/account">Account</Link>
         </nav>
 
-        <span className="header-cta" aria-disabled="true" title="Shop non ancora attivo">SHOP / SOON</span>
+        <CartIndicator className="header-cta" />
       </div>
     </header>
   );
