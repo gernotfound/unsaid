@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BRAND } from "@unsaid/domain";
 import { primaryAsset, primaryCopy } from "@unsaid/catalog";
+import { getPublicCommerceSummaries } from "@unsaid/db";
 import { ProductCard } from "../../components/ProductCard";
 import { catalog } from "../../server/catalog";
 
@@ -13,6 +14,7 @@ export default async function HomePage() {
     catalog.getFeatured(),
     catalog.list({ limit: 4, sort: "newest" }),
   ]);
+  const commerceById = await getPublicCommerceSummaries(latest.items.map((record) => record.id));
 
   const featuredAsset = featured ? primaryAsset(featured) : null;
   const featuredCopy = featured ? primaryCopy(featured) : null;
@@ -79,7 +81,7 @@ export default async function HomePage() {
         </div>
         {latest.items.length ? (
           <div className="archive-grid archive-grid--home">
-            {latest.items.map((record) => <ProductCard key={record.id} record={record} />)}
+            {latest.items.map((record) => <ProductCard key={record.id} record={record} sale={commerceById[record.id] ?? null} />)}
           </div>
         ) : (
           <div className="archive-empty"><span>ARCHIVE / EMPTY</span><strong>EMPTY<br />FOR NOW.</strong></div>
