@@ -2,17 +2,18 @@ Browser
   -> Vercel CDN
   -> Next.js modular monolith
       -> CatalogRepository -> Firestore (server-side only)
-      -> Firebase Auth (admin now, customer accounts future)
+      -> Firebase Auth -> HttpOnly customer session -> customer profile/address APIs
+      -> Commerce repositories -> SKU / inventory reservation / orders (server-side only)
       -> Static media / future object CDN
-      -> Future commerce adapters (payment, inventory, fulfillment)
+      -> Future PaymentProvider / fulfillment adapters
       -> Structured logs / future error monitoring
       -> Future async worker only for long-running jobs
 
 Locked product decisions:
 - continuous archive; no drops/collections for now
-- customer account required to buy
+- customer account + verified email required to buy
 - sales market: Italy only
 - currency: EUR
-- commerce off until feature + legal gates are both ready
+- commerce off until account + feature + legal gates are all ready
 
-Key rule: provider details stay behind adapters; public browsers never receive the full catalog or direct Firestore access.
+Key rule: provider details stay behind adapters; public browsers never receive the full catalog or direct customer/commerce Firestore access.
