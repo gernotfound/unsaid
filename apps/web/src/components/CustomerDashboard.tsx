@@ -111,6 +111,7 @@ export function CustomerDashboard({ profile, addresses, orders, emailVerified }:
     setFeedback("");
     try {
       const auth = getAuth(getFirebaseClientApp());
+      await auth.authStateReady();
       const user = auth.currentUser;
       if (!user) throw new Error("AUTH_REQUIRED");
       await sendEmailVerification(user);
@@ -127,6 +128,7 @@ export function CustomerDashboard({ profile, addresses, orders, emailVerified }:
     setFeedback("");
     try {
       const auth = getAuth(getFirebaseClientApp());
+      await auth.authStateReady();
       const user = auth.currentUser;
       if (!user) throw new Error("AUTH_REQUIRED");
       await user.reload();
@@ -252,6 +254,7 @@ export function CustomerDashboard({ profile, addresses, orders, emailVerified }:
       </section>
 
       <div className={styles.footerActions}>
+        <a href="/api/account/export">Esporta i miei dati</a>
         <button type="button" disabled={busy} onClick={() => void logout()}>Esci dall&apos;account</button>
       </div>
       {feedback ? <p className={styles.feedback} aria-live="polite">{feedback}</p> : null}
