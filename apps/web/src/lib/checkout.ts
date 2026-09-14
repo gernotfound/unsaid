@@ -19,7 +19,9 @@ function optionalInteger(name: string, options: { min: number; max: number }) {
 
 export function getCheckoutConfiguration(): CheckoutConfiguration {
   const requested = process.env.CHECKOUT_PREPAYMENT_ENABLED === "true";
-  const reservationSweeperReady = process.env.COMMERCE_RESERVATION_SWEEPER_READY === "true";
+  const sweeperDeclaredReady = process.env.COMMERCE_RESERVATION_SWEEPER_READY === "true";
+  const cronSecretPresent = Boolean(process.env.CRON_SECRET?.trim());
+  const reservationSweeperReady = sweeperDeclaredReady && cronSecretPresent;
   const standardShippingCents = optionalInteger("COMMERCE_STANDARD_SHIPPING_CENTS", { min: 0, max: 100_000 });
   const freeShippingThresholdCents = optionalInteger("COMMERCE_FREE_SHIPPING_THRESHOLD_CENTS", { min: 1, max: 10_000_000 });
   const vatRateBps = optionalInteger("COMMERCE_VAT_RATE_BPS", { min: 1, max: 10_000 });
@@ -28,7 +30,8 @@ export function getCheckoutConfiguration(): CheckoutConfiguration {
 
   if (standardShippingCents == null) problems.push("shipping_rate_missing");
   if (vatRateBps == null) problems.push("vat_rate_missing");
-  if (!reservationSweeperReady) problems.push("reservation_sweeper_not_ready");
+  if (!sweeperDeclaredReady) problems.push("reservation_sweeper_not_ready");
+  if (sweeperDeclaredReady && !cronSecretPresent) problems.push("cron_secret_missing");
 
   return {
     requested,
