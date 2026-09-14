@@ -85,6 +85,10 @@ CatalogRecord
 Customer -> Order -> Payment -> Shipment
 ```
 
+`/admin/commerce` is the commercial control room. It configures sale activation, EUR price, white/black garment color, deterministic XS–XXL SKUs and per-size on-hand stock without changing the editorial revision.
+
+Commerce writes are server-mediated and admin-authorized. Browser Firestore access to sellable products, variants, inventory and orders remains denied. Administrative stock updates preserve reserved quantities and cannot push `onHand` below `reserved`.
+
 Firestore repositories now exist for sellable products, variants, transactional inventory reservation and orders. Payment/checkout remains deliberately unwired.
 
 Italy is the only shipping market at first launch. Browser-submitted price, stock, country and totals are never authoritative.
