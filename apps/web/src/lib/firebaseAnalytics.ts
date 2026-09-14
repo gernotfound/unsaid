@@ -1,3 +1,4 @@
+import { clearGoogleAnalyticsCookies } from "./analyticsConsent";
 import { getFirebaseClientApp, readFirebaseClientConfig } from "./firebaseClient";
 
 export async function enableFirebaseAnalytics() {
@@ -14,6 +15,8 @@ export async function enableFirebaseAnalytics() {
 }
 
 export async function disableFirebaseAnalytics() {
+  clearGoogleAnalyticsCookies();
+
   if (typeof window === "undefined" || !readFirebaseClientConfig()?.measurementId) return;
 
   const analytics = await import("firebase/analytics");

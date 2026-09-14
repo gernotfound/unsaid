@@ -13,7 +13,7 @@ TypeScript monorepo for the UNSAID statement-wear archive and future shop.
 - `packages/catalog` — catalog contracts and local fallback source
 - `packages/ui` — shared UI boundary
 - `data/catalog/archive.json` — versioned catalog snapshot / bootstrap seed
-- `docs` — architecture, scaling, admin and security decisions
+- `docs` — architecture, scaling, admin, legal/privacy and security decisions
 - `DESIGN.md` — authoritative visual contract
 
 ## Brand direction
@@ -37,7 +37,8 @@ The public app includes:
 - product pages with independent front/back views;
 - a canonical MODEL 01 editorial language;
 - responsive phone/tablet/landscape layouts;
-- Firebase Analytics behind explicit consent;
+- privacy-by-default Firebase/Google Analytics consent;
+- `/privacy`, `/cookies`, `/legal` and `/terms`;
 - `/admin/` as a separate dark technical control room.
 
 The storefront no longer downloads the complete public catalog into the browser for ordinary archive rendering. Pagination and sorting are resolved server-side.
@@ -46,7 +47,16 @@ The shop remains intentionally off:
 
 ```env
 NEXT_PUBLIC_SHOP_ENABLED=false
+LEGAL_COMMERCE_READY=false
 ```
+
+Both gates must be enabled before the application considers commerce active.
+
+## Legal / privacy
+
+The legal pages read their public identity from server-side environment variables. Analytics remains disabled unless the minimum controller identity is configured; commerce has a separate legal readiness gate.
+
+See `docs/LEGAL.md` before enabling analytics or checkout.
 
 ## Firebase
 

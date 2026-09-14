@@ -1,32 +1,35 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
+import {
+  ANALYTICS_PREFERENCES_EVENT,
+  clearAnalyticsConsent,
+  clearGoogleAnalyticsCookies,
+  readAnalyticsConsent,
+  writeAnalyticsConsent,
+  type AnalyticsConsentDecision,
+} from "../lib/analyticsConsent";
 import styles from "./AnalyticsConsent.module.css";
 
-export const ANALYTICS_CONSENT_KEY = "unsaid.analytics-consent.v1";
-export const ANALYTICS_PREFERENCES_EVENT = "unsaid:analytics-preferences";
+type Props = {
+  enabled: boolean;
+};
 
-type Consent = "accepted" | "rejected" | null;
-
-function readConsent(): Consent {
-  if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(ANALYTICS_CONSENT_KEY);
-  return value === "accepted" || value === "rejected" ? value : null;
-}
-
-export function AnalyticsConsent() {
-  const [consent, setConsent] = useState<Consent>(null);
+export function AnalyticsConsent({ enabled }: Props) {
+  const [consent, setConsent] = useState<AnalyticsConsentDecision | null>(null);
   const [ready, setReady] = useState(false);
-  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
-    if (/\/admin\/?$/.test(window.location.pathname)) {
-      setHidden(true);
+    if (!enabled) {
+      clearAnalyticsConsent();
+      clearGoogleAnalyticsCookies();
+      setConsent("rejected");
       setReady(true);
       return;
     }
 
-    const initial = readConsent();
+    const initial = readAnalyticsConsent();
     setConsent(initial);
     setReady(true);
 
@@ -36,14 +39,18 @@ export function AnalyticsConsent() {
       );
     }
 
-    const reopen = () => setConsent(null);
+    const reopen = () => {
+      setConsent(null);
+      setReady(true);
+    };
+
     window.addEventListener(ANALYTICS_PREFERENCES_EVENT, reopen);
     return () => window.removeEventListener(ANALYTICS_PREFERENCES_EVENT, reopen);
-  }, []);
+  }, [enabled]);
 
-  async function choose(next: Exclude<Consent, null>) {
-    const previous = readConsent();
-    window.localStorage.setItem(ANALYTICS_CONSENT_KEY, next);
+  async function choose(next: AnalyticsConsentDecision) {
+    const previous = readAnalyticsConsent();
+    writeAnalyticsConsent(next);
     setConsent(next);
 
     if (next === "accepted") {
@@ -52,28 +59,46 @@ export function AnalyticsConsent() {
       return;
     }
 
+    clearGoogleAnalyticsCookies();
     if (previous === "accepted") {
       const { disableFirebaseAnalytics } = await import("../lib/firebaseAnalytics");
       await disableFirebaseAnalytics();
     }
   }
 
-  if (!ready || hidden || consent !== null) return null;
+  if (!ready || !enabled || consent !== null) return null;
 
   return (
-    <aside className={styles.panel} aria-label="Preferenze analytics">
+    <aside className={styles.panel} aria-label="Preferenze privacy e analytics">
+      <button
+        type="button"
+        className={styles.close}
+        aria-label="Continua senza analytics"
+        title="Continua senza analytics"
+        onClick={() => void choose("rejected")}
+      >
+        ×
+      </button>
+
       <div>
-        <p className={styles.kicker}>ANALYTICS / OPTIONAL</p>
+        <p className={styles.kicker}>PRIVACY / ANALYTICS OPTIONAL</p>
         <p className={styles.copy}>
-          Usiamo Google Analytics solo se lo accetti. Il sito funziona anche senza tracking.
+          Per impostazione predefinita non attiviamo strumenti analytics. Google Analytics parte solo se scegli
+          di accettarlo; rifiutare o chiudere questo pannello non limita il sito.
+        </p>
+        <p className={styles.links}>
+          <Link href="/cookies">Cookie policy</Link>
+          <span aria-hidden="true">/</span>
+          <Link href="/privacy">Privacy</Link>
         </p>
       </div>
+
       <div className={styles.actions}>
         <button type="button" className={styles.secondary} onClick={() => void choose("rejected")}>
-          No grazie
+          Rifiuta
         </button>
         <button type="button" className={styles.primary} onClick={() => void choose("accepted")}>
-          Accetta
+          Accetta analytics
         </button>
       </div>
     </aside>
