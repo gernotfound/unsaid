@@ -4,3 +4,4 @@ export * from "./commerce";
 export * from "./customer";
 export * from "./firebase";
 export * from "./storefrontCommerce";
+export * from "./storefrontCommerceList";
