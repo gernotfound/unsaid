@@ -21,7 +21,10 @@ export default function CartPage() {
           </div>
           <p>Il browser ricorda soltanto SKU e quantità. Prezzo, prodotto vendibile e stock vengono ricontrollati dal server ogni volta che apri o modifichi il carrello.</p>
         </header>
-        <CartPanel shopEnabled={FEATURES.shopEnabled} />
+        <CartPanel
+          shopEnabled={FEATURES.shopEnabled}
+          checkoutPreparationEnabled={FEATURES.checkoutPreparationEnabled}
+        />
       </div>
     </main>
   );
