@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { CatalogSort } from "@unsaid/catalog";
-import { getCatalogStats, listPublicCatalogPage } from "@unsaid/db";
 import { CatalogArchive } from "../../../components/CatalogArchive";
+import { catalog } from "../../../server/catalog";
 
 export const revalidate = 300;
 
@@ -25,18 +25,18 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   const sort: CatalogSort = params.sort === "archive" ? "archive" : "newest";
   const cursor = parseCursor(params.cursor);
   const [stats, page] = await Promise.all([
-    getCatalogStats(),
-    listPublicCatalogPage({ cursor, limit: 24, sort }),
+    catalog.getStats(),
+    catalog.list({ cursor, limit: 24, sort }),
   ]);
 
   return (
     <main id="main" className="shop-page">
       <header className="shop-intro">
-        <p className="eyebrow">UNSAID / PUBLIC ARCHIVE</p>
+        <p className="eyebrow">UNSAID / CONTINUOUS ARCHIVE</p>
         <h1>EVERYTHING<br />WE <span>WORE</span><br />OUT LOUD.</h1>
         <div className="shop-intro__side">
           <strong>{String(stats.public).padStart(2, "0")}</strong>
-          <p>White and black garments. Front and back statements. No filler.</p>
+          <p>White and black garments. Front and back statements. One continuous archive.</p>
         </div>
       </header>
 
