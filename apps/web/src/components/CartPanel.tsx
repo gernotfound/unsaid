@@ -52,7 +52,13 @@ function issueLabel(issue: Issue | undefined) {
   return "Riga carrello non valida";
 }
 
-export function CartPanel({ shopEnabled }: { shopEnabled: boolean }) {
+export function CartPanel({
+  shopEnabled,
+  checkoutPreparationEnabled,
+}: {
+  shopEnabled: boolean;
+  checkoutPreparationEnabled: boolean;
+}) {
   const [localLines, setLocalLines] = useState<CartLine[]>([]);
   const [validated, setValidated] = useState<ValidationResponse | null>(null);
   const [busy, setBusy] = useState(true);
@@ -103,6 +109,12 @@ export function CartPanel({ shopEnabled }: { shopEnabled: boolean }) {
   const issues = useMemo(
     () => new Map((validated?.issues ?? []).map((issue) => [issue.variantId, issue])),
     [validated],
+  );
+  const cartReady = Boolean(
+    validated &&
+    validated.lines.length > 0 &&
+    validated.issues.length === 0 &&
+    validated.lines.length === localLines.length,
   );
 
   function changeQuantity(variantId: string, quantity: number) {
@@ -169,7 +181,11 @@ export function CartPanel({ shopEnabled }: { shopEnabled: boolean }) {
         <div className={styles.rule} />
         <p>Prezzi e stock mostrati qui arrivano dal server. Il contenuto di localStorage non è mai considerato autorevole.</p>
         {!shopEnabled ? <div className={styles.gate}><strong>SHOP GATE / OFF</strong><span>Il carrello è strutturalmente pronto, ma gli acquisti restano disattivati.</span></div> : null}
-        <button type="button" disabled>Checkout non ancora attivo</button>
+        {checkoutPreparationEnabled && cartReady && !busy ? (
+          <Link className={styles.checkoutLink} href="/checkout">Continua al checkout →</Link>
+        ) : (
+          <button type="button" disabled>Checkout non ancora attivo</button>
+        )}
         <Link href="/account">Account cliente →</Link>
       </aside>
     </div>
