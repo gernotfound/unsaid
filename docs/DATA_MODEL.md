@@ -47,7 +47,7 @@ Passwords, ID tokens and session cookies are never stored here.
 
 Saved customer addresses. Initial constraint: `country = IT`, five-digit CAP, two-letter province code. Up to ten addresses are currently accepted per account.
 
-A saved address is mutable convenience data. Orders never depend on it after purchase; the order stores its own immutable shipping snapshot.
+A saved address is mutable convenience data. Orders never depend on it after checkout preparation; the order stores its own immutable shipping snapshot.
 
 Browser Firestore access to customer documents is denied. Account APIs verify the HttpOnly/Firebase server session and use Firebase Admin.
 
@@ -63,7 +63,7 @@ Commercial state is separate from `catalog`.
 - selected phase-one garment color (`white` or `black`);
 - updated timestamp.
 
-The editorial `priceCents` field is transitional and must not be the checkout source of truth when sales open.
+The editorial `priceCents` field is transitional and must not be the checkout source of truth.
 
 ### `variants/{variantId}`
 
@@ -84,7 +84,7 @@ UNS-0001-WHT-M
 UNS-0001-BLK-XL
 ```
 
-Switching a product to another garment color does not delete old variants; the obsolete variants are deactivated so historical references remain stable.
+Switching a product to another garment color does not delete old variants; obsolete variants are deactivated so historical references remain stable.
 
 ### `inventory/{variantId}`
 
@@ -98,7 +98,9 @@ Available stock is `max(0, onHand - reserved)`. Admin stock edits cannot set `on
 
 ### `inventoryReservations/{orderId}__{variantId}`
 
-Transaction/idempotency record tying stock reservation to one order + SKU. States:
+Transaction/idempotency record tying stock reservation to one order + SKU. Stores quantity, lifecycle timestamps and the reservation expiry.
+
+States:
 
 - `active` — quantity reserved but not consumed;
 - `released` — reservation returned to availability;
@@ -114,11 +116,19 @@ Immutable commercial snapshot plus lifecycle:
 - checkout email;
 - shipping-address snapshot;
 - order-line/SKU/title/size/color snapshots;
-- price/tax/shipping/total snapshots;
+- authoritative unit-price snapshots;
+- shipping method/cost snapshot;
+- VAT configuration snapshot;
+- subtotal/included-tax/shipping/gross-total snapshots;
+- reservation expiry;
 - status;
 - timestamps.
 
-Changing a product title, customer address or current price later must not rewrite history.
+Pre-payment preparation creates `pending_payment`; it does not mean money was collected. Changing a product title, customer address, current price or shipping configuration later must not rewrite an existing order.
+
+### `checkoutAttempts/{customerId}__{idempotencyKey}`
+
+Server-only idempotency ledger for order preparation. It links one customer/request fingerprint to one deterministic pending order and its expiry. Reusing the same key for a different cart/address/configuration is rejected.
 
 ### Future `payments/{paymentId}`
 
@@ -142,4 +152,5 @@ If collections are introduced later, add them as an editorial projection referen
 
 - stable editorial `catalogId` bridges creative identity to sellable product/variants;
 - Firebase Auth `uid` is customer identity;
-- order/payment/shipment IDs are independent immutable business IDs.
+- order/payment/shipment IDs are independent immutable business IDs;
+- checkout idempotency keys are request-scoped technical identifiers and are not payment proof.
