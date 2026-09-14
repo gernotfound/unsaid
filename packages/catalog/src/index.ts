@@ -1,19 +1,16 @@
-import type { Product } from "@unsaid/domain";
-
 export * from "./archive";
 
+export type CatalogSort = "newest" | "archive";
+
 export interface CatalogQuery {
-  q?: string;
-  category?: string;
-  language?: "it" | "en" | "mixed";
-  includeAdult?: boolean;
-  cursor?: string;
-  limit?: number;
+  cursor?: number | undefined;
+  limit?: number | undefined;
+  sort?: CatalogSort | undefined;
 }
 
-export interface CatalogPage {
-  items: readonly Product[];
-  nextCursor?: string;
+export interface CatalogPage<T> {
+  items: readonly T[];
+  nextCursor?: number | undefined;
 }
 
-export type CatalogRepository = (query: CatalogQuery) => Promise<CatalogPage>;
+export type CatalogRepository<T> = (query?: CatalogQuery) => Promise<CatalogPage<T>>;

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { AnalyticsPreferences } from "../../components/AnalyticsPreferences";
+import { AnalyticsPreferences } from "../../../components/AnalyticsPreferences";
 
 export const metadata: Metadata = { title: "Privacy" };
 

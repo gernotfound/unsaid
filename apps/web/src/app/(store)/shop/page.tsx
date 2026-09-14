@@ -1,25 +1,46 @@
 import type { Metadata } from "next";
-import { getCatalogStats, listPublicCatalog } from "@unsaid/db";
-import { CatalogClient } from "../../../components/CatalogClient";
-import { FEATURES } from "../../../lib/features";
+import type { CatalogSort } from "@unsaid/catalog";
+import { getCatalogStats, listPublicCatalogPage } from "@unsaid/db";
+import { CatalogArchive } from "../../../components/CatalogArchive";
 
 export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Archive",
-  description: "L'archivio pubblico UNSAID: t-shirt pubblicate con render approvati.",
+  description: "L'archivio pubblico UNSAID: T-shirt monocromatiche, statement fronte e retro.",
 };
 
-export default async function ShopPage() {
-  const [stats, records] = await Promise.all([getCatalogStats(), listPublicCatalog()]);
+type ShopPageProps = {
+  searchParams: Promise<{ cursor?: string; sort?: string }>;
+};
+
+function parseCursor(value?: string) {
+  if (!value) return undefined;
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+export default async function ShopPage({ searchParams }: ShopPageProps) {
+  const params = await searchParams;
+  const sort: CatalogSort = params.sort === "archive" ? "archive" : "newest";
+  const cursor = parseCursor(params.cursor);
+  const [stats, page] = await Promise.all([
+    getCatalogStats(),
+    listPublicCatalogPage({ cursor, limit: 24, sort }),
+  ]);
+
   return (
     <main id="main" className="shop-page">
       <header className="shop-intro">
-        <p className="eyebrow">PUBLIC ARCHIVE / {stats.public} RECORDS</p>
-        <h1>EVERYTHING<br />WE <em>COULD</em> SAY.</h1>
-        <p>Qui entrano soltanto le maglie nello stato Pubblicata. Bozze e revisioni restano private nel control room; lo shop {FEATURES.shopEnabled ? "è attivo" : "non è ancora attivo"}.</p>
+        <p className="eyebrow">UNSAID / PUBLIC ARCHIVE</p>
+        <h1>EVERYTHING<br />WE <span>WORE</span><br />OUT LOUD.</h1>
+        <div className="shop-intro__side">
+          <strong>{String(stats.public).padStart(2, "0")}</strong>
+          <p>White and black garments. Front and back statements. No filler.</p>
+        </div>
       </header>
-      <CatalogClient initialRecords={records} />
+
+      <CatalogArchive records={page.items} total={stats.public} sort={sort} nextCursor={page.nextCursor} />
     </main>
   );
 }

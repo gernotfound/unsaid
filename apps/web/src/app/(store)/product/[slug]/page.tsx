@@ -9,6 +9,8 @@ import { FEATURES } from "../../../../lib/features";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
 
+const TONES = ["pink", "cyan", "violet", "amber", "orange"] as const;
+
 export const revalidate = 300;
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
@@ -26,33 +28,48 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const front = product.media.front.asset;
   const back = product.media.back.asset;
   if (!front || !back) notFound();
+
   const approved = product.media.front.state === "approved" && product.media.back.state === "approved";
   const price = product.priceCents == null ? null : product.priceCents / 100;
+  const statement = primaryCopy(product);
+  const printPlacement = product.copy.front && product.copy.back ? "front / back" : product.copy.back ? "back" : "front";
+  const tone = TONES[(product.sequence - 1) % TONES.length] ?? "pink";
 
   return (
-    <main id="main" className="product-page">
-      <Link className="back-link" href="/shop">← Torna all&apos;archivio</Link>
+    <main id="main" className="product-page" data-tone={tone}>
+      <div className="product-page__nav">
+        <Link className="back-link" href="/shop">← Archive</Link>
+        <span>{product.id} / {product.garment.color}</span>
+      </div>
+
       <div className="product-detail">
-        <div className="product-detail__media"><ProductGallery title={product.title} front={front} back={back} initialView={product.primaryView} /></div>
+        <div className="product-detail__media">
+          <ProductGallery title={product.title} front={front} back={back} initialView={product.primaryView} />
+        </div>
+
         <section className="product-detail__copy">
-          <p className="eyebrow">{product.id} / {product.category} / {product.language}</p>
+          <p className="eyebrow">{product.id} / {product.category}</p>
           <h1>{product.title}</h1>
-          <blockquote>
-            {product.copy.front ? <><b>Fronte:</b> {product.copy.front}</> : <><b>Fronte:</b> senza stampa</>}
-            <br /><br />
-            {product.copy.back ? <><b>Retro:</b> {product.copy.back}</> : <><b>Retro:</b> senza stampa</>}
-          </blockquote>
-          {price != null ? <p className="detail-price">€{price.toFixed(2).replace(".", ",")}</p> : null}
+          <p className="product-statement">{statement}</p>
+
+          {price != null ? <p className="detail-price">€{price.toFixed(2).replace(".", ",")}</p> : <p className="detail-price detail-price--archive">ARCHIVE PIECE</p>}
+
           <dl className="spec-list">
+            <div><dt>Garment</dt><dd>{product.garment.color}</dd></div>
             <div><dt>Fit</dt><dd>{product.garment.fit}</dd></div>
-            <div><dt>Colore</dt><dd>{product.garment.color}</dd></div>
-            <div><dt>Stampa</dt><dd>{product.copy.front && product.copy.back ? "fronte / retro" : product.copy.back ? "retro" : "fronte"}</dd></div>
-            <div><dt>Contenuto</dt><dd>{product.audience}</dd></div>
+            <div><dt>Print</dt><dd>{printPlacement}</dd></div>
+            <div><dt>Language</dt><dd>{product.language}</dd></div>
           </dl>
+
+          <div className="copy-sheet">
+            <div><span>FRONT</span><p>{product.copy.front ?? "—"}</p></div>
+            <div><span>BACK</span><p>{product.copy.back ?? "—"}</p></div>
+          </div>
+
           {approved && price != null ? (
             <CommerceControls productId={product.id} slug={product.slug} title={product.title} price={price} shopEnabled={FEATURES.shopEnabled} />
           ) : (
-            <div className="product-state product-state--ready"><strong>Archivio pubblicato.</strong><p>La maglia è visibile; prezzo, carrello e checkout restano separati e disattivati finché non vengono configurati.</p></div>
+            <div className="product-state"><strong>DROP NOT OPEN YET.</strong><p>Il pezzo è visibile nell&apos;archivio. Acquisto e checkout restano spenti finché lo shop non viene attivato.</p></div>
           )}
         </section>
       </div>
