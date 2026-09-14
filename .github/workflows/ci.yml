@@ -28,11 +28,24 @@ jobs:
       - name: Install
         run: pnpm install --no-frozen-lockfile
 
+      - name: Dependency policy
+        run: pnpm check:dependencies
+
       - name: Validate catalog
         run: pnpm seed:firestore:check
+
+      - name: Test
+        run: pnpm test
 
       - name: Typecheck
         run: pnpm typecheck
 
       - name: Build
         run: pnpm build
+
+      - name: Export generated lockfile
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-lockfile
+          path: pnpm-lock.yaml
+          retention-days: 1
