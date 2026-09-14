@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { GARMENT_COLORS, GARMENT_SIZES, type CommerceConfigurationInput } from "@unsaid/domain";
 import { listAdminCommercePage, saveAdminCommerceConfiguration } from "@unsaid/db";
@@ -71,6 +72,11 @@ export async function PATCH(request: Request) {
     const admin = await requireAdminRequest(request);
     const input = parseInput(await request.json());
     await saveAdminCommerceConfiguration(input);
+
+    revalidatePath("/", "page");
+    revalidatePath("/shop", "page");
+    revalidatePath("/product/[slug]", "page");
+
     logEvent("info", "admin_commerce_saved", { route: "/api/admin/commerce", userId: admin.uid, catalogId: input.catalogId });
     return NextResponse.json({ ok: true });
   } catch (error) {
