@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { AnalyticsPreferences } from "../../../components/AnalyticsPreferences";
+import { FEATURES } from "../../../lib/features";
 import { getLegalSettings, publicLegalValue } from "../../../lib/legal";
 
 export const metadata: Metadata = {
@@ -15,16 +16,16 @@ export default function PrivacyPage() {
       <p className="eyebrow">LEGAL / PRIVACY</p>
       <h1>Privacy.</h1>
       <p className="legal-lede">
-        Questa informativa descrive i trattamenti connessi alla navigazione del sito UNSAID nella configurazione
-        attuale di pre-lancio. Checkout, account cliente, newsletter e pagamenti non sono attivi.
+        Questa informativa descrive i trattamenti connessi alla navigazione e, quando abilitato, all&apos;account cliente UNSAID.
+        Checkout, pagamenti e newsletter restano disattivati nella configurazione attuale.
       </p>
 
       {!legal.privacyIdentityReady ? (
         <div className="legal-status legal-status--warning">
           <strong>PRE-LAUNCH / DATI TITOLARE DA COMPLETARE</strong>
           <p>
-            L&apos;infrastruttura privacy è predisposta, ma nome/denominazione e contatto del titolare devono essere
-            configurati prima di attivare analytics o qualunque ulteriore raccolta di dati personali.
+            Nome/denominazione e contatto del titolare devono essere configurati prima di attivare analytics o
+            registrazione cliente. I relativi feature gate restano chiusi finché questi dati non sono disponibili.
           </p>
         </div>
       ) : null}
@@ -47,17 +48,16 @@ export default function PrivacyPage() {
       <section className="legal-section">
         <p className="legal-index">02</p>
         <div>
-          <h2>Dati trattati durante la navigazione</h2>
+          <h2>Dati tecnici di navigazione</h2>
           <p>
-            Per consegnare le pagine e proteggere il servizio, l&apos;infrastruttura di hosting può trattare dati
-            tecnici generati dalle richieste HTTP, come indirizzo IP, data e ora, URL richiesto, user agent,
-            informazioni di rete e log di sicurezza. Questi dati non vengono usati da UNSAID per creare profili
-            commerciali degli utenti.
+            Per consegnare le pagine e proteggere il servizio, l&apos;infrastruttura di hosting può trattare dati tecnici
+            generati dalle richieste HTTP, come indirizzo IP, data e ora, URL richiesto, user agent, informazioni di rete
+            e log di sicurezza. Questi dati non vengono utilizzati da UNSAID per creare profili pubblicitari propri.
           </p>
           <p>
-            La base giuridica è il legittimo interesse a rendere disponibile, stabile e sicuro il sito e a prevenire
+            Il trattamento è collegato alla necessità di rendere disponibile, stabile e sicuro il servizio e prevenire
             abusi. I log sono conservati secondo criteri di necessità tecnica, sicurezza e tutela dei diritti,
-            compatibilmente con le configurazioni e i termini dei fornitori utilizzati.
+            compatibilmente con configurazioni e termini dei fornitori utilizzati.
           </p>
         </div>
       </section>
@@ -65,14 +65,44 @@ export default function PrivacyPage() {
       <section className="legal-section">
         <p className="legal-index">03</p>
         <div>
+          <h2>Account cliente</h2>
+          {FEATURES.customerAccountsEnabled ? (
+            <>
+              <p>
+                Se crei un account trattiamo l&apos;identificativo tecnico Firebase, indirizzo email, stato di verifica
+                dell&apos;email, eventuale nome visualizzato e gli indirizzi di spedizione italiani che scegli di salvare.
+                Le credenziali/password sono gestite da Firebase Authentication e non vengono memorizzate nel database
+                applicativo UNSAID.
+              </p>
+              <p>
+                Questi dati servono a registrare e autenticare l&apos;utente, gestire il profilo, preparare le funzionalità
+                di acquisto richieste dall&apos;utente e proteggere l&apos;accesso alle informazioni personali. L&apos;email
+                verificata sarà obbligatoria prima di un futuro checkout.
+              </p>
+              <p>
+                La sessione applicativa usa un cookie HttpOnly verificabile dal server. Profilo, indirizzi e futuri
+                ordini non sono leggibili direttamente dal browser tramite Firestore: le operazioni passano dal server.
+              </p>
+            </>
+          ) : (
+            <p>
+              La funzionalità account è predisposta tecnicamente ma la registrazione pubblica non è attiva in questa
+              configurazione; il sito non raccoglie quindi dati di profilo o indirizzi cliente attraverso l&apos;area account.
+            </p>
+          )}
+        </div>
+      </section>
+
+      <section className="legal-section">
+        <p className="legal-index">04</p>
+        <div>
           <h2>Analytics opzionali</h2>
           {legal.analyticsConsentEnabled ? (
             <>
               <p>
                 Google Analytics viene inizializzato soltanto dopo una scelta positiva dell&apos;utente. In assenza di
                 consenso, o dopo il rifiuto, il modulo analytics non viene avviato dal sito. La scelta viene ricordata
-                localmente per 180 giorni, salvo modifiche sostanziali alla configurazione o cancellazione dei dati
-                del browser.
+                localmente per 180 giorni, salvo modifiche sostanziali alla configurazione o cancellazione dei dati del browser.
               </p>
               <p>
                 Quando autorizzato, Analytics può trattare dati di utilizzo, informazioni sul dispositivo/browser,
@@ -91,32 +121,18 @@ export default function PrivacyPage() {
       </section>
 
       <section className="legal-section">
-        <p className="legal-index">04</p>
+        <p className="legal-index">05</p>
         <div>
           <h2>Fornitori e destinatari</h2>
           <ul className="legal-list">
             <li><strong>Vercel</strong> — hosting, CDN, delivery del sito e relativi servizi tecnici.</li>
-            <li><strong>Google Firebase</strong> — infrastruttura applicativa e autenticazione dell&apos;area amministrativa.</li>
+            <li><strong>Google Firebase</strong> — database applicativo, autenticazione amministrativa e, quando abilitata, autenticazione cliente.</li>
             <li><strong>Google Analytics</strong> — solo se l&apos;utente presta il consenso e la funzione è abilitata.</li>
           </ul>
           <p>
-            I fornitori possono utilizzare sub-responsabili e trattare dati anche fuori dallo Spazio Economico
-            Europeo secondo i meccanismi di trasferimento applicabili previsti dai rispettivi accordi sul trattamento
-            dei dati, inclusi, ove necessari, strumenti contrattuali riconosciuti dal GDPR.
-          </p>
-        </div>
-      </section>
-
-      <section className="legal-section">
-        <p className="legal-index">05</p>
-        <div>
-          <h2>Conservazione</h2>
-          <p>
-            UNSAID applica il principio di minimizzazione. I dati tecnici vengono mantenuti per il periodo necessario
-            a erogare e proteggere il servizio o per adempiere ad obblighi legali e difendere diritti. La preferenza
-            analytics salvata nel browser scade dopo 180 giorni. I dati Analytics, quando la funzione è attiva,
-            seguono la configurazione di conservazione della proprietà Google Analytics e devono essere mantenuti al
-            minimo coerente con le finalità statistiche.
+            I fornitori possono utilizzare sub-responsabili e trattare dati anche fuori dallo Spazio Economico Europeo
+            secondo i meccanismi di trasferimento applicabili previsti dai rispettivi accordi sul trattamento dei dati.
+            La configurazione effettiva dei fornitori va verificata prima del lancio commerciale.
           </p>
         </div>
       </section>
@@ -124,15 +140,17 @@ export default function PrivacyPage() {
       <section className="legal-section">
         <p className="legal-index">06</p>
         <div>
-          <h2>Diritti</h2>
+          <h2>Conservazione</h2>
           <p>
-            Nei casi previsti dal GDPR puoi chiedere accesso, rettifica, cancellazione, limitazione del trattamento,
-            portabilità e opporti al trattamento. Quando il trattamento si basa sul consenso, puoi revocarlo in
-            qualsiasi momento senza pregiudicare la liceità del trattamento precedente alla revoca.
+            UNSAID applica il principio di minimizzazione. I dati tecnici vengono mantenuti per il periodo necessario a
+            erogare e proteggere il servizio. I dati dell&apos;account vengono mantenuti finché l&apos;account resta attivo o per
+            il tempo necessario a gestire richieste, sicurezza e obblighi applicabili. Quando verranno attivati gli ordini,
+            alcuni dati documentali e fiscali potranno dover essere conservati anche dopo la chiusura dell&apos;account nei
+            limiti previsti dalla legge.
           </p>
           <p>
-            Puoi inoltre proporre reclamo al Garante per la protezione dei dati personali. Per esercitare i diritti
-            usa il contatto privacy indicato sopra.
+            La preferenza analytics salvata nel browser scade dopo 180 giorni. I dati Analytics, quando la funzione è
+            attiva, seguono la configurazione di conservazione della proprietà Google Analytics.
           </p>
         </div>
       </section>
@@ -140,11 +158,16 @@ export default function PrivacyPage() {
       <section className="legal-section">
         <p className="legal-index">07</p>
         <div>
-          <h2>Decisioni automatizzate e profilazione</h2>
+          <h2>Diritti</h2>
           <p>
-            Nella configurazione pubblica attuale UNSAID non adotta decisioni automatizzate che producano effetti
-            giuridici o analogamente significativi sugli utenti e non utilizza dati di navigazione per profilazione
-            pubblicitaria propria.
+            Nei casi previsti dal GDPR puoi chiedere accesso, rettifica, cancellazione, limitazione del trattamento,
+            portabilità e opporti al trattamento. Quando il trattamento si basa sul consenso, puoi revocarlo in qualsiasi
+            momento senza pregiudicare la liceità del trattamento precedente alla revoca.
+          </p>
+          <p>
+            Puoi inoltre proporre reclamo al Garante per la protezione dei dati personali. Per esercitare i diritti usa
+            il contatto privacy indicato sopra. La gestione tecnica di esportazione/chiusura account deve essere completata
+            prima dell&apos;apertura commerciale definitiva.
           </p>
         </div>
       </section>
@@ -152,11 +175,23 @@ export default function PrivacyPage() {
       <section className="legal-section">
         <p className="legal-index">08</p>
         <div>
+          <h2>Decisioni automatizzate e profilazione</h2>
+          <p>
+            Nella configurazione pubblica attuale UNSAID non adotta decisioni automatizzate che producano effetti
+            giuridici o analogamente significativi sugli utenti e non utilizza i dati dell&apos;account o di navigazione per
+            profilazione pubblicitaria propria.
+          </p>
+        </div>
+      </section>
+
+      <section className="legal-section">
+        <p className="legal-index">09</p>
+        <div>
           <h2>Aggiornamenti</h2>
           <p>
-            Questa informativa viene aggiornata quando cambiano finalità, fornitori o funzionalità. L&apos;attivazione
-            di account cliente, newsletter, checkout, pagamenti o ulteriori strumenti di marketing richiederà un
-            aggiornamento prima del rilascio della relativa funzione.
+            Questa informativa viene aggiornata quando cambiano finalità, fornitori o funzionalità. L&apos;attivazione di
+            checkout, pagamenti, newsletter o ulteriori strumenti di marketing richiederà un aggiornamento coerente con
+            la configurazione realmente rilasciata.
           </p>
           <p className="legal-updated">Ultimo aggiornamento: 14 settembre 2026.</p>
         </div>
