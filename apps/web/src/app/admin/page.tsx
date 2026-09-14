@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ARCHIVE } from "@unsaid/catalog";
+import { AdminNav } from "../../components/AdminNav";
 import { AdminPanel } from "../../components/AdminPanel";
 
 export const metadata: Metadata = {
@@ -9,8 +10,11 @@ export const metadata: Metadata = {
 
 export default function AdminPage() {
   return (
-    <main id="main">
-      <AdminPanel seedRecords={ARCHIVE} />
-    </main>
+    <>
+      <AdminNav active="catalog" />
+      <main id="main">
+        <AdminPanel seedRecords={ARCHIVE} />
+      </main>
+    </>
   );
 }
