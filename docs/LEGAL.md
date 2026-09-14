@@ -4,14 +4,15 @@ This document is an engineering checklist, not legal advice. The current impleme
 
 ## Current state
 
-- Public archive only.
+- Public archive active.
 - Checkout disabled.
-- No customer accounts.
+- Customer-account infrastructure implemented but feature-gated.
 - No newsletter.
 - No payment processing.
 - Optional Google Analytics is privacy-by-default and is blocked unless the minimum legal identity is configured.
 - The public 18+ section has been removed.
-- Commerce requires both `NEXT_PUBLIC_SHOP_ENABLED=true` and `LEGAL_COMMERCE_READY=true`.
+- Customer registration requires `NEXT_PUBLIC_ACCOUNTS_ENABLED=true` plus the minimum privacy identity.
+- Commerce requires the account gate, `NEXT_PUBLIC_SHOP_ENABLED=true` and `LEGAL_COMMERCE_READY=true`.
 
 ## Legal identity
 
@@ -33,13 +34,27 @@ LEGAL_COMMERCE_READY=false
 
 `LEGAL_DPO_EMAIL`, `LEGAL_REA`, `LEGAL_PEC` and `LEGAL_FISCAL_CODE` are only shown when present. Do not set `LEGAL_COMMERCE_READY=true` merely to make the UI green: set it only after the actual business identity and sales documentation are ready.
 
+## Customer accounts
+
+Account registration is deliberately behind a separate feature gate:
+
+```env
+NEXT_PUBLIC_ACCOUNTS_ENABLED=false
+```
+
+Before switching it on publicly, verify that the Privacy page accurately describes the deployed Firebase/account configuration and complete the operational process for access/export, rectification and account closure/deletion requests.
+
+The current technical account model stores application profile data and saved Italian addresses in Firestore, but credentials remain with Firebase Authentication. Account-sensitive Firestore data is server-only; browser rules deny direct access.
+
+Email verification is required by the commerce policy before checkout.
+
 ## Privacy
 
 The Privacy page is structured around the information required by GDPR transparency rules:
 
 - identity/contact details of the controller;
 - purposes and legal bases;
-- categories of data;
+- categories of data, including customer-account data when enabled;
 - recipients/processors;
 - transfer information;
 - retention criteria;
@@ -82,7 +97,7 @@ https://support.google.com/analytics/answer/7667196
 Current technical providers that need to be covered by the privacy review include:
 
 - Vercel — hosting/CDN/application delivery;
-- Google Firebase — application infrastructure and admin authentication;
+- Google Firebase — application infrastructure, database and authentication for admin/customer accounts;
 - Google Analytics — only after consent.
 
 Review the actual account plan, DPA and subprocessor configuration before launch. Do not copy generic transfer language without checking the active provider terms.
@@ -133,6 +148,8 @@ Color must never be the only representation of status. Focus indicators remain v
 Before setting `LEGAL_COMMERCE_READY=true`:
 
 - legal identity fields are complete;
+- account privacy/export/closure support process is ready;
+- Firebase authorized domains and customer email templates are reviewed;
 - privacy/cookie text matches the actual production providers and settings;
 - GA4 retention has been deliberately configured;
 - sales terms are reviewed;
