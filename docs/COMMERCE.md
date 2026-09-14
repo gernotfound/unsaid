@@ -11,7 +11,7 @@
 
 ## Current implementation
 
-The commerce domain and Firestore repository layer now exist even though checkout/payment UI remains disabled.
+The commerce domain and Firestore repository layer now exist even though checkout/payment remains disabled.
 
 Implemented server contracts/repositories:
 
@@ -25,7 +25,10 @@ Implemented server contracts/repositories:
 - customer-scoped order listing;
 - checkout eligibility policy (feature gate + account + verified email + IT-only shipping);
 - `/admin/commerce` control room for price, color, sizes, SKU and on-hand stock;
-- server-verified admin API for commerce mutations.
+- server-verified admin API for commerce mutations;
+- server-side public commerce projection for product pages;
+- `/cart` with browser-local SKU/quantity state;
+- `/api/cart/validate` for authoritative price, product and stock re-resolution.
 
 No payment provider is wired yet and no browser route can authoritatively create an order.
 
@@ -46,6 +49,26 @@ The first-launch garment rules are deliberately narrow:
 Changing garment color creates/activates the deterministic variants for the selected color and deactivates old variants instead of deleting them. Historical IDs therefore remain available for order snapshots and audit work.
 
 The browser never receives direct Firestore write access to commerce collections. The admin UI sends a fresh Firebase ID token to a server endpoint; the server verifies admin authorization and performs Firebase Admin transactions.
+
+## Storefront commerce projection
+
+A public product page never treats the editorial `CatalogRecord.priceCents` field as a sale price.
+
+For a product to expose commerce state, the server requires:
+
+- the product to exist in `publicCatalog`;
+- `sellableProducts/{catalogId}` to exist and be active;
+- an EUR price greater than zero;
+- active variants matching the configured garment color.
+
+The product page receives only the public sale projection it needs:
+
+- current EUR price;
+- garment color;
+- active sizes / SKU identifiers;
+- currently available quantity (`onHand - reserved`).
+
+Inactive commerce records are treated as archive-only products.
 
 ## Separation of concerns
 
@@ -94,6 +117,33 @@ A future Stripe implementation is an adapter. UI components and order invariants
 
 The same rule applies to future fulfillment providers.
 
+## Cart trust boundary
+
+The cart is intentionally client-friendly but non-authoritative.
+
+The browser stores only:
+
+- `variantId`;
+- `catalog/productId` for local identity/display fallback;
+- size;
+- quantity.
+
+It does **not** persist a trusted sale price or total.
+
+Whenever `/cart` loads or quantity changes, `/api/cart/validate` re-resolves through Firebase Admin:
+
+- the variant exists and is active;
+- the parent sellable product exists and is active;
+- the product is still published;
+- garment color still matches the sellable product;
+- current EUR unit price;
+- current `onHand - reserved` availability;
+- authoritative line total and subtotal.
+
+Invalid, unpublished, inactive or out-of-stock lines are not accepted as valid cart lines. Local storage can be edited by the user without gaining authority over server data.
+
+Cart validation does not reserve inventory. Reservation happens only when a future server-side checkout creates a real pending order.
+
 ## Checkout state machine
 
 Recommended first-launch flow:
@@ -102,7 +152,7 @@ Recommended first-launch flow:
 2. require verified email;
 3. validate legal/commerce gates;
 4. validate Italian shipping address;
-5. load SKU, price and availability server-side;
+5. revalidate cart SKU, price and availability server-side;
 6. calculate authoritative totals;
 7. reserve inventory transactionally;
 8. create pending order;
@@ -150,19 +200,6 @@ The same webhook or client retry must not:
 - decrement inventory twice;
 - create duplicate orders;
 - send duplicate fulfillment requests.
-
-## Cart
-
-A pre-checkout cart can remain client-friendly, but it is not authoritative.
-
-At checkout the server re-resolves:
-
-- product active state;
-- variant;
-- current price;
-- stock;
-- shipping eligibility;
-- totals.
 
 ## Returns/refunds
 

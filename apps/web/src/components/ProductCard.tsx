@@ -5,6 +5,7 @@ import { primaryAsset, primaryCopy, type CatalogRecord } from "@unsaid/catalog";
 type Props = {
   record: CatalogRecord;
   priority?: boolean;
+  sale?: { priceCents: number; available: number } | null;
 };
 
 const TONES = ["pink", "cyan", "violet", "amber", "orange"] as const;
@@ -14,11 +15,15 @@ function printLabel(record: CatalogRecord) {
   return record.copy.back ? "BACK PRINT" : "FRONT PRINT";
 }
 
-export function ProductCard({ record, priority = false }: Props) {
+export function ProductCard({ record, priority = false, sale = null }: Props) {
   const asset = primaryAsset(record);
   const statement = primaryCopy(record);
   const tone = TONES[(record.sequence - 1) % TONES.length] ?? "pink";
-  const price = record.priceCents == null ? null : record.priceCents / 100;
+  const saleLabel = !sale
+    ? "ARCHIVE"
+    : sale.available < 1
+      ? "SOLD OUT"
+      : `€${(sale.priceCents / 100).toFixed(2).replace(".", ",")}`;
 
   return (
     <article className={`archive-card archive-card--${tone}`}>
@@ -48,7 +53,7 @@ export function ProductCard({ record, priority = false }: Props) {
         <p>{statement}</p>
         <div className="archive-card__foot">
           <span>{record.garment.fit}</span>
-          <span>{price == null ? "ARCHIVE" : `€${price.toFixed(2).replace(".", ",")}`}</span>
+          <span>{saleLabel}</span>
         </div>
       </div>
     </article>

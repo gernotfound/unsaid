@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { CatalogSort } from "@unsaid/catalog";
+import { getPublicCommerceSummaries } from "@unsaid/db";
 import { CatalogArchive } from "../../../components/CatalogArchive";
 import { catalog } from "../../../server/catalog";
 
@@ -28,6 +29,7 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
     catalog.getStats(),
     catalog.list({ cursor, limit: 24, sort }),
   ]);
+  const commerceById = await getPublicCommerceSummaries(page.items.map((record) => record.id));
 
   return (
     <main id="main" className="shop-page">
@@ -40,7 +42,13 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
         </div>
       </header>
 
-      <CatalogArchive records={page.items} total={stats.public} sort={sort} nextCursor={page.nextCursor} />
+      <CatalogArchive
+        records={page.items}
+        total={stats.public}
+        sort={sort}
+        nextCursor={page.nextCursor}
+        commerceById={commerceById}
+      />
     </main>
   );
 }

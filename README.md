@@ -89,9 +89,11 @@ Customer -> Order -> Payment -> Shipment
 
 Commerce writes are server-mediated and admin-authorized. Browser Firestore access to sellable products, variants, inventory and orders remains denied. Administrative stock updates preserve reserved quantities and cannot push `onHand` below `reserved`.
 
-Firestore repositories now exist for sellable products, variants, transactional inventory reservation and orders. Payment/checkout remains deliberately unwired.
+Public product pages now resolve sale price, active sizes and availability from the server-side commerce projection rather than from the transitional editorial `priceCents` field. `/cart` stores only non-authoritative variant IDs and quantities in the browser and calls `/api/cart/validate` to re-resolve published product identity, active SKU, current EUR price and current availability from Firebase Admin.
 
-Italy is the only shipping market at first launch. Browser-submitted price, stock, country and totals are never authoritative.
+The cart is implemented, but checkout/order creation and payments remain deliberately unwired. A browser cannot authoritatively set price, stock or totals.
+
+Italy is the only shipping market at first launch.
 
 See `docs/COMMERCE.md`.
 
