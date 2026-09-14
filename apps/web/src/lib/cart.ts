@@ -1,4 +1,4 @@
-import type { GarmentSize } from "@unsaid/domain";
+import { GARMENT_SIZES, type GarmentSize } from "@unsaid/domain";
 
 export const CART_STORAGE_KEY = "unsaid:cart:v2";
 export const CART_UPDATED_EVENT = "unsaid:cart-updated";
@@ -17,8 +17,9 @@ function validLine(value: unknown): value is CartLine {
   return Boolean(
     typeof line.variantId === "string" && line.variantId &&
     typeof line.productId === "string" && /^UNS-\d{4,}$/.test(line.productId) &&
-    typeof line.size === "string" &&
-    Number.isInteger(line.quantity) && Number(line.quantity) >= 1 && Number(line.quantity) <= MAX_LINE_QUANTITY,
+    typeof line.size === "string" && GARMENT_SIZES.includes(line.size as GarmentSize) &&
+    typeof line.quantity === "number" && Number.isInteger(line.quantity) &&
+    line.quantity >= 1 && line.quantity <= MAX_LINE_QUANTITY,
   );
 }
 
