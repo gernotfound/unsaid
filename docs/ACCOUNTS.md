@@ -23,7 +23,8 @@ Implemented public/account flows:
 - HttpOnly server session exchange;
 - profile name update;
 - Italian shipping-address creation/deletion/default selection;
-- order-history read boundary;
+- customer-scoped order-history read boundary;
+- authenticated JSON export of account/profile/address/order data;
 - logout/session removal.
 
 The account page is `/account`.
@@ -72,6 +73,10 @@ Browser Firestore access to customer documents is denied. Account data is read/w
 
 An account can be created before the email address is verified, but the commerce policy requires verified email before checkout. This is enforced as a server/domain invariant, not just UI copy.
 
+## Data export
+
+`GET /api/account/export` requires a valid customer server session and returns an attachment containing the profile, saved addresses, verification state and customer-owned order snapshots. The response is marked private/no-store and contains no password or Firebase credential material.
+
 ## Checkout boundary
 
 A future checkout requires all of the following:
@@ -94,9 +99,9 @@ The repository can list only orders whose `customerId` matches the authenticated
 
 ## Privacy lifecycle before commercial launch
 
-Before customer registration is enabled publicly for a commercial launch, complete and test:
+Before customer registration is enabled for the commercial launch, complete and test:
 
-- account-data export process;
+- account-data export flow (implemented, production QA still required);
 - formal account closure/deletion workflow;
 - retention rules for order/accounting records;
 - support path for access/rectification/deletion requests;
