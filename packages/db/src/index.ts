@@ -1,6 +1,7 @@
 export * from "./catalog";
 export * from "./catalogRepository";
 export * from "./checkout";
+export * from "./checkoutExpiry";
 export * from "./commerce";
 export * from "./customer";
 export * from "./firebase";
