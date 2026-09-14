@@ -113,6 +113,9 @@ importers:
       '@unsaid/catalog':
         specifier: workspace:*
         version: link:../catalog
+      '@unsaid/domain':
+        specifier: workspace:*
+        version: link:../domain
       firebase-admin:
         specifier: 'catalog:'
         version: 13.10.0(@firebase/app-compat@0.5.18)(@firebase/app@0.16.2)

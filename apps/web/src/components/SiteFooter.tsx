@@ -15,6 +15,7 @@ export function SiteFooter() {
           <p>{BRAND.tagline}</p>
           <nav aria-label="Link footer">
             <Link href="/shop">Archive</Link>
+            <Link href="/account">Account</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/cookies">Cookie</Link>
             <Link href="/legal">Note legali</Link>

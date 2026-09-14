@@ -1,4 +1,5 @@
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
+import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
 function required(name: "FIREBASE_PROJECT_ID" | "FIREBASE_CLIENT_EMAIL" | "FIREBASE_PRIVATE_KEY") {
@@ -29,4 +30,8 @@ export function isFirebaseConfigured() {
 
 export function getAdminFirestore(): Firestore {
   return getFirestore(createAdminApp());
+}
+
+export function getAdminAuth(): Auth {
+  return getAuth(createAdminApp());
 }

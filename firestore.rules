@@ -40,6 +40,26 @@ service cloud.firestore {
       allow write: if isOwner();
     }
 
+    // Customer profile, address and order access is intentionally mediated by
+    // verified HttpOnly server sessions. A Firebase user alone is not enough to
+    // access these documents directly from the browser SDK.
+    match /customers/{uid} {
+      allow read, write: if false;
+      match /addresses/{addressId} {
+        allow read, write: if false;
+      }
+    }
+
+    // Commerce state is authoritative server data. Client-side cart data never
+    // grants write access to price, SKU, inventory, reservations or orders.
+    match /sellableProducts/{id} { allow read, write: if false; }
+    match /variants/{id} { allow read, write: if false; }
+    match /inventory/{id} { allow read, write: if false; }
+    match /inventoryReservations/{id} { allow read, write: if false; }
+    match /orders/{id} { allow read, write: if false; }
+    match /payments/{id} { allow read, write: if false; }
+    match /shipments/{id} { allow read, write: if false; }
+
     match /{document=**} {
       allow read, write: if false;
     }
