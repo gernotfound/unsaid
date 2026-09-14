@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { releaseExpiredCheckoutAttempts } from "@unsaid/db";
-import { createRequestId, logError, logEvent } from "../../../../../server/logger";
+import { createRequestId, logError, logEvent } from "../../../../server/logger";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
