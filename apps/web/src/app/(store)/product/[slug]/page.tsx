@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { primaryCopy } from "@unsaid/catalog";
-import { getPublicProductBySlug } from "@unsaid/db";
 import { CommerceControls } from "../../../../components/CommerceControls";
 import { ProductGallery } from "../../../../components/ProductGallery";
 import { FEATURES } from "../../../../lib/features";
+import { catalog } from "../../../../server/catalog";
 
 type ProductPageProps = { params: Promise<{ slug: string }> };
 
@@ -15,14 +15,14 @@ export const revalidate = 300;
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getPublicProductBySlug(slug);
+  const product = await catalog.getBySlug(slug);
   if (!product) return {};
   return { title: product.title, description: primaryCopy(product) };
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = await getPublicProductBySlug(slug);
+  const product = await catalog.getBySlug(slug);
   if (!product) notFound();
 
   const front = product.media.front.asset;
@@ -69,7 +69,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {approved && price != null ? (
             <CommerceControls productId={product.id} slug={product.slug} title={product.title} price={price} shopEnabled={FEATURES.shopEnabled} />
           ) : (
-            <div className="product-state"><strong>DROP NOT OPEN YET.</strong><p>Il pezzo è visibile nell&apos;archivio. Acquisto e checkout restano spenti finché lo shop non viene attivato.</p></div>
+            <div className="product-state"><strong>SHOP NOT OPEN YET.</strong><p>Il pezzo è visibile nell&apos;archivio continuo. Acquisto e checkout restano spenti finché lo shop non viene attivato.</p></div>
           )}
         </section>
       </div>
