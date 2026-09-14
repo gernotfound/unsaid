@@ -23,9 +23,29 @@ Implemented server contracts/repositories:
 - reserve / release / commit inventory operations;
 - `Order` and `FirestoreOrderRepository`;
 - customer-scoped order listing;
-- checkout eligibility policy (feature gate + account + verified email + IT-only shipping).
+- checkout eligibility policy (feature gate + account + verified email + IT-only shipping);
+- `/admin/commerce` control room for price, color, sizes, SKU and on-hand stock;
+- server-verified admin API for commerce mutations.
 
 No payment provider is wired yet and no browser route can authoritatively create an order.
+
+## Admin commerce control
+
+`/admin/commerce` is separate from the editorial catalog editor. It configures commercial state without creating a new editorial revision.
+
+The first-launch garment rules are deliberately narrow:
+
+- one sellable garment color per product: `white` or `black`;
+- sizes: `XS`, `S`, `M`, `L`, `XL`, `XXL`;
+- deterministic SKU format, e.g. `UNS-0001-WHT-M` or `UNS-0001-BLK-XL`;
+- stock is stored per SKU;
+- reserved stock is read-only in the admin UI;
+- an admin cannot reduce `onHand` below `reserved`;
+- activating sale requires a published catalog record, approved front/back media, a positive price and at least one active size.
+
+Changing garment color creates/activates the deterministic variants for the selected color and deactivates old variants instead of deleting them. Historical IDs therefore remain available for order snapshots and audit work.
+
+The browser never receives direct Firestore write access to commerce collections. The admin UI sends a fresh Firebase ID token to a server endpoint; the server verifies admin authorization and performs Firebase Admin transactions.
 
 ## Separation of concerns
 
@@ -49,7 +69,7 @@ Price and stock updates must not create editorial revisions.
 
 ## Firestore collections
 
-The planned/current server-side commerce collections are:
+The current/planned server-side commerce collections are:
 
 - `sellableProducts/{catalogId}`;
 - `variants/{variantId}`;
@@ -117,6 +137,8 @@ Inventory is per SKU/variant and stores:
 Availability = `max(0, onHand - reserved)`.
 
 Reservations are separate documents tied to order + variant. The repository treats repeated reserve/commit calls idempotently when they refer to the same reservation and rejects conflicting quantities. All reservation/inventory mutations use Firestore transactions.
+
+Administrative stock edits also use a transaction and preserve the current reserved quantity. If a requested on-hand value is lower than reserved stock, the mutation fails instead of silently corrupting availability.
 
 ## Idempotency
 
