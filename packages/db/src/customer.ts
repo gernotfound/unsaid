@@ -84,6 +84,12 @@ export async function listCustomerAddresses(uid: string): Promise<readonly Custo
   return snapshot.docs.map((item) => item.data() as CustomerAddress);
 }
 
+export async function getCustomerAddress(uid: string, addressId: string): Promise<CustomerAddress | null> {
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(addressId)) return null;
+  const snapshot = await addressRef(uid, addressId).get();
+  return snapshot.exists ? (snapshot.data() as CustomerAddress) : null;
+}
+
 export async function createCustomerAddress(uid: string, input: CustomerAddressInput): Promise<CustomerAddress> {
   const normalized = normalizeItalianAddress(input);
   const errors = validateItalianAddress(normalized);

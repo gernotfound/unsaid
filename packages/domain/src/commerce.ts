@@ -57,6 +57,7 @@ export interface InventoryReservation {
   status: InventoryReservationStatus;
   createdAt: string;
   updatedAt: string;
+  expiresAt?: string;
 }
 
 export interface CommerceVariantConfiguration {
@@ -142,6 +143,18 @@ export interface OrderTotals {
   total: Money;
 }
 
+export interface OrderShippingMethod {
+  id: string;
+  label: string;
+  country: SalesCountry;
+  price: Money;
+}
+
+export interface OrderTaxSnapshot {
+  includedInPrices: true;
+  rateBps: number;
+}
+
 export interface Order {
   id: string;
   customerId: string;
@@ -152,6 +165,9 @@ export interface Order {
   status: OrderStatus;
   createdAt: string;
   updatedAt: string;
+  shippingMethod?: OrderShippingMethod;
+  taxSnapshot?: OrderTaxSnapshot;
+  reservationExpiresAt?: string;
 }
 
 export type PaymentStatus = "requires_action" | "authorized" | "paid" | "failed" | "refunded";
@@ -223,6 +239,26 @@ export function isAllowedShippingCountry(value: string): value is SalesCountry {
 
 export function availableInventory(snapshot: Pick<InventorySnapshot, "onHand" | "reserved">) {
   return Math.max(0, snapshot.onHand - snapshot.reserved);
+}
+
+export function calculateGrossOrderTotals(input: {
+  subtotalCents: number;
+  shippingCents: number;
+  vatRateBps: number;
+}): OrderTotals {
+  const { subtotalCents, shippingCents, vatRateBps } = input;
+  if (!Number.isInteger(subtotalCents) || subtotalCents < 0) throw new Error("INVALID_SUBTOTAL");
+  if (!Number.isInteger(shippingCents) || shippingCents < 0) throw new Error("INVALID_SHIPPING");
+  if (!Number.isInteger(vatRateBps) || vatRateBps < 0 || vatRateBps > 10_000) throw new Error("INVALID_VAT_RATE");
+
+  const totalCents = subtotalCents + shippingCents;
+  const taxCents = vatRateBps === 0 ? 0 : Math.round((totalCents * vatRateBps) / (10_000 + vatRateBps));
+  return {
+    subtotal: { amountCents: subtotalCents, currency: "EUR" },
+    shipping: { amountCents: shippingCents, currency: "EUR" },
+    tax: { amountCents: taxCents, currency: "EUR" },
+    total: { amountCents: totalCents, currency: "EUR" },
+  };
 }
 
 export function checkoutEligibility(input: CheckoutEligibilityInput): CheckoutEligibility {

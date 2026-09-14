@@ -25,7 +25,7 @@ TypeScript monorepo for the UNSAID statement-wear archive and future Italy-only 
 - Verified email required before checkout.
 - Initial commerce market: Italy only.
 - Currency: EUR.
-- Shop remains disabled until payment, operating process and legal readiness are complete.
+- Shop/payment remains disabled until operating process and legal readiness are complete.
 
 ## Architecture
 
@@ -85,27 +85,28 @@ CatalogRecord
 Customer -> Order -> Payment -> Shipment
 ```
 
-`/admin/commerce` is the commercial control room. It configures sale activation, EUR price, white/black garment color, deterministic XS–XXL SKUs and per-size on-hand stock without changing the editorial revision.
+`/admin/commerce` configures sale activation, EUR price, white/black garment color, deterministic XS–XXL SKUs and per-size on-hand stock without changing the editorial revision.
 
-Commerce writes are server-mediated and admin-authorized. Browser Firestore access to sellable products, variants, inventory and orders remains denied. Administrative stock updates preserve reserved quantities and cannot push `onHand` below `reserved`.
+Public product/archive pages resolve sale price and availability from the server-side commerce projection. `/cart` stores only non-authoritative variant IDs and quantities and calls `/api/cart/validate` for current product, price and stock.
 
-Public product pages now resolve sale price, active sizes and availability from the server-side commerce projection rather than from the transitional editorial `priceCents` field. `/cart` stores only non-authoritative variant IDs and quantities in the browser and calls `/api/cart/validate` to re-resolve published product identity, active SKU, current EUR price and current availability from Firebase Admin.
+`/checkout` now implements the pre-payment trust boundary. With all gates explicitly enabled it requires a verified customer account and customer-owned Italian address, then revalidates commerce data and creates one idempotent `pending_payment` order while reserving all SKU quantities inside the same Firestore transaction. Customer cancellation releases the reservation transactionally.
 
-The cart is implemented, but checkout/order creation and payments remain deliberately unwired. A browser cannot authoritatively set price, stock or totals.
+Shipping and VAT are fail-closed configuration; there is no hard-coded business rate. Pending reservations also carry an expiry. An automated expiry sweeper is required before checkout preparation is enabled in production.
 
-Italy is the only shipping market at first launch.
+Stripe/payment is still deliberately disconnected. No browser action can mark an order paid.
 
 See `docs/COMMERCE.md`.
 
-The shop remains intentionally off:
+Commerce remains intentionally off by default:
 
 ```env
 NEXT_PUBLIC_ACCOUNTS_ENABLED=false
 NEXT_PUBLIC_SHOP_ENABLED=false
 LEGAL_COMMERCE_READY=false
+CHECKOUT_PREPAYMENT_ENABLED=false
+COMMERCE_STANDARD_SHIPPING_CENTS=
+COMMERCE_VAT_RATE_BPS=
 ```
-
-Account/privacy readiness is also part of the commerce gate.
 
 ## Privacy / legal
 

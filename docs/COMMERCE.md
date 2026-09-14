@@ -7,11 +7,11 @@
 - Customer account: **required to purchase**.
 - Verified email: **required before checkout**.
 - Catalog: **continuous archive**, no drop/collection dependency.
-- Checkout: disabled until feature + legal gates are both ready.
+- Checkout/payment: fail closed until feature, legal, shipping and tax gates are all ready.
 
 ## Current implementation
 
-The commerce domain and Firestore repository layer now exist even though checkout/payment remains disabled.
+The commerce domain, storefront projection, cart validation and pre-payment checkout foundation now exist. Stripe/payment remains disconnected.
 
 Implemented server contracts/repositories:
 
@@ -26,11 +26,14 @@ Implemented server contracts/repositories:
 - checkout eligibility policy (feature gate + account + verified email + IT-only shipping);
 - `/admin/commerce` control room for price, color, sizes, SKU and on-hand stock;
 - server-verified admin API for commerce mutations;
-- server-side public commerce projection for product pages;
+- server-side public commerce projection for product/archive pages;
 - `/cart` with browser-local SKU/quantity state;
-- `/api/cart/validate` for authoritative price, product and stock re-resolution.
+- `/api/cart/validate` for authoritative price, product and stock re-resolution;
+- `/checkout` pre-payment flow;
+- `/api/checkout/prepare` for atomic pending-order creation + stock reservation;
+- `/api/checkout/cancel` for customer-owned pending-order cancellation + stock release.
 
-No payment provider is wired yet and no browser route can authoritatively create an order.
+No payment provider is wired and no route can mark an order paid.
 
 ## Admin commerce control
 
@@ -61,26 +64,89 @@ For a product to expose commerce state, the server requires:
 - an EUR price greater than zero;
 - active variants matching the configured garment color.
 
-The product page receives only the public sale projection it needs:
+The product page receives only the public sale projection it needs: current EUR price, garment color, active sizes/SKU identifiers and current availability (`onHand - reserved`). Inactive commerce records remain archive-only products.
 
-- current EUR price;
-- garment color;
-- active sizes / SKU identifiers;
-- currently available quantity (`onHand - reserved`).
+## Cart trust boundary
 
-Inactive commerce records are treated as archive-only products.
+The browser cart is intentionally non-authoritative. It stores only variant/product identity, size and quantity; it does not persist a trusted price or total.
+
+Whenever `/cart` loads or quantity changes, `/api/cart/validate` re-resolves through Firebase Admin:
+
+- active variant;
+- active parent sellable product;
+- still-published catalog projection;
+- configured garment color;
+- current EUR unit price;
+- current `onHand - reserved` availability;
+- authoritative line total and subtotal.
+
+Cart validation does not reserve inventory.
+
+## Pre-payment checkout
+
+`/checkout` is the next trust boundary. It requires:
+
+1. an authenticated server session;
+2. a verified email;
+3. a saved customer-owned Italian shipping address;
+4. a valid cart;
+5. shop/legal gates;
+6. explicit server-side shipping + VAT configuration;
+7. `CHECKOUT_PREPAYMENT_ENABLED=true`.
+
+The endpoint ignores browser prices/totals. Inside one Firestore transaction it re-reads variants, sellable products, public catalog records and inventory, computes totals, increments reserved stock, creates deterministic reservation records and writes one `pending_payment` order.
+
+The same idempotency key cannot create duplicate orders. A retry with the same key + same checkout request returns the existing order; conflicting reuse is rejected.
+
+The pending order snapshots:
+
+- customer + checkout email;
+- shipping address;
+- SKU/title/size/color/quantity;
+- server price;
+- shipping method/cost;
+- VAT rate configuration used for the calculation;
+- subtotal, included VAT component and gross total;
+- reservation expiry.
+
+`/api/checkout/cancel` only permits the owning customer to cancel an order still in `pending_payment`. It releases active reservations transactionally and marks the order `cancelled`.
+
+## Shipping and VAT configuration
+
+No shipping price or VAT percentage is guessed in code. Checkout preparation stays disabled until these are configured:
+
+```env
+CHECKOUT_PREPAYMENT_ENABLED=false
+COMMERCE_STANDARD_SHIPPING_CENTS=
+COMMERCE_FREE_SHIPPING_THRESHOLD_CENTS=
+COMMERCE_VAT_RATE_BPS=
+COMMERCE_RESERVATION_MINUTES=15
+```
+
+Consumer-facing product/shipping values are treated as gross prices. `COMMERCE_VAT_RATE_BPS` is used to snapshot the included VAT component with:
+
+```text
+included VAT = gross total × rate / (100% + rate)
+```
+
+The configured VAT treatment must be reviewed against the real business/tax setup before checkout is enabled. The phase-one implementation assumes one configured VAT rate for the order total; do not enable it if that assumption does not match the actual tax treatment.
+
+## Reservation lifecycle
+
+Inventory is per SKU and stores `onHand`, `reserved` and update timestamp. Availability is `max(0, onHand - reserved)`.
+
+Checkout reservations include an expiry timestamp. Manual cancellation releases them immediately. Before enabling checkout in production, an automated expiry sweeper/worker must also be operational so abandoned pending orders cannot hold stock indefinitely.
+
+Confirmed payment will later commit the reservation: decrement `onHand`, decrement `reserved`, mark reservation `committed`, then move the order to paid/processing. Failed/expired payment will release the reservation.
 
 ## Separation of concerns
-
-`CatalogRecord` is the editorial identity of a shirt.
-
-Commercial state belongs elsewhere:
 
 ```text
 CatalogRecord
   -> SellableProduct
       -> SellableVariant / SKU
           -> Inventory
+             -> InventoryReservation
 
 Customer
   -> Order
@@ -88,129 +154,38 @@ Customer
       -> Shipment
 ```
 
-Price and stock updates must not create editorial revisions.
+Price, stock and payment state never rewrite the editorial product identity.
 
 ## Firestore collections
 
-The current/planned server-side commerce collections are:
+Current/planned commerce collections:
 
 - `sellableProducts/{catalogId}`;
 - `variants/{variantId}`;
 - `inventory/{variantId}`;
 - `inventoryReservations/{orderId}__{variantId}`;
 - `orders/{orderId}`;
+- `checkoutAttempts/{customerId}__{idempotencyKey}`;
 - future `payments/{paymentId}`;
-- future `shipments/{shipmentId}`.
+- future `shipments/{shipmentId}`;
+- future `webhookEvents/{providerEventId}`.
 
 Browser Firestore access to these collections is denied. Firebase Admin on the application server is the authority.
 
-## Provider adapters
+## Payment state machine — next stage
 
-Domain code defines provider-neutral interfaces for:
+The remaining first-launch flow is:
 
-- `PaymentProvider`;
-- `SellableProductRepository`;
-- `InventoryRepository`;
-- `OrderRepository`.
+1. create provider payment for an existing `pending_payment` order;
+2. use an idempotency key;
+3. verify signed provider webhooks;
+4. persist webhook event IDs;
+5. on confirmed payment, commit reservations and move order to `paid`/`processing`;
+6. on failed/expired payment, release reservations;
+7. never trust a browser redirect as proof of payment.
 
-A future Stripe implementation is an adapter. UI components and order invariants must not depend directly on Stripe SDK objects.
-
-The same rule applies to future fulfillment providers.
-
-## Cart trust boundary
-
-The cart is intentionally client-friendly but non-authoritative.
-
-The browser stores only:
-
-- `variantId`;
-- `catalog/productId` for local identity/display fallback;
-- size;
-- quantity.
-
-It does **not** persist a trusted sale price or total.
-
-Whenever `/cart` loads or quantity changes, `/api/cart/validate` re-resolves through Firebase Admin:
-
-- the variant exists and is active;
-- the parent sellable product exists and is active;
-- the product is still published;
-- garment color still matches the sellable product;
-- current EUR unit price;
-- current `onHand - reserved` availability;
-- authoritative line total and subtotal.
-
-Invalid, unpublished, inactive or out-of-stock lines are not accepted as valid cart lines. Local storage can be edited by the user without gaining authority over server data.
-
-Cart validation does not reserve inventory. Reservation happens only when a future server-side checkout creates a real pending order.
-
-## Checkout state machine
-
-Recommended first-launch flow:
-
-1. require authenticated customer session;
-2. require verified email;
-3. validate legal/commerce gates;
-4. validate Italian shipping address;
-5. revalidate cart SKU, price and availability server-side;
-6. calculate authoritative totals;
-7. reserve inventory transactionally;
-8. create pending order;
-9. create provider payment with idempotency key;
-10. confirm payment from signed webhook/provider state;
-11. commit reserved stock after confirmed payment;
-12. transition order to paid/processing;
-13. release reservation on failed/expired flows.
-
-Never mark an order paid from a browser callback alone.
-
-## Italy-only boundary
-
-Country expansion is intentionally not generic at first.
-
-- UI exposes Italy only.
-- Domain policy accepts `IT` only.
-- Server rejects non-IT shipping addresses.
-- Shipping methods are selected only from Italian destinations.
-- Currency remains EUR.
-
-Do not hard-code a VAT percentage into the domain until the real business/tax configuration is confirmed. Prices/tax presentation must be reviewed before sales launch.
-
-## Inventory
-
-Inventory is per SKU/variant and stores:
-
-- `onHand`;
-- `reserved`;
-- update timestamp.
-
-Availability = `max(0, onHand - reserved)`.
-
-Reservations are separate documents tied to order + variant. The repository treats repeated reserve/commit calls idempotently when they refer to the same reservation and rejects conflicting quantities. All reservation/inventory mutations use Firestore transactions.
-
-Administrative stock edits also use a transaction and preserve the current reserved quantity. If a requested on-hand value is lower than reserved stock, the mutation fails instead of silently corrupting availability.
-
-## Idempotency
-
-Persist provider event IDs and checkout/payment idempotency keys when payment integration is added.
-
-The same webhook or client retry must not:
-
-- charge twice;
-- decrement inventory twice;
-- create duplicate orders;
-- send duplicate fulfillment requests.
+Stripe will be a `PaymentProvider` adapter; UI/order invariants must not depend on Stripe SDK objects.
 
 ## Returns/refunds
 
-Return/refund state is separate from the creative catalog.
-
-Before launch define:
-
-- withdrawal/return eligibility and timing;
-- return shipment process;
-- refund state transitions;
-- restock policy;
-- partial refund behavior.
-
-The final rules must match the legal pages and actual operating process.
+Return/refund state remains separate from the creative catalog. Before launch define withdrawal/return eligibility, return shipping, refund transitions, restock policy and partial refunds, and keep the legal pages synchronized with the actual operating process.
