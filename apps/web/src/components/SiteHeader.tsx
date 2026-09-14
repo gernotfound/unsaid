@@ -15,6 +15,7 @@ export function SiteHeader() {
           <Link href="/shop">Archive</Link>
           <Link href="/#model-01">Model 01</Link>
           <Link href="/#manifesto">Manifesto</Link>
+          <Link href="/account">Account</Link>
         </nav>
 
         <span className="header-cta" aria-disabled="true" title="Shop non ancora attivo">SHOP / SOON</span>
