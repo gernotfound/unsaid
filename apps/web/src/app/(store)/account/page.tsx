@@ -5,6 +5,7 @@ import {
   getCustomerProfile,
   isFirebaseConfigured,
   listCustomerAddresses,
+  listCustomerOrderFulfillment,
   listCustomerOrders,
 } from "@unsaid/db";
 import { CustomerAuthPanel } from "../../../components/CustomerAuthPanel";
@@ -18,7 +19,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Account",
-  description: "Account cliente UNSAID per profilo, indirizzi e storico ordini.",
+  description: "Account cliente UNSAID per profilo, indirizzi, ordini e tracking spedizioni.",
 };
 
 export default async function AccountPage() {
@@ -35,7 +36,8 @@ export default async function AccountPage() {
       listCustomerAddresses(session.uid),
       listCustomerOrders(session.uid, 25),
     ]);
-    account = { profile, addresses, orders };
+    const fulfillment = await listCustomerOrderFulfillment(session.uid, orders);
+    account = { profile, addresses, orders, fulfillment };
   }
 
   return (
@@ -48,7 +50,7 @@ export default async function AccountPage() {
           </div>
           <div className={styles.side}>
             <strong>Un account sarà necessario per acquistare.</strong>
-            <p>Salva i tuoi dati e gli indirizzi italiani. Prezzi, stock e ordini resteranno comunque verificati dal server al checkout.</p>
+            <p>Salva i tuoi dati e gli indirizzi italiani. Prezzi, stock, ordini e tracking resteranno verificati dal server.</p>
           </div>
         </header>
 
@@ -72,6 +74,7 @@ export default async function AccountPage() {
             profile={account.profile}
             addresses={account.addresses}
             orders={account.orders}
+            fulfillment={account.fulfillment}
             emailVerified={session.emailVerified}
           />
         ) : (
