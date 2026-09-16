@@ -1,0 +1,34 @@
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  width: clamp(8.2rem, 11vw, 10.4rem);
+  line-height: 0;
+}
+
+.wordmark img {
+  width: 100%;
+  height: auto;
+}
+
+.site-footer__brand {
+  display: block;
+  width: min(72vw, 980px);
+  color: var(--text);
+  line-height: 0;
+  text-decoration: none;
+}
+
+.site-footer__brand img {
+  width: 100%;
+  height: auto;
+}
+
+@media (max-width: 720px) {
+  .wordmark {
+    width: 8.6rem;
+  }
+
+  .site-footer__brand {
+    width: min(92vw, 640px);
+  }
+}
