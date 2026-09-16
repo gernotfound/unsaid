@@ -75,9 +75,13 @@ function message(code: string) {
   if (code === "REFUNDS_DISABLED") return "Esecuzione Stripe disattivata. Le pratiche restano registrate senza movimento di denaro.";
   if (code === "REFUND_PROVIDER_REJECTED") return "Stripe ha rifiutato il rimborso. La pratica resta tracciata e può essere verificata.";
   if (code === "REFUND_PROVIDER_AMBIGUOUS") return "Risposta Stripe ambigua: pratica bloccata per revisione manuale, senza tentare un secondo rimborso.";
+  if (code === "REFUND_RECONCILIATION_PROVIDER_REJECTED") return "Stripe non ha accettato la riconciliazione. Non è stato sbloccato alcun importo.";
+  if (code === "REFUND_RECONCILIATION_AMBIGUOUS") return "Riconciliazione Stripe ancora ambigua. La somma resta bloccata e non verrà rimborsata una seconda volta.";
+  if (code === "REFUND_PROVIDER_AMOUNT_MISMATCH" || code === "REFUND_PROVIDER_PAYMENT_MISMATCH") return "I dati restituiti da Stripe non corrispondono alla pratica. È richiesta verifica manuale.";
   if (code === "REFUND_AMOUNT_EXCEEDS_REMAINING") return "Il rimborso supera il saldo ancora rimborsabile.";
   if (code === "REFUND_EXECUTION_ALREADY_ACTIVE") return "Questa pratica ha già un'esecuzione Stripe attiva o da riconciliare.";
   if (code === "REFUND_ALREADY_COMPLETE") return "Rimborso già completato.";
+  if (code === "REFUND_NOT_RECONCILABLE") return "Questa pratica non è in uno stato riconciliabile.";
   if (code === "ADMIN_FORBIDDEN") return "Account non autorizzato come admin.";
   return code;
 }
@@ -153,6 +157,22 @@ export function AdminRefundsPanel() {
     }
   }
 
+  async function reconcileRefund(refundCaseId: string) {
+    if (!user || busyId) return;
+    setBusyId(refundCaseId);
+    setNotice("");
+    try {
+      await apiRequest(user, `/api/admin/refunds/${encodeURIComponent(refundCaseId)}/reconcile`, { method: "POST" });
+      await load(user);
+      setNotice("Stato rimborso riconciliato con Stripe senza creare una seconda pratica economica.");
+    } catch (error) {
+      setNotice(message(error instanceof Error ? error.message : String(error)));
+      await load(user);
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   if (!configured) return <section className={styles.center}><p>Firebase Web SDK non configurato.</p></section>;
   if (!authReady) return <section className={styles.center}><p>AUTH / CHECKING</p></section>;
   if (!user) {
@@ -192,6 +212,7 @@ export function AdminRefundsPanel() {
           const refund = item.refundCase;
           const executable = enabled && (refund.status === "requested" || refund.status === "rejected")
             && !["locked", "provider_created", "manual_review", "complete"].includes(refund.executionState ?? "idle");
+          const reconcilable = enabled && (refund.executionState === "manual_review" || refund.executionState === "provider_created");
           return (
             <article key={refund.id} data-state={refund.executionState ?? "idle"}>
               <div className={styles.head}>
@@ -209,7 +230,9 @@ export function AdminRefundsPanel() {
               {refund.providerFailureCode ? <p className={styles.failure}>{refund.providerFailureCode}</p> : null}
               <div className={styles.actions}>
                 {executable ? <button disabled={busyId === refund.id} onClick={() => void executeRefund(refund.id)}>{busyId === refund.id ? "Invio…" : "Esegui rimborso Stripe"}</button> : null}
-                {refund.executionState === "manual_review" ? <strong className={styles.review}>MANUAL REVIEW — non ripetere il rimborso prima della riconciliazione Stripe.</strong> : null}
+                {reconcilable ? <button disabled={busyId === refund.id} onClick={() => void reconcileRefund(refund.id)}>{busyId === refund.id ? "Verifica…" : "Riconcilia con Stripe"}</button> : null}
+                {refund.executionState === "manual_review" ? <strong className={styles.review}>MANUAL REVIEW — usa la riconciliazione; non creare un secondo rimborso.</strong> : null}
+                {refund.executionState === "provider_created" ? <strong className={styles.review}>PROVIDER PENDING — verifica Stripe o attendi il webhook prima di qualsiasi altra azione.</strong> : null}
                 {refund.executionState === "complete" ? <strong>REFUND COMPLETE</strong> : null}
               </div>
             </article>
