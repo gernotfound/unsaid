@@ -7,6 +7,7 @@ import {
   listCustomerAddresses,
   listCustomerOrderFulfillment,
   listCustomerOrders,
+  listCustomerReturns,
 } from "@unsaid/db";
 import { CustomerAuthPanel } from "../../../components/CustomerAuthPanel";
 import { CustomerDashboard } from "../../../components/CustomerDashboard";
@@ -19,7 +20,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Account",
-  description: "Account cliente UNSAID per profilo, indirizzi, ordini e tracking spedizioni.",
+  description: "Account cliente UNSAID per profilo, indirizzi, ordini, tracking e resi.",
 };
 
 export default async function AccountPage() {
@@ -36,8 +37,11 @@ export default async function AccountPage() {
       listCustomerAddresses(session.uid),
       listCustomerOrders(session.uid, 25),
     ]);
-    const fulfillment = await listCustomerOrderFulfillment(session.uid, orders);
-    account = { profile, addresses, orders, fulfillment };
+    const [fulfillment, returns] = await Promise.all([
+      listCustomerOrderFulfillment(session.uid, orders),
+      listCustomerReturns(session.uid, orders),
+    ]);
+    account = { profile, addresses, orders, fulfillment, returns };
   }
 
   return (
@@ -50,7 +54,7 @@ export default async function AccountPage() {
           </div>
           <div className={styles.side}>
             <strong>Un account sarà necessario per acquistare.</strong>
-            <p>Salva i tuoi dati e gli indirizzi italiani. Prezzi, stock, ordini e tracking resteranno verificati dal server.</p>
+            <p>Salva i tuoi dati e gli indirizzi italiani. Prezzi, stock, ordini, tracking e resi resteranno verificati dal server.</p>
           </div>
         </header>
 
@@ -75,6 +79,9 @@ export default async function AccountPage() {
             addresses={account.addresses}
             orders={account.orders}
             fulfillment={account.fulfillment}
+            returns={account.returns}
+            returnsEnabled={FEATURES.returnsEnabled}
+            returnsRequested={FEATURES.returnsRequested}
             emailVerified={session.emailVerified}
           />
         ) : (

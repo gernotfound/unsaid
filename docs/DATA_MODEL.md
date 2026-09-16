@@ -187,6 +187,24 @@ Phase-one fulfillment record. One shipment is associated with one order and stor
 
 `processing -> shipped` updates the order and shipment in the same Firestore transaction. `shipped -> delivered` is also transactional.
 
+### `returnCases/return__{orderId}`
+
+Phase-one return/RMA record. One return case is associated with one order and stores:
+
+- immutable order/customer/email references;
+- reason code and bounded optional note;
+- requested order-line snapshots and quantities;
+- lifecycle state (`requested`, `approved`, `rejected`, `in_transit`, `received`, `inspected`, `closed`);
+- optional inbound carrier/tracking data;
+- physical received quantities;
+- quantities approved for restock;
+- optional linked refund-case ID;
+- lifecycle timestamps.
+
+Customer intake is only accepted for a server-confirmed delivered order and delivered shipment. During inspection, `restockQuantity` can never exceed the physically received quantity or the quantity originally requested. Only the restock quantity increments inventory, in the same Firestore transaction that records inspection.
+
+The return record deliberately does not define the legal refund amount or withdrawal window. Refund/payment state stays separate and can be linked only after the server verifies the return and refund case belong to the same order/customer.
+
 ### `emailOutbox/{notificationId}`
 
 Server-only transactional-email outbox. Current deterministic event IDs represent:
@@ -198,9 +216,9 @@ Each record stores event kind, order/customer references, destination email, a b
 
 ## Admin operations read model
 
-`/admin/orders`, `/admin/fulfillment` and `/admin/refunds` are backed exclusively by server-side Firebase Admin reads. The browser supplies a Firebase ID token only to authenticate the administrator; order, payment, reservation, refund, refund-control, shipment and notification-outbox documents remain server-authoritative and inaccessible through browser Firestore writes.
+`/admin/orders`, `/admin/fulfillment`, `/admin/returns` and `/admin/refunds` are backed exclusively by server-side Firebase Admin reads. The browser supplies a Firebase ID token only to authenticate the administrator; order, payment, reservation, return, refund, refund-control, shipment and notification-outbox documents remain server-authoritative and inaccessible through browser Firestore writes.
 
-The consoles correlate the relevant server records so operators can see payment state, inventory reservations, refund cases, refund execution, shipment state and notification state without making client-side documents authoritative.
+The consoles correlate the relevant server records so operators can see payment state, inventory reservations, fulfillment, physical return/restock state and refund execution without making client-side documents authoritative.
 
 ## Catalog mode
 
@@ -213,6 +231,7 @@ If collections are introduced later, add them as an editorial projection referen
 - stable editorial `catalogId` bridges creative identity to sellable product/variants;
 - Firebase Auth `uid` is customer identity;
 - order/payment/shipment IDs are independent immutable business IDs;
+- phase-one return identity is deterministic per order (`return__{orderId}`);
 - checkout idempotency keys are request-scoped technical identifiers and are not payment proof;
 - refund-case idempotency keys identify an administrative refund request;
 - Stripe refund metadata links provider refunds back to refund-case/order IDs;

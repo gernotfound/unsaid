@@ -3,9 +3,10 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { getAuth, sendEmailVerification } from "firebase/auth";
-import type { CustomerAddress, CustomerProfile, Order } from "@unsaid/domain";
+import type { CustomerAddress, CustomerProfile, Order, ReturnCase } from "@unsaid/domain";
 import { getFirebaseClientApp } from "../lib/firebaseClient";
 import { logoutCustomer } from "./CustomerAuthPanel";
+import { CustomerReturnsPanel } from "./CustomerReturnsPanel";
 import styles from "./CustomerAccount.module.css";
 
 type CustomerFulfillment = {
@@ -26,6 +27,9 @@ type Props = {
   addresses: readonly CustomerAddress[];
   orders: readonly Order[];
   fulfillment: readonly CustomerFulfillment[];
+  returns: readonly ReturnCase[];
+  returnsEnabled: boolean;
+  returnsRequested: boolean;
   emailVerified: boolean;
 };
 
@@ -47,7 +51,7 @@ function errorMessage(error: unknown) {
   return "Operazione non riuscita. Riprova.";
 }
 
-export function CustomerDashboard({ profile, addresses, orders, fulfillment, emailVerified }: Props) {
+export function CustomerDashboard({ profile, addresses, orders, fulfillment, returns, returnsEnabled, returnsRequested, emailVerified }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -276,6 +280,13 @@ export function CustomerDashboard({ profile, addresses, orders, fulfillment, ema
           </div>
         ) : <p className={styles.empty}>Nessun ordine. Il checkout non è ancora attivo.</p>}
       </section>
+
+      <CustomerReturnsPanel
+        orders={orders}
+        returns={returns}
+        returnsEnabled={returnsEnabled}
+        returnsRequested={returnsRequested}
+      />
 
       <div className={styles.footerActions}>
         <a href="/api/account/export">Esporta i miei dati</a>

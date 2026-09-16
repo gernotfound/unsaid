@@ -12,5 +12,6 @@ export * from "./payments";
 export * from "./paymentStatus";
 export * from "./refundReconciliation";
 export * from "./refunds";
+export * from "./returns";
 export * from "./storefrontCommerce";
 export * from "./storefrontCommerceList";
