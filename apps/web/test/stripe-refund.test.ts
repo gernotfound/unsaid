@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createStripeRefund, StripeRefundApiError } from "../src/server/stripeRefund";
+import {
+  createStripeRefund,
+  retrieveStripeRefund,
+  StripeRefundApiError,
+} from "../src/server/stripeRefund";
 
 test("Stripe refund uses authoritative amount, PaymentIntent and deterministic idempotency", async () => {
   const originalFetch = globalThis.fetch;
@@ -75,6 +79,38 @@ test("Stripe refund converts transport uncertainty into an ambiguous provider er
         && error.code === "STRIPE_REFUND_NETWORK_AMBIGUOUS"
         && error.status === 0,
     );
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalKey === undefined) delete process.env.STRIPE_SECRET_KEY;
+    else process.env.STRIPE_SECRET_KEY = originalKey;
+  }
+});
+
+test("Stripe refund reconciliation retrieves an existing provider refund without creating another", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalKey = process.env.STRIPE_SECRET_KEY;
+  process.env.STRIPE_SECRET_KEY = "sk_test_fake";
+  let method = "";
+  let url = "";
+  globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
+    method = init?.method ?? "GET";
+    url = String(input);
+    return new Response(JSON.stringify({
+      id: "re_existing_123",
+      status: "pending",
+      amount: 1800,
+      payment_intent: "pi_test_123",
+      failure_reason: null,
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  }) as typeof fetch;
+
+  try {
+    const result = await retrieveStripeRefund("re_existing_123");
+    assert.equal(method, "GET");
+    assert.equal(url, "https://api.stripe.com/v1/refunds/re_existing_123");
+    assert.equal(result.id, "re_existing_123");
+    assert.equal(result.status, "pending");
+    assert.equal(result.amount, 1800);
   } finally {
     globalThis.fetch = originalFetch;
     if (originalKey === undefined) delete process.env.STRIPE_SECRET_KEY;
