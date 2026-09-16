@@ -59,6 +59,24 @@ The browser cannot submit or override the payment amount.
 
 The Stripe webhook must also report exactly the expected EUR gross total before stock is committed.
 
+## Browser return flow
+
+Stripe returns the browser to `/checkout?payment=success&order=...` or `/checkout?payment=cancelled&order=...`.
+
+That query string is **navigation context only**. It is never accepted as payment proof.
+
+The checkout page suppresses creation of a new order while it is handling a valid payment-return URL and instead renders a dedicated payment-status panel. The panel calls:
+
+```text
+GET /api/payments/status?orderId=...
+```
+
+The status endpoint requires the authenticated customer session, verifies ownership of the order server-side and returns only the sanitized order/payment lifecycle state. It never exposes the Stripe secret, provider payment identifiers or Checkout URL.
+
+After a successful Stripe return, the browser polls this endpoint briefly while waiting for the signed webhook. The local cart is cleared only after the server reports the order in a paid/fulfilled state.
+
+If the customer returns through Stripe's cancel URL while the original Checkout Session is still open, the UI can reopen the same server-recorded session. It must not create a second order as a shortcut.
+
 ## Webhook boundary
 
 Endpoint:
@@ -77,6 +95,8 @@ Handled lifecycle events:
 - `checkout.session.async_payment_failed`.
 
 The phase-one hosted session currently requests card payment methods only, so async methods are not expected in normal operation; the handlers are still defensive.
+
+Webhook-signature verification has automated tests for valid signatures, tampered raw bodies and stale timestamps. These web security tests run as part of the root CI `test` command together with domain tests.
 
 ## Paid transaction
 
@@ -128,6 +148,7 @@ Before enabling real payments:
 - verify the webhook signing secret in the deployment environment;
 - verify the canonical `NEXT_PUBLIC_SITE_URL` uses the final HTTPS domain;
 - test successful card payment, declined card, abandoned/expired session, duplicate webhook delivery and concurrent cancellation attempts;
+- test the browser return flow while the webhook is delayed;
 - test that stock is committed exactly once on success and released on expiration;
 - confirm shipping/VAT/legal configuration separately;
 - define the refund and fulfillment operating procedure before switching to live Stripe keys.
