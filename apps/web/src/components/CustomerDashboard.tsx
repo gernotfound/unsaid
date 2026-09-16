@@ -8,10 +8,24 @@ import { getFirebaseClientApp } from "../lib/firebaseClient";
 import { logoutCustomer } from "./CustomerAuthPanel";
 import styles from "./CustomerAccount.module.css";
 
+type CustomerFulfillment = {
+  orderId: string;
+  shipment: {
+    id: string;
+    provider: string;
+    trackingCode?: string;
+    trackingUrl?: string;
+    status: "pending" | "ready" | "shipped" | "delivered" | "returned";
+    shippedAt?: string;
+    deliveredAt?: string;
+  } | null;
+};
+
 type Props = {
   profile: CustomerProfile;
   addresses: readonly CustomerAddress[];
   orders: readonly Order[];
+  fulfillment: readonly CustomerFulfillment[];
   emailVerified: boolean;
 };
 
@@ -33,7 +47,7 @@ function errorMessage(error: unknown) {
   return "Operazione non riuscita. Riprova.";
 }
 
-export function CustomerDashboard({ profile, addresses, orders, emailVerified }: Props) {
+export function CustomerDashboard({ profile, addresses, orders, fulfillment, emailVerified }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
@@ -238,17 +252,27 @@ export function CustomerDashboard({ profile, addresses, orders, emailVerified }:
       </div>
 
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><p className={styles.kicker}>ORDERS</p><span>03</span></div>
+        <div className={styles.panelHeader}><p className={styles.kicker}>ORDERS / TRACKING</p><span>03</span></div>
         {orders.length ? (
           <div className={styles.orders}>
-            {orders.map((order) => (
-              <article key={order.id}>
-                <strong>{order.id}</strong>
-                <span>{order.status}</span>
-                <span>€{(order.totals.total.amountCents / 100).toFixed(2).replace(".", ",")}</span>
-                <small>{new Date(order.createdAt).toLocaleDateString("it-IT")}</small>
-              </article>
-            ))}
+            {orders.map((order) => {
+              const shipment = fulfillment.find((entry) => entry.orderId === order.id)?.shipment ?? null;
+              return (
+                <article key={order.id}>
+                  <strong>{order.id}</strong>
+                  <span>{order.status}</span>
+                  <span>€{(order.totals.total.amountCents / 100).toFixed(2).replace(".", ",")}</span>
+                  <small>{new Date(order.createdAt).toLocaleDateString("it-IT")}</small>
+                  {shipment ? (
+                    <small>
+                      {shipment.provider} / {shipment.status}
+                      {shipment.trackingCode ? ` / ${shipment.trackingCode}` : ""}
+                      {shipment.trackingUrl ? <> / <a href={shipment.trackingUrl} target="_blank" rel="noreferrer">Tracking</a></> : null}
+                    </small>
+                  ) : null}
+                </article>
+              );
+            })}
           </div>
         ) : <p className={styles.empty}>Nessun ordine. Il checkout non è ancora attivo.</p>}
       </section>
