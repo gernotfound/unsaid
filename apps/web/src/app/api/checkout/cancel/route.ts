@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { cancelPendingOrder } from "@unsaid/db";
+import { cancelPendingOrderWithPaymentGuard } from "@unsaid/db";
 import { FEATURES } from "../../../../lib/features";
 import { CustomerAuthError, requireCustomerSession } from "../../../../server/customerSession";
 import { apiError, rejectCrossOrigin } from "../../../../server/http";
@@ -20,7 +20,7 @@ export async function POST(request: Request) {
     const orderId = typeof body.orderId === "string" ? body.orderId : "";
     if (!orderId) return apiError("INVALID_ORDER_ID", 400);
 
-    const order = await cancelPendingOrder({ customerId: session.uid, orderId });
+    const order = await cancelPendingOrderWithPaymentGuard({ customerId: session.uid, orderId });
     logEvent("info", "checkout_pending_order_cancelled", {
       requestId,
       route: "/api/checkout/cancel",
@@ -34,7 +34,13 @@ export async function POST(request: Request) {
     if (message === "INVALID_ORDER_ID") return apiError(message, 400);
     if (message === "ORDER_NOT_FOUND") return apiError(message, 404);
     if (message === "ORDER_FORBIDDEN") return apiError(message, 403);
-    if (message === "ORDER_NOT_CANCELLABLE" || message === "RESERVATION_CONFLICT") return apiError(message, 409);
+    if (
+      message === "ORDER_NOT_CANCELLABLE" ||
+      message === "RESERVATION_CONFLICT" ||
+      message === "PAYMENT_SESSION_ACTIVE"
+    ) {
+      return apiError(message, 409);
+    }
     logError("checkout.cancel_failed", error, { requestId, route: "/api/checkout/cancel" });
     return apiError("CHECKOUT_CANCEL_FAILED", 500);
   }
