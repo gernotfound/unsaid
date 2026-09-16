@@ -42,7 +42,7 @@ export interface PaymentSessionIntent {
   updatedAt: string;
 }
 
-export type PaymentLifecycleStatus = "requires_action" | "paid" | "failed" | "manual_review";
+export type PaymentLifecycleStatus = "requires_action" | "paid" | "failed" | "manual_review" | "refunded";
 
 export interface PaymentLifecycleRecord {
   id: string;
@@ -52,6 +52,7 @@ export interface PaymentLifecycleRecord {
   providerPaymentId?: string;
   status: PaymentLifecycleStatus;
   amount: Money;
+  refundedAmount?: Money;
   createdAt: string;
   updatedAt: string;
 }
