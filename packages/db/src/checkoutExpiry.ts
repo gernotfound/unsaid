@@ -1,12 +1,12 @@
-import { cancelPendingOrder } from "./checkout";
 import { getAdminFirestore } from "./firebase";
+import { releaseExpiredPendingOrder } from "./payments";
 
 const CHECKOUT_ATTEMPTS_COLLECTION = "checkoutAttempts";
 
 interface ExpiringCheckoutAttempt {
   customerId: string;
   orderId: string;
-  status: "pending_payment" | "cancelled";
+  status: "pending_payment" | "cancelled" | "paid" | "payment_review";
   expiresAt: string;
 }
 
@@ -32,7 +32,7 @@ export async function releaseExpiredCheckoutAttempts(limit = 25): Promise<Checko
   for (const document of snapshot.docs) {
     const attempt = document.data() as ExpiringCheckoutAttempt;
     try {
-      await cancelPendingOrder({ customerId: attempt.customerId, orderId: attempt.orderId });
+      await releaseExpiredPendingOrder({ customerId: attempt.customerId, orderId: attempt.orderId });
       released += 1;
     } catch {
       failed += 1;
