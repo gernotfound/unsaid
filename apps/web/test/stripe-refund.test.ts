@@ -6,7 +6,7 @@ test("Stripe refund uses authoritative amount, PaymentIntent and deterministic i
   const originalFetch = globalThis.fetch;
   const originalKey = process.env.STRIPE_SECRET_KEY;
   process.env.STRIPE_SECRET_KEY = "sk_test_fake";
-  let captured: { url: string; init?: RequestInit } | null = null;
+  let captured: { url: string; init: RequestInit | undefined } | null = null;
   globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
     captured = { url: String(input), init };
     return new Response(JSON.stringify({
@@ -29,7 +29,7 @@ test("Stripe refund uses authoritative amount, PaymentIntent and deterministic i
     assert.equal(result.status, "succeeded");
     assert.equal(result.amount, 2500);
     assert.ok(captured);
-    const request = captured as { url: string; init?: RequestInit };
+    const request = captured as { url: string; init: RequestInit | undefined };
     assert.equal(request.url, "https://api.stripe.com/v1/refunds");
     const headers = request.init?.headers as Record<string, string>;
     assert.equal(headers["idempotency-key"], "refund-ORD-abcdefghijklmnop__refund_12345678");
