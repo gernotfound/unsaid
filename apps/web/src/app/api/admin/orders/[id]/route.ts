@@ -3,6 +3,9 @@ import {
   cancelPendingOrderWithPaymentGuard,
   getAdminOrderDetail,
   markAdminOrderProcessing,
+  markShipmentDelivered,
+  markShipmentShipped,
+  prepareShipment,
 } from "@unsaid/db";
 import { AdminAuthError, requireAdminRequest } from "../../../../../server/adminAuth";
 import { rejectCrossOrigin } from "../../../../../server/http";
@@ -21,19 +24,37 @@ function responseForError(error: unknown) {
     );
   }
   const message = error instanceof Error ? error.message : "ADMIN_ORDER_FAILED";
-  if (message === "INVALID_ORDER_ID") return NextResponse.json({ error: message }, { status: 400 });
-  if (message === "ORDER_NOT_FOUND") return NextResponse.json({ error: message }, { status: 404 });
+  if (
+    message === "INVALID_ORDER_ID" ||
+    message === "INVALID_ADMIN_ORDER_ACTION" ||
+    message === "INVALID_SHIPMENT_PROVIDER" ||
+    message === "INVALID_TRACKING_CODE" ||
+    message === "INVALID_TRACKING_URL"
+  ) {
+    return NextResponse.json({ error: message }, { status: 400 });
+  }
+  if (message === "ORDER_NOT_FOUND" || message === "SHIPMENT_NOT_FOUND") {
+    return NextResponse.json({ error: message }, { status: 404 });
+  }
   if (
     message === "ORDER_NOT_READY_FOR_PROCESSING" ||
     message === "PAYMENT_NOT_CONFIRMED" ||
     message === "ORDER_NOT_CANCELLABLE" ||
     message === "PAYMENT_SESSION_ACTIVE" ||
-    message === "RESERVATION_CONFLICT"
+    message === "RESERVATION_CONFLICT" ||
+    message === "ORDER_NOT_READY_FOR_SHIPMENT" ||
+    message === "SHIPMENT_ALREADY_DISPATCHED" ||
+    message === "SHIPMENT_STATE_CONFLICT" ||
+    message === "SHIPMENT_NOT_READY_FOR_DELIVERY"
   ) {
     return NextResponse.json({ error: message }, { status: 409 });
   }
   logError("admin_orders.detail_failed", error, { route: "/api/admin/orders/[id]" });
   return NextResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
+}
+
+function optionalString(value: unknown, maximum: number) {
+  return typeof value === "string" ? value.slice(0, maximum) : "";
 }
 
 export async function GET(request: Request, { params }: RouteProps) {
@@ -73,6 +94,22 @@ export async function PATCH(request: Request, { params }: RouteProps) {
         customerId: detail.order.customerId,
         orderId: id,
       });
+    } else if (action === "shipment_ready") {
+      await prepareShipment({
+        orderId: id,
+        provider: optionalString(body.provider, 80),
+        trackingCode: optionalString(body.trackingCode, 120),
+        trackingUrl: optionalString(body.trackingUrl, 500),
+      });
+    } else if (action === "shipped") {
+      await markShipmentShipped({
+        orderId: id,
+        provider: optionalString(body.provider, 80),
+        trackingCode: optionalString(body.trackingCode, 120),
+        trackingUrl: optionalString(body.trackingUrl, 500),
+      });
+    } else if (action === "delivered") {
+      await markShipmentDelivered(id);
     } else {
       return NextResponse.json({ error: "INVALID_ADMIN_ORDER_ACTION" }, { status: 400 });
     }
