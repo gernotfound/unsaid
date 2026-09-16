@@ -1,1 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="10" fill="#05070b"/><path d="M12 13h34v8H22v8h20v8H22v14H12z" fill="#f8fafc"/><path d="M46 13h6v18h-6z" fill="#f472b6"/><path d="M46 33h6v18h-6z" fill="#22d3ee"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 365" role="img" aria-label="UNSAID">
+  <rect width="380" height="365" rx="68" fill="#05070b"/>
+  <g transform="translate(28 24) scale(.86)">
+    <path fill="#f8fafc" fill-rule="evenodd" d="M 78 181 L 79 180 L 140 212 L 222 258 L 256 275 L 260 279 L 240 288 L 216 292 L 154 291 L 139 288 L 118 279 L 107 272 L 93 258 L 83 241 L 78 222 Z M 301 81 L 301 227 L 298 239 L 292 251 L 273 271 L 226 245 L 240 234 L 245 227 L 249 216 L 250 82 Z M 79 81 L 129 82 L 128 191 L 78 164 Z M 18 19 L 7 36 L 4 48 L 4 317 L 10 336 L 23 351 L 36 358 L 46 360 L 333 360 L 352 353 L 364 342 L 371 330 L 374 320 L 374 45 L 368 29 L 360 18 L 350 11 L 335 5 L 316 4 L 59 4 L 45 5 L 35 8 Z"/>
+  </g>
+  <rect x="318" y="304" width="34" height="34" rx="8" fill="#22d3ee"/>
+</svg>
