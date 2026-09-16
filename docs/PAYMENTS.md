@@ -138,6 +138,35 @@ Customer cancellation is blocked while a Stripe payment session is `creating`, `
 
 The ordinary checkout expiry sweeper is payment-session aware and only releases an expired provider hold after its server-side hold window has elapsed.
 
+## Admin payment operations
+
+`/admin/orders` correlates orders, Stripe payment records, payment-session intents, inventory reservations and refund cases through authenticated server APIs.
+
+Operational invariants:
+
+- `manual_review` is surfaced prominently and has no automatic fulfillment action;
+- `paid -> processing` requires both the order and server payment record to confirm the paid state;
+- `pending_payment` cancellation reuses the same payment-session guard as the customer flow;
+- admins never mutate order/payment documents directly from the browser Firestore SDK;
+- provider IDs are visible only inside the authenticated admin console and server responses intended for that console.
+
+## Refund cases
+
+The first refund phase deliberately separates **operator intent** from **movement of money**.
+
+Creating a refund case records:
+
+- order/customer/payment references;
+- amount in EUR cents;
+- operator reason;
+- requesting admin UID;
+- `status: requested`;
+- `providerAction: not_executed`.
+
+The amount must be positive and cannot exceed the authoritative paid/order total. Repeated requests are idempotent through the refund-case key.
+
+This operation does **not** call Stripe, does not mark the order `refunded` and does not alter the payment record. A future Stripe Refund adapter must perform the provider call idempotently and only then transition the internal refund/payment/order lifecycle after provider confirmation.
+
 ## Operational launch checklist
 
 Before enabling real payments:
@@ -150,5 +179,7 @@ Before enabling real payments:
 - test successful card payment, declined card, abandoned/expired session, duplicate webhook delivery and concurrent cancellation attempts;
 - test the browser return flow while the webhook is delayed;
 - test that stock is committed exactly once on success and released on expiration;
+- test the admin orders console with paid, cancelled and manual-review fixtures;
+- confirm that creating a refund case never calls Stripe;
 - confirm shipping/VAT/legal configuration separately;
-- define the refund and fulfillment operating procedure before switching to live Stripe keys.
+- implement and test the real refund + fulfillment procedure before switching to live Stripe keys.
