@@ -70,11 +70,14 @@ export async function POST(request: Request, { params }: RouteProps) {
     if (action === "approve" || action === "reject") {
       returnCase = await decideReturnCase({ returnCaseId: id, action });
     } else if (action === "in_transit") {
+      const provider = optionalString(body.provider, 80);
+      const trackingCode = optionalString(body.trackingCode, 120);
+      const trackingUrl = optionalString(body.trackingUrl, 500);
       returnCase = await markReturnInTransit({
         returnCaseId: id,
-        provider: optionalString(body.provider, 80),
-        trackingCode: optionalString(body.trackingCode, 120),
-        trackingUrl: optionalString(body.trackingUrl, 500),
+        ...(provider !== undefined ? { provider } : {}),
+        ...(trackingCode !== undefined ? { trackingCode } : {}),
+        ...(trackingUrl !== undefined ? { trackingUrl } : {}),
       });
     } else if (action === "received") {
       returnCase = await markReturnReceived(id);
