@@ -6,6 +6,7 @@ import {
   listCustomerAddresses,
 } from "@unsaid/db";
 import { CheckoutPanel } from "../../../components/CheckoutPanel";
+import { PaymentReturnStatus } from "../../../components/PaymentReturnStatus";
 import { getCheckoutConfiguration } from "../../../lib/checkout";
 import { FEATURES } from "../../../lib/features";
 import { getPaymentConfiguration } from "../../../lib/payment";
@@ -19,7 +20,21 @@ export const metadata: Metadata = {
   description: "Checkout UNSAID con account verificato, indirizzo italiano, prenotazione stock e pagamento hosted.",
 };
 
-export default async function CheckoutPage() {
+type CheckoutPageProps = {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+function first(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function CheckoutPage({ searchParams }: CheckoutPageProps) {
+  const query = await searchParams;
+  const returnMode = first(query.payment);
+  const returnOrderId = first(query.order) ?? "";
+  const validReturn = (returnMode === "success" || returnMode === "cancelled") &&
+    /^ORD-[A-Za-z0-9_-]{16,80}$/.test(returnOrderId);
+
   const configuration = getCheckoutConfiguration();
   const payment = getPaymentConfiguration();
   const session = FEATURES.customerAccountsEnabled && isFirebaseConfigured()
@@ -49,19 +64,27 @@ export default async function CheckoutPage() {
           <p>Account, indirizzo, prezzo e stock vengono verificati dal server. L&apos;ordine prenota atomicamente lo stock; quando il payment gate è attivo, il pagamento prosegue su Stripe Checkout e viene confermato soltanto dal webhook firmato.</p>
         </header>
 
-        <CheckoutPanel
-          enabled={FEATURES.checkoutPreparationEnabled}
-          paymentEnabled={FEATURES.paymentEnabled}
-          paymentProblems={payment.problems}
-          paymentSessionMinutes={payment.sessionMinutes}
-          sessionState={sessionState}
-          addresses={addresses}
-          defaultAddressId={defaultAddressId}
-          standardShippingCents={configuration.standardShippingCents}
-          freeShippingThresholdCents={configuration.freeShippingThresholdCents}
-          reservationMinutes={configuration.reservationMinutes}
-          configurationProblems={configuration.problems}
-        />
+        {validReturn ? (
+          <PaymentReturnStatus
+            mode={returnMode}
+            orderId={returnOrderId}
+            paymentEnabled={FEATURES.paymentEnabled}
+          />
+        ) : (
+          <CheckoutPanel
+            enabled={FEATURES.checkoutPreparationEnabled}
+            paymentEnabled={FEATURES.paymentEnabled}
+            paymentProblems={payment.problems}
+            paymentSessionMinutes={payment.sessionMinutes}
+            sessionState={sessionState}
+            addresses={addresses}
+            defaultAddressId={defaultAddressId}
+            standardShippingCents={configuration.standardShippingCents}
+            freeShippingThresholdCents={configuration.freeShippingThresholdCents}
+            reservationMinutes={configuration.reservationMinutes}
+            configurationProblems={configuration.problems}
+          />
+        )}
       </div>
     </main>
   );
