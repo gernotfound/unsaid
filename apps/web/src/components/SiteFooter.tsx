@@ -10,7 +10,9 @@ export function SiteFooter() {
     <footer className="site-footer">
       <div className="site-footer__signal" aria-hidden="true"><span /><span /><span /><span /><span /></div>
       <div className="site-footer__main">
-        <strong>{BRAND.name}</strong>
+        <Link className="site-footer__brand" href="/" aria-label={`${BRAND.name}, home`}>
+          <img src="/branding/unsaid-wordmark.svg" width={1323} height={237} alt="" loading="lazy" />
+        </Link>
         <div>
           <p>{BRAND.tagline}</p>
           <nav aria-label="Link footer">
