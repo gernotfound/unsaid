@@ -1,3 +1,4 @@
+export * from "./adminOrders";
 export * from "./catalog";
 export * from "./catalogRepository";
 export * from "./checkout";
