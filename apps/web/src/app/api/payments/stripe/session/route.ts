@@ -120,8 +120,8 @@ export async function POST(request: Request) {
       logError("stripe.checkout_session_failed", error, {
         requestId,
         route: "/api/payments/stripe/session",
-        userId: customerId || undefined,
-        orderId: orderId || undefined,
+        ...(customerId ? { userId: customerId } : {}),
+        ...(orderId ? { orderId } : {}),
         stripeStatus: error.status,
       });
       return apiError("PAYMENT_PROVIDER_UNAVAILABLE", 502);
@@ -129,8 +129,8 @@ export async function POST(request: Request) {
     logError("payment.session_failed", error, {
       requestId,
       route: "/api/payments/stripe/session",
-      userId: customerId || undefined,
-      orderId: orderId || undefined,
+      ...(customerId ? { userId: customerId } : {}),
+      ...(orderId ? { orderId } : {}),
     });
     return apiError("PAYMENT_SESSION_FAILED", 500);
   }
