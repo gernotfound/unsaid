@@ -1,6 +1,7 @@
 import {
   getCustomerProfile,
   listCustomerAddresses,
+  listCustomerOrderFulfillment,
   listCustomerOrders,
 } from "@unsaid/db";
 import { FEATURES } from "../../../../lib/features";
@@ -22,6 +23,7 @@ export async function GET() {
       listCustomerAddresses(session.uid),
       listCustomerOrders(session.uid, 50),
     ]);
+    const fulfillment = await listCustomerOrderFulfillment(session.uid, orders);
 
     const body = JSON.stringify({
       exportedAt: new Date().toISOString(),
@@ -29,6 +31,7 @@ export async function GET() {
       emailVerified: session.emailVerified,
       addresses,
       orders,
+      fulfillment,
     }, null, 2);
 
     return new Response(body, {
