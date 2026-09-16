@@ -4,11 +4,13 @@
 
 `main` is the production branch.
 
-Prefer one validated batch update over chains of small production pushes. Build/test work should happen on a candidate branch, then `main` moves once after validation.
+Current project mode: development work may be committed directly to `main` while the Vercel production deploy is explicitly paused. Each commit still triggers CI and must keep the branch recoverable. Before production deploy is resumed, require a fully green `main`, review the final environment configuration and perform a production smoke test.
+
+When production deploy automation is active again, prefer a validated batch/candidate workflow if intermediate commits could expose incomplete behavior.
 
 ## CI contract
 
-Every candidate must pass:
+Every committed state intended to remain on `main` must pass:
 
 1. deterministic dependency install;
 2. dependency-policy check;
@@ -17,7 +19,7 @@ Every candidate must pass:
 5. TypeScript typecheck;
 6. Next.js production build.
 
-A lockfile is mandatory. CI uses `--frozen-lockfile` once the lockfile is committed.
+A lockfile is mandatory. CI uses `--frozen-lockfile`.
 
 ## Dependency policy
 
@@ -33,21 +35,36 @@ The central dependency catalog lives in `pnpm-workspace.yaml`.
 
 ## Release checklist
 
-Before moving `main`:
+Before production deployment is resumed:
 
-- candidate branch is based on current `main`;
-- CI is green;
-- no secrets in diff;
-- legal/commerce gates remain correct;
+- latest `main` CI is green;
+- no secrets are committed;
+- legal/commerce/account/payment gates remain correct;
 - schema/data migrations are backwards-safe;
+- Stripe webhook and canonical site URL are configured in the target environment;
+- shipping/VAT configuration has been reviewed;
 - cache behavior is understood;
-- a rollback commit/ref is known.
+- a rollback commit/ref is known;
+- order/payment/refund operational procedures are documented and tested.
+
+## Admin order operations
+
+`/admin/orders` is the operational read/control surface for orders, payment state, reservations and refund cases.
+
+Rules:
+
+- `manual_review` is a stop state: do not fulfill, retry payment or release stock by assumption;
+- `paid -> processing` is allowed only when the server-side payment record is also `paid`;
+- cancelling `pending_payment` uses the payment-session guard and must not race an active Stripe session;
+- creating a `refundCase` records an operator request only; it does **not** send money to Stripe;
+- a provider refund adapter must be added and tested before any refund case can become `processed`;
+- customer/order/payment documents remain server-only even for admins using the web console.
 
 ## Cache invalidation
 
 Public catalog/home/product pages may be cached.
 
-Future server-side publish operations should invalidate only the affected tags rather than forcing global cache purges.
+Server-side commerce/publish operations should invalidate only the affected routes/tags rather than forcing global cache purges.
 
 Private routes are never public-cache candidates:
 
