@@ -6,6 +6,12 @@ import { createRequestId, logError, logEvent } from "../../../../server/logger";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function refundExecutionEnabled() {
+  return process.env.STRIPE_PAYMENTS_ENABLED === "true"
+    && process.env.STRIPE_REFUNDS_ENABLED === "true"
+    && Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+}
+
 export async function GET(request: Request) {
   const requestId = createRequestId();
   try {
@@ -17,7 +23,10 @@ export async function GET(request: Request) {
       userId: admin.uid,
       count: items.length,
     });
-    return NextResponse.json({ items }, { headers: { "cache-control": "no-store" } });
+    return NextResponse.json(
+      { items, refundExecutionEnabled: refundExecutionEnabled() },
+      { headers: { "cache-control": "no-store" } },
+    );
   } catch (error) {
     if (error instanceof AdminAuthError) {
       return NextResponse.json(
