@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import {
   applyStripeCheckoutExpired,
   applyStripeCheckoutPaid,
+  applyStripeRefundWebhook,
   type StripeCheckoutSessionEventData,
+  type StripeRefundEventData,
 } from "@unsaid/db";
 import { createRequestId, logError, logEvent } from "../../../../../server/logger";
 import {
@@ -13,14 +15,17 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function checkoutSession(value: Record<string, unknown>): StripeCheckoutSessionEventData | null {
-  if (typeof value.id !== "string") return null;
-  const metadata = value.metadata && typeof value.metadata === "object"
+function metadata(value: unknown) {
+  return value && typeof value === "object"
     ? Object.fromEntries(
-        Object.entries(value.metadata as Record<string, unknown>)
+        Object.entries(value as Record<string, unknown>)
           .filter((entry): entry is [string, string] => typeof entry[1] === "string"),
       )
     : null;
+}
+
+function checkoutSession(value: Record<string, unknown>): StripeCheckoutSessionEventData | null {
+  if (typeof value.id !== "string") return null;
   const paymentIntentObjectId = value.payment_intent && typeof value.payment_intent === "object"
     && typeof (value.payment_intent as Record<string, unknown>).id === "string"
     ? String((value.payment_intent as Record<string, unknown>).id)
@@ -39,7 +44,24 @@ function checkoutSession(value: Record<string, unknown>): StripeCheckoutSessionE
     currency: typeof value.currency === "string" ? value.currency : null,
     client_reference_id: typeof value.client_reference_id === "string" ? value.client_reference_id : null,
     payment_intent: paymentIntent,
-    metadata,
+    metadata: metadata(value.metadata),
+  };
+}
+
+function refundObject(value: Record<string, unknown>): StripeRefundEventData | null {
+  if (typeof value.id !== "string" || !value.id.startsWith("re_")) return null;
+  const paymentIntent = typeof value.payment_intent === "string"
+    ? value.payment_intent
+    : value.payment_intent && typeof value.payment_intent === "object" && typeof (value.payment_intent as Record<string, unknown>).id === "string"
+      ? String((value.payment_intent as Record<string, unknown>).id)
+      : null;
+  return {
+    id: value.id,
+    status: typeof value.status === "string" ? value.status : null,
+    amount: typeof value.amount === "number" ? value.amount : null,
+    payment_intent: paymentIntent,
+    failure_reason: typeof value.failure_reason === "string" ? value.failure_reason : null,
+    metadata: metadata(value.metadata),
   };
 }
 
@@ -55,38 +77,55 @@ export async function POST(request: Request) {
       request.headers.get("stripe-signature"),
       secret,
     );
-    const session = checkoutSession(event.data.object);
-    if (!session) {
-      logEvent("warn", "stripe.webhook_ignored_invalid_object", {
-        requestId,
-        route: "/api/payments/stripe/webhook",
-        eventId: event.id,
-        eventType: event.type,
-      });
-      return NextResponse.json({ received: true, outcome: "ignored_invalid_object" });
-    }
 
     let result: unknown = { outcome: "ignored_event_type" };
-    if (
-      (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") &&
-      session.payment_status === "paid"
-    ) {
-      result = await applyStripeCheckoutPaid({
-        eventId: event.id,
-        eventType: event.type,
-        session,
-      });
-    } else if (
-      event.type === "checkout.session.expired" ||
-      event.type === "checkout.session.async_payment_failed"
-    ) {
-      result = await applyStripeCheckoutExpired({
-        eventId: event.id,
-        eventType: event.type,
-        session,
-      });
-    } else if (event.type === "checkout.session.completed") {
-      result = { outcome: "awaiting_payment" };
+    let providerObjectId: string | undefined;
+
+    if (event.type === "refund.updated" || event.type === "refund.failed") {
+      const refund = refundObject(event.data.object);
+      if (!refund) {
+        result = { outcome: "ignored_invalid_refund_object" };
+      } else {
+        providerObjectId = refund.id;
+        result = await applyStripeRefundWebhook({
+          eventId: event.id,
+          eventType: event.type,
+          refund,
+        });
+      }
+    } else {
+      const session = checkoutSession(event.data.object);
+      if (!session) {
+        logEvent("warn", "stripe.webhook_ignored_invalid_object", {
+          requestId,
+          route: "/api/payments/stripe/webhook",
+          eventId: event.id,
+          eventType: event.type,
+        });
+        return NextResponse.json({ received: true, outcome: "ignored_invalid_object" });
+      }
+      providerObjectId = session.id;
+      if (
+        (event.type === "checkout.session.completed" || event.type === "checkout.session.async_payment_succeeded") &&
+        session.payment_status === "paid"
+      ) {
+        result = await applyStripeCheckoutPaid({
+          eventId: event.id,
+          eventType: event.type,
+          session,
+        });
+      } else if (
+        event.type === "checkout.session.expired" ||
+        event.type === "checkout.session.async_payment_failed"
+      ) {
+        result = await applyStripeCheckoutExpired({
+          eventId: event.id,
+          eventType: event.type,
+          session,
+        });
+      } else if (event.type === "checkout.session.completed") {
+        result = { outcome: "awaiting_payment" };
+      }
     }
 
     logEvent("info", "stripe.webhook_processed", {
@@ -94,7 +133,7 @@ export async function POST(request: Request) {
       route: "/api/payments/stripe/webhook",
       eventId: event.id,
       eventType: event.type,
-      providerSessionId: session.id,
+      providerObjectId,
       result,
     });
     return NextResponse.json({ received: true, result });
