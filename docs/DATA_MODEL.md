@@ -126,21 +126,49 @@ Immutable commercial snapshot plus lifecycle:
 
 Pre-payment preparation creates `pending_payment`; it does not mean money was collected. Changing a product title, customer address, current price or shipping configuration later must not rewrite an existing order.
 
+Operational order states currently include `pending_payment`, `paid`, `processing`, `shipped`, `delivered`, `cancelled` and `refunded`. The admin console currently permits only guarded transitions that have a implemented business invariant: paid orders may enter `processing`; pending orders may be cancelled only when the payment-session guard allows it. Shipping transitions are deferred to the fulfillment model.
+
 ### `checkoutAttempts/{customerId}__{idempotencyKey}`
 
 Server-only idempotency ledger for order preparation. It links one customer/request fingerprint to one deterministic pending order and its expiry. Reusing the same key for a different cart/address/configuration is rejected.
 
-### Future `payments/{paymentId}`
+### `paymentSessionIntents/{orderId}`
 
-Provider-neutral payment record linked to one order. Store provider IDs/status/amount only; never raw card data.
+Server-only lock/state record for Stripe Checkout Session creation. It prevents duplicate provider sessions, protects inventory while a payment is in flight and carries the provider/session expiry windows.
+
+### `payments/{paymentId}`
+
+Provider payment lifecycle linked to one order. It stores provider IDs, authoritative amount and payment state only; raw card data is never stored.
+
+Current Stripe records use deterministic IDs such as `stripe__{orderId}` and may enter `manual_review` when the provider reports paid but the internal amount/session/reservation state does not reconcile safely.
+
+### `webhookEvents/{providerEventId}`
+
+Server-only idempotency ledger for processed Stripe webhook events. Duplicate delivery cannot commit stock twice.
+
+### `refundCases/{orderId}__{idempotencyKey}`
+
+Administrative refund case record. A case contains:
+
+- order/customer/payment references;
+- requested EUR amount;
+- operator reason;
+- requesting admin UID;
+- case status;
+- explicit `providerAction` state;
+- timestamps.
+
+Creating a refund case **does not move money**. Phase one records an auditable `requested / not_executed` case only. A future Stripe Refund adapter must perform the external refund idempotently and only then update provider/order/payment lifecycle state.
 
 ### Future `shipments/{shipmentId}`
 
 Fulfillment record linked to an order with provider, tracking reference, status and shipment/delivery timestamps.
 
-### Future `webhookEvents/{providerEventId}`
+## Admin operations read model
 
-Idempotency ledger for processed payment/fulfillment events when external providers are connected.
+`/admin/orders` is backed exclusively by server-side Firebase Admin reads. The browser supplies a Firebase ID token only to authenticate the administrator; order, payment, reservation and refund documents remain inaccessible through browser Firestore rules.
+
+The console correlates `orders`, `payments`, `paymentSessionIntents`, `inventoryReservations` and `refundCases` so operators can see one coherent order state without making client-side documents authoritative.
 
 ## Catalog mode
 
@@ -153,4 +181,5 @@ If collections are introduced later, add them as an editorial projection referen
 - stable editorial `catalogId` bridges creative identity to sellable product/variants;
 - Firebase Auth `uid` is customer identity;
 - order/payment/shipment IDs are independent immutable business IDs;
-- checkout idempotency keys are request-scoped technical identifiers and are not payment proof.
+- checkout idempotency keys are request-scoped technical identifiers and are not payment proof;
+- refund-case idempotency keys identify an administrative refund request, not proof that Stripe returned money.
