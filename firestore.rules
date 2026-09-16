@@ -50,13 +50,15 @@ service cloud.firestore {
       }
     }
 
-    // Commerce state is authoritative server data. Client-side cart data never
-    // grants write access to price, SKU, inventory, reservations, attempts or orders.
+    // Commerce/payment state is authoritative server data. Client-side state never
+    // grants write access to price, SKU, inventory, reservations, payment locks or orders.
     match /sellableProducts/{id} { allow read, write: if false; }
     match /variants/{id} { allow read, write: if false; }
     match /inventory/{id} { allow read, write: if false; }
     match /inventoryReservations/{id} { allow read, write: if false; }
     match /checkoutAttempts/{id} { allow read, write: if false; }
+    match /paymentSessionIntents/{id} { allow read, write: if false; }
+    match /webhookEvents/{id} { allow read, write: if false; }
     match /orders/{id} { allow read, write: if false; }
     match /payments/{id} { allow read, write: if false; }
     match /shipments/{id} { allow read, write: if false; }
