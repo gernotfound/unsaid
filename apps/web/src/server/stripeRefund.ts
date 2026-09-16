@@ -27,6 +27,13 @@ function secretKey() {
   return value;
 }
 
+function commonHeaders() {
+  return {
+    authorization: `Bearer ${secretKey()}`,
+    "stripe-version": process.env.STRIPE_API_VERSION?.trim() || DEFAULT_STRIPE_API_VERSION,
+  };
+}
+
 function refundStatus(value: unknown): StripeRefundStatus {
   if (value === "pending" || value === "requires_action" || value === "succeeded" || value === "failed" || value === "canceled") {
     return value;
@@ -36,6 +43,24 @@ function refundStatus(value: unknown): StripeRefundStatus {
 
 function sanitizeMetadata(value: string) {
   return value.replace(/[\r\n]/g, " ").slice(0, 450);
+}
+
+function parseRefund(payload: Record<string, unknown>, expectedAmount?: number): StripeRefundResult {
+  const id = typeof payload.id === "string" ? payload.id : "";
+  const amount = typeof payload.amount === "number" ? payload.amount : NaN;
+  if (!/^re_[A-Za-z0-9_]+$/.test(id) || !Number.isInteger(amount) || amount < 1) {
+    throw new StripeRefundApiError("STRIPE_REFUND_RESPONSE_INVALID", 502);
+  }
+  if (expectedAmount !== undefined && amount !== expectedAmount) {
+    throw new StripeRefundApiError("STRIPE_REFUND_AMOUNT_MISMATCH", 502);
+  }
+  return {
+    id,
+    status: refundStatus(payload.status),
+    amount,
+    paymentIntentId: typeof payload.payment_intent === "string" ? payload.payment_intent : null,
+    failureReason: typeof payload.failure_reason === "string" ? payload.failure_reason : null,
+  };
 }
 
 export async function createStripeRefund(input: {
@@ -64,9 +89,8 @@ export async function createStripeRefund(input: {
     response = await fetch(`${STRIPE_API_BASE}/refunds`, {
       method: "POST",
       headers: {
-        authorization: `Bearer ${secretKey()}`,
+        ...commonHeaders(),
         "content-type": "application/x-www-form-urlencoded",
-        "stripe-version": process.env.STRIPE_API_VERSION?.trim() || DEFAULT_STRIPE_API_VERSION,
         "idempotency-key": `refund-${input.refundCaseId}`,
       },
       body,
@@ -85,18 +109,31 @@ export async function createStripeRefund(input: {
     throw new StripeRefundApiError(code, response.status);
   }
   if (!payload) throw new StripeRefundApiError("STRIPE_REFUND_EMPTY_RESPONSE", 502);
+  return parseRefund(payload, input.amountCents);
+}
 
-  const id = typeof payload.id === "string" ? payload.id : "";
-  const amount = typeof payload.amount === "number" ? payload.amount : NaN;
-  if (!/^re_[A-Za-z0-9_]+$/.test(id) || !Number.isInteger(amount) || amount !== input.amountCents) {
-    throw new StripeRefundApiError("STRIPE_REFUND_RESPONSE_INVALID", 502);
+export async function retrieveStripeRefund(providerRefundId: string): Promise<StripeRefundResult> {
+  if (!/^re_[A-Za-z0-9_]+$/.test(providerRefundId)) {
+    throw new StripeRefundApiError("STRIPE_REFUND_ID_INVALID", 400);
   }
-
-  return {
-    id,
-    status: refundStatus(payload.status),
-    amount,
-    paymentIntentId: typeof payload.payment_intent === "string" ? payload.payment_intent : null,
-    failureReason: typeof payload.failure_reason === "string" ? payload.failure_reason : null,
-  };
+  let response: Response;
+  try {
+    response = await fetch(`${STRIPE_API_BASE}/refunds/${encodeURIComponent(providerRefundId)}`, {
+      method: "GET",
+      headers: commonHeaders(),
+      cache: "no-store",
+    });
+  } catch {
+    throw new StripeRefundApiError("STRIPE_REFUND_LOOKUP_AMBIGUOUS", 0);
+  }
+  const payload = (await response.json().catch(() => null)) as Record<string, unknown> | null;
+  if (!response.ok) {
+    const error = payload?.error;
+    const code = error && typeof error === "object" && typeof (error as Record<string, unknown>).code === "string"
+      ? String((error as Record<string, unknown>).code)
+      : "STRIPE_REFUND_LOOKUP_ERROR";
+    throw new StripeRefundApiError(code, response.status);
+  }
+  if (!payload) throw new StripeRefundApiError("STRIPE_REFUND_EMPTY_RESPONSE", 502);
+  return parseRefund(payload);
 }
