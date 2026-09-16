@@ -6,7 +6,15 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header__inner">
-        <Link className="wordmark" href="/" aria-label={`${BRAND.name}, home`}>{BRAND.name}</Link>
+        <Link className="wordmark" href="/" aria-label={`${BRAND.name}, home`}>
+          <img
+            src="/branding/unsaid-wordmark.svg"
+            width={1323}
+            height={237}
+            alt=""
+            decoding="async"
+          />
+        </Link>
 
         <div className="brand-signals" aria-hidden="true">
           <span /><span /><span /><span /><span />
