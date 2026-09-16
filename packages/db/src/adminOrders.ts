@@ -1,6 +1,14 @@
 import type { InventoryReservation, Money, Order, OrderStatus } from "@unsaid/domain";
 import { INVENTORY_RESERVATIONS_COLLECTION } from "./commerce";
 import { getAdminFirestore } from "./firebase";
+import { SHIPMENTS_COLLECTION, type FulfillmentShipmentRecord } from "./fulfillment";
+import {
+  buildOrderConfirmationEmail,
+  EMAIL_OUTBOX_COLLECTION,
+  orderConfirmationOutboxId,
+  shipmentConfirmationOutboxId,
+  type EmailOutboxRecord,
+} from "./notifications";
 import {
   PAYMENTS_COLLECTION,
   PAYMENT_SESSION_INTENTS_COLLECTION,
@@ -44,6 +52,8 @@ export interface AdminOrderPage {
 export interface AdminOrderDetail extends AdminOrderListItem {
   reservations: InventoryReservation[];
   refundCases: RefundCaseRecord[];
+  shipment: FulfillmentShipmentRecord | null;
+  notifications: EmailOutboxRecord[];
 }
 
 type OrderWithReview = Order & {
@@ -57,6 +67,10 @@ function reviewReason(order: Order) {
 
 function paymentId(orderId: string) {
   return `stripe__${orderId}`;
+}
+
+function shipmentId(orderId: string) {
+  return `shipment__${orderId}`;
 }
 
 function reservationId(orderId: string, variantId: string) {
@@ -110,11 +124,25 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
   const orderRef = db.collection(ORDERS_COLLECTION).doc(orderId);
   const paymentRef = db.collection(PAYMENTS_COLLECTION).doc(paymentId(orderId));
   const intentRef = db.collection(PAYMENT_SESSION_INTENTS_COLLECTION).doc(orderId);
-  const [orderSnapshot, paymentSnapshot, intentSnapshot, refundsSnapshot] = await Promise.all([
+  const shipmentRef = db.collection(SHIPMENTS_COLLECTION).doc(shipmentId(orderId));
+  const orderEmailRef = db.collection(EMAIL_OUTBOX_COLLECTION).doc(orderConfirmationOutboxId(orderId));
+  const shipmentEmailRef = db.collection(EMAIL_OUTBOX_COLLECTION).doc(shipmentConfirmationOutboxId(orderId));
+  const [
+    orderSnapshot,
+    paymentSnapshot,
+    intentSnapshot,
+    refundsSnapshot,
+    shipmentSnapshot,
+    orderEmailSnapshot,
+    shipmentEmailSnapshot,
+  ] = await Promise.all([
     orderRef.get(),
     paymentRef.get(),
     intentRef.get(),
     db.collection(REFUND_CASES_COLLECTION).where("orderId", "==", orderId).limit(20).get(),
+    shipmentRef.get(),
+    orderEmailRef.get(),
+    shipmentEmailRef.get(),
   ]);
   if (!orderSnapshot.exists) throw new Error("ORDER_NOT_FOUND");
 
@@ -123,6 +151,10 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     db.collection(INVENTORY_RESERVATIONS_COLLECTION).doc(reservationId(order.id, line.variantId)),
   );
   const reservationSnapshots = reservationRefs.length ? await db.getAll(...reservationRefs) : [];
+  const notifications = [orderEmailSnapshot, shipmentEmailSnapshot]
+    .filter((snapshot) => snapshot.exists)
+    .map((snapshot) => snapshot.data() as EmailOutboxRecord)
+    .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
 
   return {
     order,
@@ -135,6 +167,10 @@ export async function getAdminOrderDetail(orderId: string): Promise<AdminOrderDe
     refundCases: refundsSnapshot.docs
       .map((doc) => doc.data() as RefundCaseRecord)
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
+    shipment: shipmentSnapshot.exists
+      ? (shipmentSnapshot.data() as FulfillmentShipmentRecord)
+      : null,
+    notifications,
   };
 }
 
@@ -143,22 +179,28 @@ export async function markAdminOrderProcessing(orderId: string) {
   const db = getAdminFirestore();
   const orderRef = db.collection(ORDERS_COLLECTION).doc(orderId);
   const paymentRef = db.collection(PAYMENTS_COLLECTION).doc(paymentId(orderId));
+  const outboxRef = db.collection(EMAIL_OUTBOX_COLLECTION).doc(orderConfirmationOutboxId(orderId));
   const timestamp = new Date().toISOString();
 
   return db.runTransaction(async (transaction) => {
-    const [orderSnapshot, paymentSnapshot] = await Promise.all([
+    const [orderSnapshot, paymentSnapshot, outboxSnapshot] = await Promise.all([
       transaction.get(orderRef),
       transaction.get(paymentRef),
+      transaction.get(outboxRef),
     ]);
     if (!orderSnapshot.exists) throw new Error("ORDER_NOT_FOUND");
     const order = orderSnapshot.data() as Order;
-    if (order.status === "processing") return order;
-    if (order.status !== "paid") throw new Error("ORDER_NOT_READY_FOR_PROCESSING");
+    if (!["paid", "processing"].includes(order.status)) throw new Error("ORDER_NOT_READY_FOR_PROCESSING");
     if (!paymentSnapshot.exists || (paymentSnapshot.data() as PaymentLifecycleRecord).status !== "paid") {
       throw new Error("PAYMENT_NOT_CONFIRMED");
     }
-    const updated: Order = { ...order, status: "processing", updatedAt: timestamp };
-    transaction.set(orderRef, updated);
+    const updated: Order = order.status === "processing"
+      ? order
+      : { ...order, status: "processing", updatedAt: timestamp };
+    if (order.status !== "processing") transaction.set(orderRef, updated);
+    if (!outboxSnapshot.exists) {
+      transaction.set(outboxRef, buildOrderConfirmationEmail(updated, timestamp));
+    }
     return updated;
   });
 }
