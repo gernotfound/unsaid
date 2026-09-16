@@ -6,7 +6,7 @@ import type { Money, OrderStatus } from "@unsaid/domain";
 import { clearCart } from "../lib/cart";
 import styles from "./PaymentReturnStatus.module.css";
 
-type PaymentStatus = "requires_action" | "paid" | "failed" | "manual_review" | null;
+type PaymentStatus = "requires_action" | "paid" | "failed" | "manual_review" | "refunded" | null;
 type IntentStatus = "creating" | "ready" | "paid" | "failed" | "expired" | "manual_review" | null;
 
 type StatusSnapshot = {
@@ -141,6 +141,7 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
   }
 
   const paid = snapshot ? isPaidOrder(snapshot.orderStatus) : false;
+  const refunded = snapshot?.orderStatus === "refunded" || snapshot?.paymentStatus === "refunded";
   const review = snapshot?.paymentStatus === "manual_review" || snapshot?.intentStatus === "manual_review";
   const failed = snapshot?.orderStatus === "cancelled" || snapshot?.paymentStatus === "failed" || snapshot?.intentStatus === "failed" || snapshot?.intentStatus === "expired";
   const pending = snapshot?.orderStatus === "pending_payment" && !review && !failed;
@@ -151,7 +152,12 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
   let copy = "Stiamo leggendo lo stato autorevole dell'ordine dal server.";
   let tone: "success" | "warning" | "neutral" = "neutral";
 
-  if (paid) {
+  if (refunded) {
+    label = "ORDER / REFUNDED";
+    title = "Ordine rimborsato";
+    copy = "Il server registra il rimborso come completato. Lo storico dell'ordine resta disponibile nel tuo account.";
+    tone = "neutral";
+  } else if (paid) {
     label = "PAYMENT / CONFIRMED";
     title = "Ordine confermato";
     copy = "Il webhook firmato ha confermato il pagamento. Lo stock è stato impegnato definitivamente e il carrello locale è stato svuotato.";
