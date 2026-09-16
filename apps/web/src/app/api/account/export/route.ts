@@ -3,6 +3,7 @@ import {
   listCustomerAddresses,
   listCustomerOrderFulfillment,
   listCustomerOrders,
+  listCustomerReturns,
 } from "@unsaid/db";
 import { FEATURES } from "../../../../lib/features";
 import { requireCustomerSession, CustomerAuthError } from "../../../../server/customerSession";
@@ -23,7 +24,10 @@ export async function GET() {
       listCustomerAddresses(session.uid),
       listCustomerOrders(session.uid, 50),
     ]);
-    const fulfillment = await listCustomerOrderFulfillment(session.uid, orders);
+    const [fulfillment, returns] = await Promise.all([
+      listCustomerOrderFulfillment(session.uid, orders),
+      listCustomerReturns(session.uid, orders),
+    ]);
 
     const body = JSON.stringify({
       exportedAt: new Date().toISOString(),
@@ -32,6 +36,7 @@ export async function GET() {
       addresses,
       orders,
       fulfillment,
+      returns,
     }, null, 2);
 
     return new Response(body, {
