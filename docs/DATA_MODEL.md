@@ -126,7 +126,7 @@ Immutable commercial snapshot plus lifecycle:
 
 Pre-payment preparation creates `pending_payment`; it does not mean money was collected. Changing a product title, customer address, current price or shipping configuration later must not rewrite an existing order.
 
-Operational order states currently include `pending_payment`, `paid`, `processing`, `shipped`, `delivered`, `cancelled` and `refunded`. The admin console currently permits only guarded transitions that have a implemented business invariant: paid orders may enter `processing`; pending orders may be cancelled only when the payment-session guard allows it. Shipping transitions are deferred to the fulfillment model.
+Operational order states currently include `pending_payment`, `paid`, `processing`, `shipped`, `delivered`, `cancelled` and `refunded`. Guarded admin transitions now cover payment acceptance into `processing`, shipment dispatch and delivery. Pending cancellation remains protected by the payment-session guard.
 
 ### `checkoutAttempts/{customerId}__{idempotencyKey}`
 
@@ -160,15 +160,34 @@ Administrative refund case record. A case contains:
 
 Creating a refund case **does not move money**. Phase one records an auditable `requested / not_executed` case only. A future Stripe Refund adapter must perform the external refund idempotently and only then update provider/order/payment lifecycle state.
 
-### Future `shipments/{shipmentId}`
+### `shipments/shipment__{orderId}`
 
-Fulfillment record linked to an order with provider, tracking reference, status and shipment/delivery timestamps.
+Phase-one fulfillment record. One shipment is associated with one order and stores:
+
+- order/customer references;
+- carrier/provider label;
+- tracking code;
+- optional HTTPS tracking URL;
+- `ready`, `shipped`, `delivered` or later return state;
+- shipped/delivered timestamps;
+- created/updated timestamps.
+
+`processing -> shipped` updates the order and shipment in the same Firestore transaction. `shipped -> delivered` is also transactional.
+
+### `emailOutbox/{notificationId}`
+
+Server-only transactional-email outbox. Current deterministic event IDs represent:
+
+- order confirmation;
+- shipment confirmation.
+
+Each record stores event kind, order/customer references, destination email, a bounded rendering payload, delivery status/attempt metadata and timestamps. A queued outbox record is not proof that an external email provider delivered a message.
 
 ## Admin operations read model
 
-`/admin/orders` is backed exclusively by server-side Firebase Admin reads. The browser supplies a Firebase ID token only to authenticate the administrator; order, payment, reservation and refund documents remain inaccessible through browser Firestore rules.
+`/admin/orders` and `/admin/fulfillment` are backed exclusively by server-side Firebase Admin reads. The browser supplies a Firebase ID token only to authenticate the administrator; order, payment, reservation, refund, shipment and notification-outbox documents remain inaccessible through browser Firestore rules.
 
-The console correlates `orders`, `payments`, `paymentSessionIntents`, `inventoryReservations` and `refundCases` so operators can see one coherent order state without making client-side documents authoritative.
+The consoles correlate the relevant server records so operators can see payment state, inventory reservations, refund cases, shipment state and notification state without making client-side documents authoritative.
 
 ## Catalog mode
 
@@ -182,4 +201,5 @@ If collections are introduced later, add them as an editorial projection referen
 - Firebase Auth `uid` is customer identity;
 - order/payment/shipment IDs are independent immutable business IDs;
 - checkout idempotency keys are request-scoped technical identifiers and are not payment proof;
-- refund-case idempotency keys identify an administrative refund request, not proof that Stripe returned money.
+- refund-case idempotency keys identify an administrative refund request, not proof that Stripe returned money;
+- deterministic outbox IDs make customer-notification enqueue operations idempotent.
