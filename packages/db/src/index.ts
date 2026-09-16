@@ -10,6 +10,7 @@ export * from "./fulfillment";
 export * from "./notifications";
 export * from "./payments";
 export * from "./paymentStatus";
+export * from "./refundReconciliation";
 export * from "./refunds";
 export * from "./storefrontCommerce";
 export * from "./storefrontCommerceList";
