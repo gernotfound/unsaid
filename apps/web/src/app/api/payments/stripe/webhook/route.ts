@@ -21,10 +21,14 @@ function checkoutSession(value: Record<string, unknown>): StripeCheckoutSessionE
           .filter((entry): entry is [string, string] => typeof entry[1] === "string"),
       )
     : null;
+  const paymentIntentObjectId = value.payment_intent && typeof value.payment_intent === "object"
+    && typeof (value.payment_intent as Record<string, unknown>).id === "string"
+    ? String((value.payment_intent as Record<string, unknown>).id)
+    : null;
   const paymentIntent = typeof value.payment_intent === "string"
     ? value.payment_intent
-    : value.payment_intent && typeof value.payment_intent === "object"
-      ? { id: typeof (value.payment_intent as Record<string, unknown>).id === "string" ? String((value.payment_intent as Record<string, unknown>).id) : undefined }
+    : paymentIntentObjectId
+      ? { id: paymentIntentObjectId }
       : null;
 
   return {
