@@ -61,6 +61,7 @@ service cloud.firestore {
     match /webhookEvents/{id} { allow read, write: if false; }
     match /orders/{id} { allow read, write: if false; }
     match /payments/{id} { allow read, write: if false; }
+    match /refundCases/{id} { allow read, write: if false; }
     match /shipments/{id} { allow read, write: if false; }
 
     match /{document=**} {
