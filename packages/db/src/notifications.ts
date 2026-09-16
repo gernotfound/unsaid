@@ -28,6 +28,10 @@ export interface EmailOutboxRecord {
   sentAt?: string;
 }
 
+export type NotificationShipment = ShipmentRecord & {
+  trackingUrl?: string;
+};
+
 function safeEmail(value: string) {
   const email = value.trim().toLowerCase();
   if (!/^.{1,160}@.{1,160}$/.test(email)) throw new Error("INVALID_NOTIFICATION_EMAIL");
@@ -62,7 +66,7 @@ export function buildOrderConfirmationEmail(order: Order, timestamp: string): Em
 
 export function buildShipmentConfirmationEmail(
   order: Order,
-  shipment: ShipmentRecord,
+  shipment: NotificationShipment,
   timestamp: string,
 ): EmailOutboxRecord {
   return {
