@@ -31,12 +31,23 @@ type ValidationResponse = {
 
 type PrepareResponse = {
   order: Order;
-  paymentEnabled: false;
+  paymentEnabled: boolean;
+  error?: string;
+};
+
+type PaymentSessionResponse = {
+  orderId?: string;
+  checkoutUrl?: string;
+  expiresAt?: string;
+  reused?: boolean;
   error?: string;
 };
 
 type Props = {
   enabled: boolean;
+  paymentEnabled: boolean;
+  paymentProblems: readonly string[];
+  paymentSessionMinutes: number;
   sessionState: SessionState;
   addresses: readonly CustomerAddress[];
   defaultAddressId: string | null;
@@ -61,12 +72,20 @@ function errorLabel(code: string) {
   if (code.startsWith("OUT_OF_STOCK:")) return "Lo stock è cambiato. Torna al carrello e ricontrolla le quantità.";
   if (code.startsWith("VARIANT_UNAVAILABLE:") || code.startsWith("PRODUCT_UNAVAILABLE:")) return "Un articolo non è più disponibile alla vendita.";
   if (code === "CHECKOUT_DISABLED" || code === "CHECKOUT_CONFIGURATION_INCOMPLETE") return "Il checkout non è ancora abilitato per questa installazione.";
+  if (code === "PAYMENTS_DISABLED" || code === "PAYMENT_CONFIGURATION_INCOMPLETE") return "Il pagamento non è ancora abilitato per questa installazione.";
+  if (code === "PAYMENT_SESSION_IN_PROGRESS") return "Una sessione di pagamento è già in preparazione. Riprova tra pochi secondi.";
+  if (code === "PAYMENT_PROVIDER_UNAVAILABLE") return "Il provider di pagamento non è disponibile. Riprova senza creare un nuovo ordine.";
+  if (code === "ORDER_RESERVATION_EXPIRED") return "La prenotazione stock è scaduta. Torna al carrello e prepara un nuovo ordine.";
+  if (code === "PAYMENT_SESSION_ACTIVE") return "Il pagamento è già stato avviato. Lo stock resta protetto fino alla chiusura della sessione.";
   if (code === "IDEMPOTENCY_CONFLICT") return "La richiesta di checkout non è coerente con il tentativo precedente. Ricarica la pagina.";
-  return "Impossibile preparare l'ordine. Riprova.";
+  return "Operazione non riuscita. Riprova.";
 }
 
 export function CheckoutPanel({
   enabled,
+  paymentEnabled,
+  paymentProblems,
+  paymentSessionMinutes,
   sessionState,
   addresses,
   defaultAddressId,
@@ -155,6 +174,27 @@ export function CheckoutPanel({
     }
   }
 
+  async function startPayment() {
+    if (!prepared || prepared.status !== "pending_payment" || !paymentEnabled) return;
+    setBusy(true);
+    setNotice("");
+    try {
+      const response = await fetch("/api/payments/stripe/session", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ orderId: prepared.id }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as PaymentSessionResponse;
+      if (!response.ok || !payload.checkoutUrl) throw new Error(payload.error ?? "PAYMENT_SESSION_FAILED");
+      const destination = new URL(payload.checkoutUrl);
+      if (destination.protocol !== "https:") throw new Error("PAYMENT_SESSION_URL_INVALID");
+      window.location.assign(destination.toString());
+    } catch (error) {
+      setNotice(errorLabel(error instanceof Error ? error.message : String(error)));
+      setBusy(false);
+    }
+  }
+
   async function cancelPreparedOrder() {
     if (!prepared || prepared.status !== "pending_payment") return;
     setBusy(true);
@@ -170,8 +210,8 @@ export function CheckoutPanel({
       setPrepared(payload.order);
       setIdempotencyKey(newIdempotencyKey());
       await validateCart();
-    } catch {
-      setNotice("Impossibile annullare la preparazione dell'ordine. Riprova.");
+    } catch (error) {
+      setNotice(errorLabel(error instanceof Error ? error.message : String(error)));
     } finally {
       setBusy(false);
     }
@@ -199,16 +239,32 @@ export function CheckoutPanel({
             ? `Stock prenotato${expires ? ` fino alle ${expires.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}` : ""}.`
             : "Prenotazione annullata e stock rilasciato."}
         </p>
-        <div className={styles.paymentGate}>
-          <strong>PAYMENT / NOT CONNECTED</strong>
-          <span>L&apos;ordine pre-payment esiste, ma nessun addebito può partire: Stripe è ancora scollegato.</span>
-        </div>
+
         {prepared.status === "pending_payment" ? (
-          <button type="button" disabled={busy} onClick={() => void cancelPreparedOrder()}>Annulla preparazione e rilascia stock</button>
+          <>
+            <div className={styles.paymentGate}>
+              <strong>{paymentEnabled ? "PAYMENT / STRIPE CHECKOUT" : "PAYMENT GATE / OFF"}</strong>
+              <span>
+                {paymentEnabled
+                  ? `Il pagamento si apre sul Checkout hosted di Stripe. La sessione dura circa ${paymentSessionMinutes} minuti; il ritorno del browser non viene mai usato come prova di pagamento.`
+                  : paymentProblems.length
+                    ? `Configurazione pagamento incompleta: ${paymentProblems.join(", ")}.`
+                    : "Il pagamento resta disattivato tramite feature gate."}
+              </span>
+            </div>
+            {paymentEnabled ? (
+              <button type="button" disabled={busy} onClick={() => void startPayment()}>
+                {busy ? "Apertura pagamento…" : "Vai al pagamento sicuro"}
+              </button>
+            ) : null}
+            <button className={styles.secondaryButton} type="button" disabled={busy} onClick={() => void cancelPreparedOrder()}>
+              Annulla ordine e rilascia stock
+            </button>
+          </>
         ) : (
           <Link href="/cart">Torna al carrello →</Link>
         )}
-        {notice ? <p className={styles.problem}>{notice}</p> : null}
+        {notice ? <p className={styles.problem} role="status">{notice}</p> : null}
       </section>
     );
   }
@@ -262,7 +318,7 @@ export function CheckoutPanel({
           <div className={styles.totalRow}><dt>Total preview</dt><dd>{validated && shippingPreviewCents != null ? formatMoney({ amountCents: validated.subtotal.amountCents + shippingPreviewCents, currency: "EUR" }) : "—"}</dd></div>
         </dl>
         <p>IVA inclusa nel prezzo secondo la configurazione fiscale server. Il server ricalcola tutto dentro la transazione che prenota lo stock.</p>
-        <p>La prenotazione dura {reservationMinutes} minuti. Nessun pagamento viene ancora creato.</p>
+        <p>La prima prenotazione dura {reservationMinutes} minuti. Se avvii il pagamento, il server estende il hold per allinearlo alla sessione Stripe e al grace period del webhook.</p>
         {!enabled ? (
           <div className={styles.paymentGate}>
             <strong>CHECKOUT GATE / OFF</strong>
