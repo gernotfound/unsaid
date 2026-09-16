@@ -8,6 +8,7 @@ import {
 import { CheckoutPanel } from "../../../components/CheckoutPanel";
 import { getCheckoutConfiguration } from "../../../lib/checkout";
 import { FEATURES } from "../../../lib/features";
+import { getPaymentConfiguration } from "../../../lib/payment";
 import { readCustomerSession } from "../../../server/customerSession";
 import styles from "./CheckoutPage.module.css";
 
@@ -15,11 +16,12 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Checkout",
-  description: "Checkout pre-payment UNSAID con account verificato, indirizzo italiano e prenotazione stock server-side.",
+  description: "Checkout UNSAID con account verificato, indirizzo italiano, prenotazione stock e pagamento hosted.",
 };
 
 export default async function CheckoutPage() {
   const configuration = getCheckoutConfiguration();
+  const payment = getPaymentConfiguration();
   const session = FEATURES.customerAccountsEnabled && isFirebaseConfigured()
     ? await readCustomerSession(false)
     : null;
@@ -41,14 +43,17 @@ export default async function CheckoutPage() {
       <div className={styles.inner}>
         <header className={styles.hero}>
           <div>
-            <p className={styles.kicker}>UNSAID / CHECKOUT / PRE-PAYMENT</p>
+            <p className={styles.kicker}>UNSAID / CHECKOUT / SERVER VERIFIED</p>
             <h1>VERIFY.<br /><span>THEN PAY.</span></h1>
           </div>
-          <p>Account, indirizzo, prezzo e stock vengono verificati dal server. La preparazione crea un ordine pending e prenota atomicamente lo stock; il pagamento resta scollegato.</p>
+          <p>Account, indirizzo, prezzo e stock vengono verificati dal server. L&apos;ordine prenota atomicamente lo stock; quando il payment gate è attivo, il pagamento prosegue su Stripe Checkout e viene confermato soltanto dal webhook firmato.</p>
         </header>
 
         <CheckoutPanel
           enabled={FEATURES.checkoutPreparationEnabled}
+          paymentEnabled={FEATURES.paymentEnabled}
+          paymentProblems={payment.problems}
+          paymentSessionMinutes={payment.sessionMinutes}
           sessionState={sessionState}
           addresses={addresses}
           defaultAddressId={defaultAddressId}
