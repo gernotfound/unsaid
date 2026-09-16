@@ -19,10 +19,13 @@ Payments remain fail-closed until all upstream gates are ready:
 - Stripe secret key configured;
 - Stripe webhook signing secret configured.
 
+Refund execution has an additional independent money-moving gate.
+
 Relevant environment names:
 
 ```text
 STRIPE_PAYMENTS_ENABLED
+STRIPE_REFUNDS_ENABLED
 STRIPE_SECRET_KEY
 STRIPE_WEBHOOK_SECRET
 STRIPE_CHECKOUT_SESSION_MINUTES
@@ -92,9 +95,11 @@ Handled lifecycle events:
 - `checkout.session.completed` when `payment_status=paid`;
 - `checkout.session.async_payment_succeeded`;
 - `checkout.session.expired`;
-- `checkout.session.async_payment_failed`.
+- `checkout.session.async_payment_failed`;
+- `refund.updated`;
+- `refund.failed`.
 
-The phase-one hosted session currently requests card payment methods only, so async methods are not expected in normal operation; the handlers are still defensive.
+The phase-one hosted session currently requests card payment methods only, so async payment methods are not expected in normal checkout operation; the handlers are still defensive.
 
 Webhook-signature verification has automated tests for valid signatures, tampered raw bodies and stale timestamps. These web security tests run as part of the root CI `test` command together with domain tests.
 
@@ -148,32 +153,40 @@ Operational invariants:
 - `paid -> processing` requires both the order and server payment record to confirm the paid state;
 - `pending_payment` cancellation reuses the same payment-session guard as the customer flow;
 - admins never mutate order/payment documents directly from the browser Firestore SDK;
-- provider IDs are visible only inside the authenticated admin console and server responses intended for that console.
+- provider IDs are visible only inside authenticated admin/server responses.
 
-## Refund cases
+## Refund lifecycle
 
-The first refund phase deliberately separates **operator intent** from **movement of money**.
+Creating a refund case still records **operator intent only**. It does not move money. A separate `/admin/refunds` console executes provider refunds only when `STRIPE_REFUNDS_ENABLED=true` in addition to the normal Stripe payment gate.
 
-Creating a refund case records:
+Before the Stripe API call, a Firestore transaction locks the refund amount in `refundControls/{orderId}`. The control record tracks:
 
-- order/customer/payment references;
-- amount in EUR cents;
-- operator reason;
-- requesting admin UID;
-- `status: requested`;
-- `providerAction: not_executed`.
+- original paid amount;
+- amount already confirmed refunded;
+- amount currently in-flight.
 
-The amount must be positive and cannot exceed the authoritative paid/order total. Repeated requests are idempotent through the refund-case key.
+This prevents two concurrent refund operations from exceeding the original payment.
 
-This operation does **not** call Stripe, does not mark the order `refunded` and does not alter the payment record. A future Stripe Refund adapter must perform the provider call idempotently and only then transition the internal refund/payment/order lifecycle after provider confirmation.
+The Stripe Refund request:
+
+- uses the server-recorded PaymentIntent ID;
+- uses the refund-case amount, never an amount sent by the browser at execution time;
+- carries `order_id` and `refund_case_id` metadata;
+- uses a deterministic Stripe idempotency key derived from the refund-case ID.
+
+If Stripe returns a definite 4xx rejection, the in-flight amount is released and the case becomes retryable/rejected. If transport or provider state is ambiguous, the case becomes `manual_review` and the in-flight amount remains locked so the operator cannot accidentally submit a second refund.
+
+Provider states are reconciled by `refund.updated` / `refund.failed` webhook events. A successful refund moves the amount from in-flight to confirmed-refunded. A full cumulative refund marks the order `refunded`; partial refunds leave the order in its existing operational state while recording the refunded total on the payment document.
+
+Stripe can report a refund as `pending` or `requires_action`; those states remain in-flight until a later webhook resolves them. A queued or provider-created refund must never be presented as completed until Stripe reports success.
 
 ## Operational launch checklist
 
-Before enabling real payments:
+Before enabling real payments/refunds:
 
 - configure Stripe in **test mode** first;
 - register the production webhook URL;
-- subscribe to the handled Checkout Session events;
+- subscribe to the handled Checkout Session and refund events;
 - verify the webhook signing secret in the deployment environment;
 - verify the canonical `NEXT_PUBLIC_SITE_URL` uses the final HTTPS domain;
 - test successful card payment, declined card, abandoned/expired session, duplicate webhook delivery and concurrent cancellation attempts;
@@ -181,5 +194,6 @@ Before enabling real payments:
 - test that stock is committed exactly once on success and released on expiration;
 - test the admin orders console with paid, cancelled and manual-review fixtures;
 - confirm that creating a refund case never calls Stripe;
+- keep `STRIPE_REFUNDS_ENABLED=false` until partial/full refund, duplicate click, concurrent refund, provider 4xx, provider timeout and refund webhook reconciliation tests pass;
 - confirm shipping/VAT/legal configuration separately;
-- implement and test the real refund + fulfillment procedure before switching to live Stripe keys.
+- verify operational procedures before switching to live Stripe keys.
