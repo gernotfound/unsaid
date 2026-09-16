@@ -5,5 +5,6 @@ export * from "./checkoutExpiry";
 export * from "./commerce";
 export * from "./customer";
 export * from "./firebase";
+export * from "./payments";
 export * from "./storefrontCommerce";
 export * from "./storefrontCommerceList";
