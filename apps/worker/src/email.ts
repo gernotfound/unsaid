@@ -1,17 +1,33 @@
-export type TransactionalEmailKind = "order_confirmation" | "shipment_confirmation";
+export type TransactionalEmailKind = "order_confirmation" | "shipment_confirmation" | "withdrawal_acknowledgement";
 
-export interface TransactionalEmailPayload {
-  kind: TransactionalEmailKind;
+interface TransactionalEmailBase {
   orderId: string;
   toEmail: string;
-  totalCents: number;
-  currency: "EUR";
-  shipment?: {
-    provider: string;
-    trackingCode?: string;
-    trackingUrl?: string;
-  };
 }
+
+export type TransactionalEmailPayload =
+  | (TransactionalEmailBase & {
+      kind: "order_confirmation";
+      totalCents: number;
+      currency: "EUR";
+    })
+  | (TransactionalEmailBase & {
+      kind: "shipment_confirmation";
+      totalCents: number;
+      currency: "EUR";
+      shipment: {
+        provider: string;
+        trackingCode?: string;
+        trackingUrl?: string;
+      };
+    })
+  | (TransactionalEmailBase & {
+      kind: "withdrawal_acknowledgement";
+      withdrawalNoticeId: string;
+      consumerName: string;
+      statement: string;
+      submittedAt: string;
+    });
 
 export interface EmailEnvelope {
   to: string;
@@ -37,6 +53,21 @@ export function renderTransactionalEmail(input: TransactionalEmailPayload): Emai
         `Ordine ${input.orderId} confermato.`,
         `Totale: ${euros(input.totalCents)}.`,
         "Puoi controllare lo stato dell'ordine dal tuo account UNSAID.",
+      ].join("\n\n"),
+    };
+  }
+
+  if (input.kind === "withdrawal_acknowledgement") {
+    return {
+      to: input.toEmail,
+      subject: `UNSAID / ricezione recesso ordine ${input.orderId}`,
+      text: [
+        `Abbiamo ricevuto la dichiarazione di recesso ${input.withdrawalNoticeId}.`,
+        `Nome: ${input.consumerName}`,
+        `Ordine: ${input.orderId}`,
+        `Contenuto della dichiarazione: ${input.statement}`,
+        `Data e ora di trasmissione (UTC): ${input.submittedAt}`,
+        "Questa conferma attesta la ricezione della dichiarazione. Le fasi logistiche di eventuale restituzione e l'eventuale rimborso seguono processi separati.",
       ].join("\n\n"),
     };
   }

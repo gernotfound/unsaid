@@ -10,6 +10,7 @@ import {
   applyReturnInspection,
   buildReturnLines,
   RETURN_REASON_CODES,
+  sameReturnInspection,
 } from "@unsaid/domain";
 import { INVENTORY_COLLECTION } from "./commerce";
 import { getAdminFirestore } from "./firebase";
@@ -233,6 +234,7 @@ export async function markReturnInTransit(input: {
         ...(trackingCode ? { trackingCode } : {}),
         ...(trackingUrl ? { trackingUrl } : {}),
       },
+      inTransitAt: timestamp,
       updatedAt: timestamp,
     };
     transaction.set(ref, updated);
@@ -270,6 +272,10 @@ export async function inspectReturnCase(input: {
     const snapshot = await transaction.get(ref);
     if (!snapshot.exists) throw new Error("RETURN_CASE_NOT_FOUND");
     const returnCase = snapshot.data() as ReturnCase;
+    if (returnCase.status === "inspected" || returnCase.status === "closed") {
+      if (sameReturnInspection(returnCase, input.lines)) return returnCase;
+      throw new Error("RETURN_INSPECTION_ALREADY_RECORDED");
+    }
     const lines = applyReturnInspection(returnCase, input.lines);
     const restockLines = lines.filter((line) => (line.restockedQuantity ?? 0) > 0);
     const inventoryRefs = restockLines.map((line) => db.collection(INVENTORY_COLLECTION).doc(line.variantId));

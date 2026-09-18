@@ -46,6 +46,7 @@ function responseForError(error: unknown) {
     code === "RETURN_STATE_CONFLICT" ||
     code === "RETURN_NOT_READY_FOR_INSPECTION" ||
     code === "RETURN_INSPECTION_LINES_MISMATCH" ||
+    code === "RETURN_INSPECTION_ALREADY_RECORDED" ||
     code === "RETURN_INVENTORY_MISSING" ||
     code === "RETURN_REFUND_MISMATCH" ||
     code === "RETURN_REFUND_ALREADY_LINKED"

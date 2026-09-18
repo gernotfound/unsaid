@@ -106,6 +106,27 @@ References:
 - Vercel DPA: https://vercel.com/legal/dpa
 - Firebase Data Processing and Security Terms: https://firebase.google.com/terms/data-processing-terms
 
+## Online withdrawal function
+
+The technical withdrawal foundation is separate from the physical RMA and refund workflows. For distance contracts concluded through an online interface, the current Consumer Code framework includes Article 54-bis, introduced by Legislative Decree 31 December 2025, no. 209. Where the withdrawal right applies, the online function must be clearly identified and easily accessible during the applicable period, allow the consumer to provide or confirm the information required for the declaration and acknowledgement, use a distinct confirmation action, and send an acknowledgement on a durable medium without undue delay containing the statement content plus date and time. The online withdrawal is considered exercised within the applicable period when the statement is transmitted before expiry.
+
+The repository therefore keeps these fail-closed server gates separate from the shop/payment gates:
+
+```env
+WITHDRAWAL_ENABLED=false
+WITHDRAWAL_POLICY_READY=false
+WITHDRAWAL_ACKNOWLEDGEMENT_READY=false
+```
+
+Do not enable them merely because the storage/API foundation exists. `WITHDRAWAL_POLICY_READY` requires reviewed sales/withdrawal rules. `WITHDRAWAL_ACKNOWLEDGEMENT_READY` requires a tested external email delivery/retry path; an `emailOutbox` record by itself is not proof of durable delivery. The customer-facing function and its separate confirmation UI still require legal/accessibility review before activation.
+
+Official references:
+
+- Legislative Decree 31 December 2025, no. 209 / Consumer Code Article 54-bis: https://www.normattiva.it/atto/caricaDettaglioAtto?atto.codiceRedazionale=26G00002&atto.dataPubblicazioneGazzetta=2026-01-08
+- Directive (EU) 2023/2673, including new Directive 2011/83/EU Article 11a: https://eur-lex.europa.eu/eli/dir/2023/2673/oj
+
+See `docs/WITHDRAWALS.md` for the engineering model.
+
 ## Before commerce is enabled
 
 The current `/terms` page is only a pre-launch site-usage document. It is **not** sufficient as consumer sales terms.
@@ -153,7 +174,8 @@ Before setting `LEGAL_COMMERCE_READY=true`:
 - privacy/cookie text matches the actual production providers and settings;
 - GA4 retention has been deliberately configured;
 - sales terms are reviewed;
-- shipping/returns/warranty process exists;
+- shipping/returns/withdrawal/warranty process exists;
+- the online withdrawal function, confirmation step and durable acknowledgement delivery have been legally/operationally reviewed;
 - payment provider and checkout flow are final;
 - product claims, prices and stock are real;
 - accessibility/responsive QA is complete;

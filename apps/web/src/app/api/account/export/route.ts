@@ -1,9 +1,7 @@
 import {
+  getCustomerCommerceExport,
   getCustomerProfile,
   listCustomerAddresses,
-  listCustomerOrderFulfillment,
-  listCustomerOrders,
-  listCustomerReturns,
 } from "@unsaid/db";
 import { FEATURES } from "../../../../lib/features";
 import { requireCustomerSession, CustomerAuthError } from "../../../../server/customerSession";
@@ -19,14 +17,10 @@ export async function GET() {
 
   try {
     const session = await requireCustomerSession({ checkRevoked: true });
-    const [profile, addresses, orders] = await Promise.all([
+    const [profile, addresses, commerce] = await Promise.all([
       getCustomerProfile(session.uid),
       listCustomerAddresses(session.uid),
-      listCustomerOrders(session.uid, 50),
-    ]);
-    const [fulfillment, returns] = await Promise.all([
-      listCustomerOrderFulfillment(session.uid, orders),
-      listCustomerReturns(session.uid, orders),
+      getCustomerCommerceExport(session.uid),
     ]);
 
     const body = JSON.stringify({
@@ -34,9 +28,10 @@ export async function GET() {
       account: profile,
       emailVerified: session.emailVerified,
       addresses,
-      orders,
-      fulfillment,
-      returns,
+      orders: commerce.orders,
+      fulfillment: commerce.fulfillment,
+      returns: commerce.returns,
+      withdrawals: commerce.withdrawals,
     }, null, 2);
 
     return new Response(body, {

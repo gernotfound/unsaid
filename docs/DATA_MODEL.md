@@ -198,25 +198,43 @@ Phase-one return/RMA record. One return case is associated with one order and st
 - optional inbound carrier/tracking data;
 - physical received quantities;
 - quantities approved for restock;
+- optional linked withdrawal-notice ID;
 - optional linked refund-case ID;
-- lifecycle timestamps.
+- lifecycle timestamps including `inTransitAt` when applicable.
 
 Customer intake is only accepted for a server-confirmed delivered order and delivered shipment. During inspection, `restockQuantity` can never exceed the physically received quantity or the quantity originally requested. Only the restock quantity increments inventory, in the same Firestore transaction that records inspection.
 
-The return record deliberately does not define the legal refund amount or withdrawal window. Refund/payment state stays separate and can be linked only after the server verifies the return and refund case belong to the same order/customer.
+The return record deliberately does not define the legal refund amount or withdrawal window. Refund/payment state stays separate and can be linked only after the server verifies the return and refund case belong to the same order/customer. Repeated identical inspection submissions are idempotent so inventory cannot be incremented twice by a retry.
+
+### `withdrawalNotices/withdrawal__{orderId}__{idempotencyKey}`
+
+Server-only record of an online legal withdrawal declaration. It is intentionally separate from RMA, refund and restock state. A notice stores:
+
+- order/customer references and the order-email snapshot;
+- consumer name;
+- whole-order or partial-order scope with immutable SKU/title/quantity snapshots;
+- exact generated declaration text plus statement version;
+- `submissionMethod = online_withdrawal_function`;
+- explicit confirmation evidence and server timestamps;
+- order status at submission as audit context only;
+- acknowledgement email target and deterministic notification ID;
+- links to related RMA/refund case IDs without controlling those lifecycles.
+
+There is no `approved`/`rejected` state on a withdrawal notice. Recording a declaration does not approve a physical return, calculate refund entitlement, execute money movement or restock inventory.
 
 ### `emailOutbox/{notificationId}`
 
 Server-only transactional-email outbox. Current deterministic event IDs represent:
 
 - order confirmation;
-- shipment confirmation.
+- shipment confirmation;
+- legal withdrawal acknowledgement.
 
 Each record stores event kind, order/customer references, destination email, a bounded rendering payload, delivery status/attempt metadata and timestamps. A queued outbox record is not proof that an external email provider delivered a message.
 
 ## Admin operations read model
 
-`/admin/orders`, `/admin/fulfillment`, `/admin/returns` and `/admin/refunds` are backed exclusively by server-side Firebase Admin reads. The browser supplies a Firebase ID token only to authenticate the administrator; order, payment, reservation, return, refund, refund-control, shipment and notification-outbox documents remain server-authoritative and inaccessible through browser Firestore writes.
+`/admin/orders`, `/admin/fulfillment`, `/admin/returns`, `/admin/refunds` and withdrawal administration endpoints are backed exclusively by server-side Firebase Admin reads. The browser supplies a Firebase ID token only to authenticate the administrator; order, payment, reservation, withdrawal, return, refund, refund-control, shipment and notification-outbox documents remain server-authoritative and inaccessible through browser Firestore writes.
 
 The consoles correlate the relevant server records so operators can see payment state, inventory reservations, fulfillment, physical return/restock state and refund execution without making client-side documents authoritative.
 
@@ -232,6 +250,7 @@ If collections are introduced later, add them as an editorial projection referen
 - Firebase Auth `uid` is customer identity;
 - order/payment/shipment IDs are independent immutable business IDs;
 - phase-one return identity is deterministic per order (`return__{orderId}`);
+- withdrawal notices use `withdrawal__{orderId}__{idempotencyKey}` so retries are deterministic without collapsing all declarations for an order into one record;
 - checkout idempotency keys are request-scoped technical identifiers and are not payment proof;
 - refund-case idempotency keys identify an administrative refund request;
 - Stripe refund metadata links provider refunds back to refund-case/order IDs;

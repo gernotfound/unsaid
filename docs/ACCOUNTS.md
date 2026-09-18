@@ -24,7 +24,7 @@ Implemented public/account flows:
 - profile name update;
 - Italian shipping-address creation/deletion/default selection;
 - customer-scoped order-history read boundary;
-- authenticated JSON export of account/profile/address/order data;
+- authenticated JSON export of account/profile/address/commerce records;
 - logout/session removal.
 
 The account page is `/account`.
@@ -75,7 +75,7 @@ An account can be created before the email address is verified, but the commerce
 
 ## Data export
 
-`GET /api/account/export` requires a valid customer server session and returns an attachment containing the profile, saved addresses, verification state and customer-owned order snapshots. The response is marked private/no-store and contains no password or Firebase credential material.
+`GET /api/account/export` requires a valid customer server session and returns an attachment containing the profile, saved addresses, verification state, **all** customer-owned order snapshots, fulfillment records, RMA records and legal withdrawal notices. The export uses customer-scoped server queries rather than the normal 50-order dashboard window, so older commerce records are not omitted solely because they are outside the account UI page. The response is marked private/no-store and contains no password or Firebase credential material.
 
 ## Checkout boundary
 

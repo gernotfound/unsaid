@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import type { Order, ReturnCase } from "../src/index";
-import { applyReturnInspection, buildReturnLines, returnGoodsValue } from "../src/index";
+import { applyReturnInspection, buildReturnLines, returnGoodsValue, sameReturnInspection } from "../src/index";
 
 const order: Order = {
   id: "ORD-abcdefghijklmnop",
@@ -86,4 +86,28 @@ test("return inspection cannot restock more units than physically received", () 
     }]),
     /INVALID_RETURN_RESTOCK_QUANTITY/,
   );
+});
+
+test("identical inspection retries are recognizable after inspection or close", () => {
+  const inspectedCase: ReturnCase = {
+    id: "return__ORD-abcdefghijklmnop",
+    orderId: order.id,
+    customerId: order.customerId,
+    email: order.email,
+    status: "inspected",
+    reasonCode: "size_issue",
+    lines: [{
+      ...buildReturnLines(order, [{ variantId: "UNS-0001-WHT-M", quantity: 2 }])[0]!,
+      receivedQuantity: 2,
+      restockedQuantity: 1,
+    }],
+    requestedAt: "2026-09-16T00:00:00.000Z",
+    inspectedAt: "2026-09-16T01:00:00.000Z",
+    createdAt: "2026-09-16T00:00:00.000Z",
+    updatedAt: "2026-09-16T01:00:00.000Z",
+  };
+  const retry = [{ variantId: "UNS-0001-WHT-M", receivedQuantity: 2, restockQuantity: 1 }];
+  assert.equal(sameReturnInspection(inspectedCase, retry), true);
+  assert.equal(sameReturnInspection({ ...inspectedCase, status: "closed" }, retry), true);
+  assert.equal(sameReturnInspection(inspectedCase, [{ ...retry[0]!, restockQuantity: 2 }]), false);
 });

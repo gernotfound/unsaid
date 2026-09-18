@@ -76,11 +76,12 @@ emailOutbox/{notificationId}
 Current kinds:
 
 - `order_confirmation`;
-- `shipment_confirmation`.
+- `shipment_confirmation`;
+- `withdrawal_acknowledgement`.
 
-The IDs are deterministic per order/event, making enqueue operations idempotent.
+The IDs are deterministic per business event, making enqueue operations idempotent.
 
-The order-confirmation event is queued when a paid order is accepted into `processing`. The shipment-confirmation event is queued atomically with the `shipped` transition.
+The order-confirmation event is queued when a paid order is accepted into `processing`. The shipment-confirmation event is queued atomically with the `shipped` transition. A withdrawal acknowledgement is queued atomically with the legal withdrawal notice and carries the exact statement plus its server-side submission timestamp.
 
 Outbox states are designed for a future asynchronous dispatcher:
 
@@ -105,4 +106,7 @@ Before enabling delivery, test at minimum:
 - bounce/failure reconciliation;
 - order-confirmation rendering;
 - shipment tracking rendering;
+- withdrawal acknowledgement rendering with statement content and timestamp;
 - no email for `manual_review` or unpaid orders.
+
+Keep `WITHDRAWAL_ACKNOWLEDGEMENT_READY=false` until an actual dispatcher/provider consumes `withdrawal_acknowledgement` and the durable-medium delivery path has been tested. See `docs/WITHDRAWALS.md`.

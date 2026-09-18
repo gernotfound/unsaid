@@ -50,8 +50,8 @@ service cloud.firestore {
       }
     }
 
-    // Commerce/payment/return state is authoritative server data. Client-side state never
-    // grants write access to price, SKU, inventory, reservations, payments, returns or orders.
+    // Commerce/payment/return/withdrawal state is authoritative server data. Client-side state never
+    // grants write access to price, SKU, inventory, reservations, payments, returns, withdrawals or orders.
     match /sellableProducts/{id} { allow read, write: if false; }
     match /variants/{id} { allow read, write: if false; }
     match /inventory/{id} { allow read, write: if false; }
@@ -63,6 +63,7 @@ service cloud.firestore {
     match /payments/{id} { allow read, write: if false; }
     match /refundCases/{id} { allow read, write: if false; }
     match /returnCases/{id} { allow read, write: if false; }
+    match /withdrawalNotices/{id} { allow read, write: if false; }
     match /shipments/{id} { allow read, write: if false; }
 
     match /{document=**} {

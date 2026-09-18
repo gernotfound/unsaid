@@ -54,10 +54,12 @@ export interface ReturnCase {
   note?: string;
   lines: readonly ReturnLineSnapshot[];
   inboundShipment?: ReturnInboundShipment;
+  withdrawalNoticeId?: string;
   refundCaseId?: string;
   requestedAt: string;
   approvedAt?: string;
   rejectedAt?: string;
+  inTransitAt?: string;
   receivedAt?: string;
   inspectedAt?: string;
   closedAt?: string;
@@ -125,5 +127,20 @@ export function applyReturnInspection(
       receivedQuantity: result.receivedQuantity,
       restockedQuantity: result.restockQuantity,
     };
+  });
+}
+
+export function sameReturnInspection(
+  returnCase: Pick<ReturnCase, "status" | "lines">,
+  inspected: readonly ReturnInspectionLineInput[],
+) {
+  if (returnCase.status !== "inspected" && returnCase.status !== "closed") return false;
+  if (inspected.length !== returnCase.lines.length) return false;
+  const byVariant = new Map(inspected.map((line) => [line.variantId, line]));
+  return returnCase.lines.every((line) => {
+    const result = byVariant.get(line.variantId);
+    return result !== undefined
+      && line.receivedQuantity === result.receivedQuantity
+      && line.restockedQuantity === result.restockQuantity;
   });
 }
