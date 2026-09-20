@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "templateId": "white-oversize-v1",
+  "templateVersion": 1,
+  "createdAt": "2026-09-20T12:00:00.000Z",
+  "status": "prepared-not-ingested",
+  "provenance": "Clean blank masters prepared from the user-supplied 2K front/back references using ChatGPT image generation, then normalized to the canonical portrait canvas.",
+  "views": {
+    "front": {
+      "fileName": "white-oversize-v1-front-master.webp",
+      "width": 1536,
+      "height": 2048,
+      "mimeType": "image/webp",
+      "bytes": 307846,
+      "sha256": "91b4090f782fca049786ddf8a0d147034c39e53429d77f63f3e4f499822fa6bc"
+    },
+    "back": {
+      "fileName": "white-oversize-v1-back-master.webp",
+      "width": 1536,
+      "height": 2048,
+      "mimeType": "image/webp",
+      "bytes": 307690,
+      "sha256": "f71603fb464ce976e00b76cbcf5d3e6cd93056345d835ea9c33e541a137f4083"
+    }
+  }
+}

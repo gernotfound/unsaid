@@ -1,6 +1,7 @@
 import type { ProductRenderSpec } from "@unsaid/domain";
 import { validateProductRenderSpec } from "@unsaid/domain";
 import archiveSeed from "../../../../data/catalog/archive.json";
+import masterIntakeSeed from "../../../../data/media/master-intake.json";
 import { MEDIA_REGISTRY, findRenderProfile, findTemplate, validateMediaRegistry } from "./registry";
 
 type SeedRecord = {
@@ -9,11 +10,53 @@ type SeedRecord = {
   render?: ProductRenderSpec;
 };
 
+type MasterIntake = {
+  schemaVersion: number;
+  templateId: string;
+  templateVersion: number;
+  status: "prepared-not-ingested" | "ingested";
+  views: Record<"front" | "back", {
+    fileName: string;
+    width: number;
+    height: number;
+    mimeType: string;
+    bytes: number;
+    sha256: string;
+  }>;
+};
+
+function validateMasterIntake(errors: string[], warnings: string[]) {
+  const intake = masterIntakeSeed as unknown as MasterIntake;
+  if (intake.schemaVersion !== 1) errors.push("master-intake.schemaVersion must be 1.");
+  const template = findTemplate(MEDIA_REGISTRY, intake.templateId, intake.templateVersion);
+  if (!template) {
+    errors.push(`Master intake references missing template ${intake.templateId}@${intake.templateVersion}.`);
+    return;
+  }
+
+  for (const view of ["front", "back"] as const) {
+    const asset = intake.views[view];
+    if (!asset.fileName.trim()) errors.push(`master-intake.${view}.fileName is required.`);
+    if (asset.width < 1 || asset.height < 1) errors.push(`master-intake.${view} has invalid dimensions.`);
+    if (asset.bytes < 1) errors.push(`master-intake.${view}.bytes must be positive.`);
+    if (!/^[a-f0-9]{64}$/i.test(asset.sha256)) errors.push(`master-intake.${view}.sha256 is invalid.`);
+    if (asset.width < template.views[view].width || asset.height < template.views[view].height) {
+      warnings.push(`Prepared ${view} master is smaller than the registered reference canvas.`);
+    }
+  }
+
+  if (intake.status === "prepared-not-ingested") {
+    warnings.push(`Clean masters for ${intake.templateId}@${intake.templateVersion} are prepared and hash-locked, but still require managed-storage ingestion before the template may be marked ready.`);
+  }
+}
+
 export function validateMediaConfiguration() {
   const registryResult = validateMediaRegistry(MEDIA_REGISTRY);
   const errors = [...registryResult.errors];
   const warnings = [...registryResult.warnings];
   const records = archiveSeed as unknown as readonly SeedRecord[];
+
+  validateMasterIntake(errors, warnings);
 
   for (const record of records) {
     if (!record.render) {
