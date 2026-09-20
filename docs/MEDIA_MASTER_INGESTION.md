@@ -38,33 +38,72 @@ masters/templates/white-oversize-v1/v1/back-2f7f5c5527029f9d.webp
 
 Writing the same bytes to the same key is idempotent. Writing different bytes to an existing immutable key is rejected.
 
-## Production object storage contract
+## Production adapter: Firebase Storage
 
-Managed storage must implement the `MasterObjectStore` contract from `apps/worker/src/media/intake.ts`:
+The first production storage adapter is the existing Firebase project. This is an infrastructure adapter, not a domain dependency: render specs, manifests and storefront code remain provider-neutral.
 
-- accept an immutable storage key;
-- persist the exact supplied bytes;
-- reject replacement with different bytes;
-- preserve the supplied MIME type;
-- keep the object available to the raster/render worker.
+Server-side media operations require:
 
-The contract intentionally does not name Vercel Blob, S3, R2, Cloudinary or another provider. Provider choice remains an adapter decision.
+- `FIREBASE_PROJECT_ID`;
+- `FIREBASE_CLIENT_EMAIL`;
+- `FIREBASE_PRIVATE_KEY`;
+- `FIREBASE_STORAGE_BUCKET`.
+
+`packages/db/src/mediaStorage.ts` provides immutable Firebase Storage writes using an object-generation precondition. If an object key already exists, the adapter verifies the existing bytes have the same SHA-256; different content at an immutable key is rejected.
+
+Storage Security Rules are deliberately narrow:
+
+- `masters/**` is never public;
+- `generated/products/**` is public-read for storefront delivery;
+- browser/client writes are denied everywhere;
+- every other path fails closed.
+
+The Admin SDK is the only write path for this media pipeline.
+
+## Managed ingestion
+
+First perform a dry run against the exact source directory:
+
+```bash
+pnpm media:ingest-masters -- --source-dir=/absolute/path/to/clean-masters
+```
+
+This verifies both files and prints the immutable destination keys without writing remotely.
+
+To upload the exact hash-locked bytes:
+
+```bash
+pnpm media:ingest-masters -- --source-dir=/absolute/path/to/clean-masters --write
+```
+
+To upload and then promote the repository metadata in the same local working branch:
+
+```bash
+pnpm media:ingest-masters -- --source-dir=/absolute/path/to/clean-masters --write --promote-template
+```
+
+`--promote-template` is rejected unless `--write` is also present. Promotion occurs only after both uploads have completed and been verified. It updates `templates.json` with the immutable keys and marks the intake `ingested`; the resulting repository diff must still be reviewed, validated and committed on a branch.
 
 ## Promotion to `ready`
 
-Preparing or locally staging a master does **not** make a template production-ready. Promotion is a reviewed repository operation:
+Preparing or locally staging a master does **not** make a template production-ready. Promotion remains a reviewed repository operation:
 
 1. verify both clean files against `master-intake.json`;
-2. upload those exact bytes to managed object storage using immutable keys;
-3. verify the stored objects and record their final storage keys;
-4. on a dedicated branch, change both `white-oversize-v1@1` views in `data/media/templates.json` from `reference-only` to `ready` and add the immutable `storageKey` values;
-5. change the intake status to `ingested` without altering the fingerprints;
-6. run `pnpm media:validate`, tests, typecheck and build;
-7. render every published product to a new immutable generated-media manifest;
-8. verify front/back copy, complete garment silhouette, responsive delivery and image sharpness;
-9. merge through PR only after validation succeeds.
+2. dry-run the managed ingestion command;
+3. upload those exact bytes to Firebase Storage using immutable keys;
+4. verify the stored objects;
+5. promote both `white-oversize-v1@1` views to `ready` and record their immutable `storageKey` values;
+6. change the intake status to `ingested` without altering its fingerprints;
+7. run `pnpm media:validate`, tests, typecheck and build;
+8. render every published product to a new immutable generated-media manifest;
+9. verify front/back copy, complete garment silhouette, responsive delivery and image sharpness;
+10. merge through PR only after validation succeeds.
 
-Until step 4 is complete, `planProductRender()` fails closed by design. Legacy approved storefront images remain the migration fallback.
+Until step 5 is complete, `planProductRender()` fails closed by design. Legacy approved storefront images remain the migration fallback.
+
+## Firebase rules deployment
+
+`firebase.json` now includes `storage.rules`. Before generated media can be consumed publicly, deploy the reviewed Storage Rules to the same Firebase project. Do not broaden the catch-all rule to public write access.
 
 ## Git policy
 

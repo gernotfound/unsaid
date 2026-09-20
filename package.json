@@ -14,7 +14,8 @@
     "seed:firestore:check": "pnpm --filter @unsaid/db seed:catalog",
     "seed:firestore": "pnpm --filter @unsaid/db seed:catalog -- --write",
     "media:validate": "pnpm --filter @unsaid/worker media:validate",
-    "media:stage-masters": "pnpm --filter @unsaid/worker media:stage-masters --"
+    "media:stage-masters": "pnpm --filter @unsaid/worker media:stage-masters",
+    "media:ingest-masters": "pnpm --filter @unsaid/db media:ingest-masters"
   },
   "devDependencies": {
     "tsx": "catalog:"
