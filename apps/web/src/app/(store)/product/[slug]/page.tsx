@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { primaryCopy } from "@unsaid/catalog";
+import { assetForView, primaryCopy } from "@unsaid/catalog";
 import { getPublicCommerceState } from "@unsaid/db";
 import { CommerceControls } from "../../../../components/CommerceControls";
 import { ProductGallery } from "../../../../components/ProductGallery";
@@ -26,8 +26,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const product = await catalog.getBySlug(slug);
   if (!product) notFound();
 
-  const front = product.media.front.asset;
-  const back = product.media.back.asset;
+  const front = assetForView(product, "front", "detail");
+  const back = assetForView(product, "back", "detail");
   if (!front || !back) notFound();
 
   const commerce = await getPublicCommerceState(product.id);

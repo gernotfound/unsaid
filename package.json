@@ -12,7 +12,8 @@
     "test": "tsx --test packages/domain/test/*.test.ts apps/web/test/*.test.ts apps/worker/test/*.test.ts",
     "check:dependencies": "node scripts/check-dependencies.mjs",
     "seed:firestore:check": "pnpm --filter @unsaid/db seed:catalog",
-    "seed:firestore": "pnpm --filter @unsaid/db seed:catalog -- --write"
+    "seed:firestore": "pnpm --filter @unsaid/db seed:catalog -- --write",
+    "media:validate": "pnpm --filter @unsaid/worker media:validate"
   },
   "devDependencies": {
     "tsx": "catalog:"

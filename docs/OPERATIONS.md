@@ -2,24 +2,31 @@
 
 ## Main branch
 
-`main` is the production branch.
+`main` is the production branch and is never a development workspace.
 
-Current project mode: development work may be committed directly to `main` while the Vercel production deploy is explicitly paused. Each commit still triggers CI and must keep the branch recoverable. Before production deploy is resumed, require a fully green `main`, review the final environment configuration and perform a production smoke test.
+All code, configuration and documentation changes must start from the current SHA of `main` on a dedicated branch. Do not commit directly to `main`, do not force-update it and do not use it for intermediate fixes. Validate the branch first, open a pull request against `main`, then merge the completed change. A corrective follow-up for a just-merged change must also use a new branch.
 
-When production deploy automation is active again, prefer a validated batch/candidate workflow if intermediate commits could expose incomplete behavior.
+Before creating a work branch, re-read the current `main` SHA so work never starts from a stale base. Prefer one coherent final commit per work block when practical; avoid chains of incidental microcommits.
+
+Vercel Git deployments from non-`main` branches must remain disabled. Branch validation uses GitHub CI; merging to `main` must not be used as a substitute for validating the branch first.
+
+Before production deploy is resumed or relied upon, require a fully green `main`, review the final environment configuration and perform a production smoke test.
 
 ## CI contract
 
-Every committed state intended to remain on `main` must pass:
+Every branch intended to merge into `main` must pass:
 
 1. deterministic dependency install;
 2. dependency-policy check;
 3. catalog validation;
-4. unit tests;
-5. TypeScript typecheck;
-6. Next.js production build.
+4. media-pipeline configuration validation;
+5. unit tests;
+6. TypeScript typecheck;
+7. Next.js production build.
 
 A lockfile is mandatory. CI uses `--frozen-lockfile`.
+
+If GitHub Actions fails before a runner is assigned (`runner_id = 0`, no steps/logs), treat that as an infrastructure/account/runner failure until proven otherwise. Do not change application code merely to make such a run appear green.
 
 ## Dependency policy
 
@@ -47,6 +54,22 @@ Before production deployment is resumed:
 - a rollback commit/ref is known;
 - order/payment/refund operational procedures are documented and tested.
 
+## Media operations
+
+Product render masters and derivatives are immutable versioned assets. Never overwrite an existing generated render key in place.
+
+A garment template may be marked `ready` only when both clean front/back masters exist in managed media storage. `reference-only` masters cannot be used for production rendering.
+
+Before retiring legacy `/public/products` assets:
+
+- every published product has a valid `generatedMedia` manifest;
+- front/back copy has been visually checked against the editorial record;
+- detail/card/thumbnail derivatives have been generated;
+- media CDN caching and immutable cache headers have been verified;
+- rollback can restore the previous manifest without regenerating media.
+
+See `docs/MEDIA_PIPELINE.md`.
+
 ## Admin order operations
 
 `/admin/orders` is the operational read/control surface for orders, payment state, reservations and refund cases.
@@ -57,7 +80,7 @@ Rules:
 - `paid -> processing` is allowed only when the server-side payment record is also `paid`;
 - cancelling `pending_payment` uses the payment-session guard and must not race an active Stripe session;
 - creating a `refundCase` records an operator request only; it does **not** send money to Stripe;
-- a provider refund adapter must be added and tested before any refund case can become `processed`;
+- Stripe refund execution remains separately gated by `STRIPE_REFUNDS_ENABLED` and must stay disabled until the refund test matrix and operating procedure are complete;
 - customer/order/payment documents remain server-only even for admins using the web console.
 
 ## Cache invalidation

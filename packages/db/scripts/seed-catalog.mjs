@@ -61,8 +61,10 @@ for (const record of records) {
 
   if (record.status === "published" || record.status === "render_ready") {
     for (const view of ["front", "back"]) {
-      if (!record.media?.[view]?.asset || record.media[view].state !== "approved") {
-        throw new Error(`${record.id}: ${view} must be approved for ${record.status}`);
+      const generated = record.generatedMedia?.sides?.[view]?.master?.url;
+      const legacyApproved = record.media?.[view]?.asset && record.media[view].state === "approved";
+      if (!generated && !legacyApproved) {
+        throw new Error(`${record.id}: ${view} needs generated media or approved legacy media for ${record.status}`);
       }
     }
   }
@@ -139,7 +141,7 @@ for (let index = 0; index < records.length; index += 100) {
       deletedAt: null,
     });
     if (record.status === "published") {
-      const { notes: _notes, revision: _revision, ...publicRecord } = record;
+      const { notes: _notes, revision: _revision, render: _render, ...publicRecord } = record;
       batch.set(db.doc(`publicCatalog/${record.id}`), { ...publicRecord, schemaVersion: 3 });
     }
   }

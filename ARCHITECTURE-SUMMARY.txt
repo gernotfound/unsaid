@@ -4,10 +4,10 @@ Browser
       -> CatalogRepository -> Firestore (server-side only)
       -> Firebase Auth -> HttpOnly customer session -> customer profile/address APIs
       -> Commerce repositories -> SKU / inventory reservation / orders (server-side only)
-      -> Static media / future object CDN
-      -> Future PaymentProvider / fulfillment adapters
+      -> Media manifest -> immutable product derivatives / future object CDN
+      -> PaymentProvider / fulfillment adapters
       -> Structured logs / future error monitoring
-      -> Future async worker only for long-running jobs
+      -> Worker boundary -> versioned template + render spec -> media backend
 
 Locked product decisions:
 - continuous archive; no drops/collections for now
@@ -15,5 +15,10 @@ Locked product decisions:
 - sales market: Italy only
 - currency: EUR
 - commerce off until account + feature + legal gates are all ready
+
+Media rule:
+- product media is reproducible from a versioned garment template + private render spec + versioned render profile
+- storefront consumes immutable generated media manifests; legacy /public/products files are migration fallback only
+- high-resolution masters belong in managed media storage, not as the long-term Git source of truth
 
 Key rule: provider details stay behind adapters; public browsers never receive the full catalog or direct customer/commerce Firestore access.

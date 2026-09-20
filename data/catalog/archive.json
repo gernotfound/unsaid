@@ -14,112 +14,367 @@
     "status": "published",
     "primaryView": "front",
     "priceCents": null,
-    "garment": { "fit": "oversize", "color": "bianco" },
+    "garment": {
+      "fit": "oversize",
+      "color": "bianco"
+    },
     "media": {
-      "front": { "asset": "/products/UNS-0001/front.webp", "state": "approved", "isBlankBase": false },
-      "back": { "asset": "/products/UNS-0001/back.webp", "state": "approved", "isBlankBase": false }
+      "front": {
+        "asset": "/products/UNS-0001/front.webp",
+        "state": "approved",
+        "isBlankBase": false
+      },
+      "back": {
+        "asset": "/products/UNS-0001/back.webp",
+        "state": "approved",
+        "isBlankBase": false
+      }
     },
     "notes": "Frase divisa tra fronte e retro come da art direction.",
-    "revision": 1
+    "revision": 1,
+    "render": {
+      "schemaVersion": 1,
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "renderVersion": "r1",
+      "sides": {
+        "front": {
+          "layers": [
+            {
+              "id": "front-copy",
+              "kind": "text",
+              "text": "Ciao, sono un poliziotto e sto svolgendo un'indagine perché qualcuno ha rubato la mia attenzione",
+              "placement": {
+                "x": 0.2,
+                "y": 0.27,
+                "width": 0.6,
+                "height": 0.22
+              }
+            }
+          ]
+        },
+        "back": {
+          "layers": [
+            {
+              "id": "back-copy",
+              "kind": "text",
+              "text": "La sospettata numero 1 sei tu",
+              "placement": {
+                "x": 0.2,
+                "y": 0.27,
+                "width": 0.6,
+                "height": 0.22
+              }
+            }
+          ]
+        }
+      }
+    }
   },
   {
     "id": "UNS-0002",
     "sequence": 2,
     "slug": "non-sono-picasso",
     "title": "Non sono Picasso",
-    "copy": { "front": null, "back": "Non sono Picasso, ma una pennellata te la darei" },
+    "copy": {
+      "front": null,
+      "back": "Non sono Picasso, ma una pennellata te la darei"
+    },
     "language": "it",
     "category": "rimorchio",
     "audience": "18+",
     "status": "published",
     "primaryView": "back",
     "priceCents": null,
-    "garment": { "fit": "oversize", "color": "bianco" },
+    "garment": {
+      "fit": "oversize",
+      "color": "bianco"
+    },
     "media": {
-      "front": { "asset": "/products/base/front-white.webp", "state": "approved", "isBlankBase": true },
-      "back": { "asset": "/products/UNS-0002/back.webp", "state": "approved", "isBlankBase": false }
+      "front": {
+        "asset": "/products/base/front-white.webp",
+        "state": "approved",
+        "isBlankBase": true
+      },
+      "back": {
+        "asset": "/products/UNS-0002/back.webp",
+        "state": "approved",
+        "isBlankBase": false
+      }
     },
     "notes": "Stampa solo sul retro; fronte base vuota condivisa.",
-    "revision": 1
+    "revision": 1,
+    "render": {
+      "schemaVersion": 1,
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "renderVersion": "r1",
+      "sides": {
+        "front": {
+          "layers": []
+        },
+        "back": {
+          "layers": [
+            {
+              "id": "back-copy",
+              "kind": "text",
+              "text": "Non sono Picasso, ma una pennellata te la darei",
+              "placement": {
+                "x": 0.2,
+                "y": 0.27,
+                "width": 0.6,
+                "height": 0.22
+              }
+            }
+          ]
+        }
+      }
+    }
   },
   {
     "id": "UNS-0003",
     "sequence": 3,
     "slug": "cadendo-dal-paradiso",
     "title": "Cadendo dal paradiso",
-    "copy": { "front": null, "back": "Ciao, ma ti sei fatta male? Ti sei fatta male cadendo dal paradiso?" },
+    "copy": {
+      "front": null,
+      "back": "Ciao, ma ti sei fatta male? Ti sei fatta male cadendo dal paradiso?"
+    },
     "language": "it",
     "category": "rimorchio",
     "audience": "general",
     "status": "published",
     "primaryView": "back",
     "priceCents": null,
-    "garment": { "fit": "oversize", "color": "bianco" },
+    "garment": {
+      "fit": "oversize",
+      "color": "bianco"
+    },
     "media": {
-      "front": { "asset": "/products/base/front-white.webp", "state": "approved", "isBlankBase": true },
-      "back": { "asset": "/products/UNS-0003/back.webp", "state": "approved", "isBlankBase": false }
+      "front": {
+        "asset": "/products/base/front-white.webp",
+        "state": "approved",
+        "isBlankBase": true
+      },
+      "back": {
+        "asset": "/products/UNS-0003/back.webp",
+        "state": "approved",
+        "isBlankBase": false
+      }
     },
     "notes": "Stampa solo sul retro; fronte base vuota condivisa.",
-    "revision": 1
+    "revision": 1,
+    "render": {
+      "schemaVersion": 1,
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "renderVersion": "r1",
+      "sides": {
+        "front": {
+          "layers": []
+        },
+        "back": {
+          "layers": [
+            {
+              "id": "back-copy",
+              "kind": "text",
+              "text": "Ciao, ma ti sei fatta male? Ti sei fatta male cadendo dal paradiso?",
+              "placement": {
+                "x": 0.2,
+                "y": 0.27,
+                "width": 0.6,
+                "height": 0.22
+              }
+            }
+          ]
+        }
+      }
+    }
   },
   {
     "id": "UNS-0004",
     "sequence": 4,
     "slug": "tuo-padre-e-un-minatore",
     "title": "Tuo padre è un minatore?",
-    "copy": { "front": null, "back": "Scusa ma tuo padre è un minatore? No perché si na pret" },
+    "copy": {
+      "front": null,
+      "back": "Scusa ma tuo padre è un minatore? No perché si na pret"
+    },
     "language": "it",
     "category": "rimorchio",
     "audience": "general",
     "status": "published",
     "primaryView": "back",
     "priceCents": null,
-    "garment": { "fit": "oversize", "color": "bianco" },
+    "garment": {
+      "fit": "oversize",
+      "color": "bianco"
+    },
     "media": {
-      "front": { "asset": "/products/base/front-white.webp", "state": "approved", "isBlankBase": true },
-      "back": { "asset": "/products/UNS-0004/back.webp", "state": "approved", "isBlankBase": false }
+      "front": {
+        "asset": "/products/base/front-white.webp",
+        "state": "approved",
+        "isBlankBase": true
+      },
+      "back": {
+        "asset": "/products/UNS-0004/back.webp",
+        "state": "approved",
+        "isBlankBase": false
+      }
     },
     "notes": "Stampa solo sul retro; fronte base vuota condivisa.",
-    "revision": 1
+    "revision": 1,
+    "render": {
+      "schemaVersion": 1,
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "renderVersion": "r1",
+      "sides": {
+        "front": {
+          "layers": []
+        },
+        "back": {
+          "layers": [
+            {
+              "id": "back-copy",
+              "kind": "text",
+              "text": "Scusa ma tuo padre è un minatore? No perché si na pret",
+              "placement": {
+                "x": 0.2,
+                "y": 0.27,
+                "width": 0.6,
+                "height": 0.22
+              }
+            }
+          ]
+        }
+      }
+    }
   },
   {
     "id": "UNS-0005",
     "sequence": 5,
     "slug": "sei-di-matera",
     "title": "Sei di Matera?",
-    "copy": { "front": null, "back": "Scusa ma sei di matera? Perché si na pret" },
+    "copy": {
+      "front": null,
+      "back": "Scusa ma sei di matera? Perché si na pret"
+    },
     "language": "it",
     "category": "rimorchio",
     "audience": "general",
     "status": "published",
     "primaryView": "back",
     "priceCents": null,
-    "garment": { "fit": "oversize", "color": "bianco" },
+    "garment": {
+      "fit": "oversize",
+      "color": "bianco"
+    },
     "media": {
-      "front": { "asset": "/products/base/front-white.webp", "state": "approved", "isBlankBase": true },
-      "back": { "asset": "/products/UNS-0005/back.webp", "state": "approved", "isBlankBase": false }
+      "front": {
+        "asset": "/products/base/front-white.webp",
+        "state": "approved",
+        "isBlankBase": true
+      },
+      "back": {
+        "asset": "/products/UNS-0005/back.webp",
+        "state": "approved",
+        "isBlankBase": false
+      }
     },
     "notes": "Stampa solo sul retro; fronte base vuota condivisa.",
-    "revision": 1
+    "revision": 1,
+    "render": {
+      "schemaVersion": 1,
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "renderVersion": "r1",
+      "sides": {
+        "front": {
+          "layers": []
+        },
+        "back": {
+          "layers": [
+            {
+              "id": "back-copy",
+              "kind": "text",
+              "text": "Scusa ma sei di matera? Perché si na pret",
+              "placement": {
+                "x": 0.2,
+                "y": 0.27,
+                "width": 0.6,
+                "height": 0.22
+              }
+            }
+          ]
+        }
+      }
+    }
   },
   {
     "id": "UNS-0006",
     "sequence": 6,
     "slug": "tuo-padre-e-un-terrorista",
     "title": "Tuo padre è un terrorista?",
-    "copy": { "front": null, "back": "Scusa ma tuo padre è un terrorista? Perché sei una bomba" },
+    "copy": {
+      "front": null,
+      "back": "Scusa ma tuo padre è un terrorista? Perché sei una bomba"
+    },
     "language": "it",
     "category": "rimorchio",
     "audience": "sensitive",
     "status": "published",
     "primaryView": "back",
     "priceCents": null,
-    "garment": { "fit": "oversize", "color": "bianco" },
+    "garment": {
+      "fit": "oversize",
+      "color": "bianco"
+    },
     "media": {
-      "front": { "asset": "/products/base/front-white.webp", "state": "approved", "isBlankBase": true },
-      "back": { "asset": "/products/UNS-0006/back.webp", "state": "approved", "isBlankBase": false }
+      "front": {
+        "asset": "/products/base/front-white.webp",
+        "state": "approved",
+        "isBlankBase": true
+      },
+      "back": {
+        "asset": "/products/UNS-0006/back.webp",
+        "state": "approved",
+        "isBlankBase": false
+      }
     },
     "notes": "Stampa solo sul retro; contenuto sensibile classificato editorialmente.",
-    "revision": 1
+    "revision": 1,
+    "render": {
+      "schemaVersion": 1,
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "renderVersion": "r1",
+      "sides": {
+        "front": {
+          "layers": []
+        },
+        "back": {
+          "layers": [
+            {
+              "id": "back-copy",
+              "kind": "text",
+              "text": "Scusa ma tuo padre è un terrorista? Perché sei una bomba",
+              "placement": {
+                "x": 0.2,
+                "y": 0.27,
+                "width": 0.6,
+                "height": 0.22
+              }
+            }
+          ]
+        }
+      }
+    }
   }
 ]

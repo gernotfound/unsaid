@@ -1,0 +1,9 @@
+/* Product-media presentation policy.
+ * Clean garment imagery must preserve the complete silhouette. Cropping belongs
+ * to editorial/campaign media, not to product catalog renders. */
+.archive-card__media img,
+.featured-statement__media img,
+.product-gallery__stage img {
+  object-fit: contain;
+  object-position: center;
+}
