@@ -24,6 +24,7 @@ export function ProductCard({ record, priority = false, sale = null }: Props) {
     : sale.available < 1
       ? "SOLD OUT"
       : `€${(sale.priceCents / 100).toFixed(2).replace(".", ",")}`;
+  const isRemoteAsset = asset?.startsWith("http") ?? false;
 
   return (
     <article className={`archive-card archive-card--${tone}`}>
@@ -34,7 +35,8 @@ export function ProductCard({ record, priority = false, sale = null }: Props) {
             alt={`T-shirt ${record.title}, vista ${record.primaryView}`}
             fill
             priority={priority}
-            unoptimized={asset.startsWith("http")}
+            unoptimized={isRemoteAsset}
+            quality={isRemoteAsset ? undefined : 90}
             sizes="(max-width: 640px) 100vw, (max-width: 980px) 50vw, (max-width: 1320px) 33vw, 25vw"
           />
         ) : (

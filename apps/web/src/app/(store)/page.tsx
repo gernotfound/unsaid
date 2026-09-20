@@ -18,6 +18,7 @@ export default async function HomePage() {
 
   const featuredAsset = featured ? primaryAsset(featured) : null;
   const featuredCopy = featured ? primaryCopy(featured) : null;
+  const featuredAssetIsRemote = featuredAsset?.startsWith("http") ?? false;
 
   return (
     <main id="main">
@@ -48,6 +49,7 @@ export default async function HomePage() {
               alt="UNSAID MODEL 01, bot umanoide con T-shirt bianca in studio"
               fill
               priority
+              quality={90}
               sizes="(max-width: 860px) 100vw, 50vw"
             />
           </div>
@@ -94,6 +96,7 @@ export default async function HomePage() {
             src="/editorial/model-01-detail.webp"
             alt="Dettaglio di UNSAID MODEL 01 con T-shirt bianca"
             fill
+            quality={90}
             sizes="(max-width: 860px) 100vw, 55vw"
           />
           <span className="model-section__index">MODEL 01 / CANONICAL</span>
@@ -118,7 +121,14 @@ export default async function HomePage() {
         </div>
         <div className="featured-statement__media">
           {featured && featuredAsset ? (
-            <Image src={featuredAsset} alt={`T-shirt UNSAID ${featured.title}`} fill unoptimized={featuredAsset.startsWith("http")} sizes="(max-width: 860px) 100vw, 44vw" />
+            <Image
+              src={featuredAsset}
+              alt={`T-shirt UNSAID ${featured.title}`}
+              fill
+              unoptimized={featuredAssetIsRemote}
+              quality={featuredAssetIsRemote ? undefined : 90}
+              sizes="(max-width: 860px) 100vw, 44vw"
+            />
           ) : (
             <span>UNSAID / ARCHIVE</span>
           )}

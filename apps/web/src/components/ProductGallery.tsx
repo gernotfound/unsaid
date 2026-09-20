@@ -14,6 +14,7 @@ type Props = {
 export function ProductGallery({ title, front, back, initialView = "front" }: Props) {
   const [view, setView] = useState<CatalogView>(initialView);
   const src = view === "back" ? back : front;
+  const isRemoteAsset = src.startsWith("http");
 
   return (
     <div className="product-gallery">
@@ -23,7 +24,8 @@ export function ProductGallery({ title, front, back, initialView = "front" }: Pr
           alt={`T-shirt ${title}, vista ${view === "front" ? "frontale" : "posteriore"}`}
           fill
           priority
-          unoptimized={src.startsWith("http")}
+          unoptimized={isRemoteAsset}
+          quality={isRemoteAsset ? undefined : 90}
           sizes="(max-width: 860px) 100vw, 58vw"
         />
       </div>
