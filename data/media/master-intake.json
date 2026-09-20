@@ -11,16 +11,16 @@
       "width": 1536,
       "height": 2048,
       "mimeType": "image/webp",
-      "bytes": 307846,
-      "sha256": "91b4090f782fca049786ddf8a0d147034c39e53429d77f63f3e4f499822fa6bc"
+      "bytes": 166216,
+      "sha256": "e1d79036772c2aabb7de9357f4a87ea24c3dbf1884d51b2e88474918a9ee957d"
     },
     "back": {
       "fileName": "white-oversize-v1-back-master.webp",
       "width": 1536,
       "height": 2048,
       "mimeType": "image/webp",
-      "bytes": 307690,
-      "sha256": "f71603fb464ce976e00b76cbcf5d3e6cd93056345d835ea9c33e541a137f4083"
+      "bytes": 165438,
+      "sha256": "2f7f5c5527029f9d397cb5cb4e15fe9527f377e2b9a39bb98844d90fa7343984"
     }
   }
 }
