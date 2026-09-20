@@ -1,3 +1,4 @@
+export * from "./backend";
 export * from "./configuration";
 export * from "./filesystem-store";
 export * from "./intake";

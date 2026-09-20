@@ -32,6 +32,7 @@ export interface ProductSideRenderPlan {
   templateStorageKey: string;
   templateWidth: number;
   templateHeight: number;
+  background: string;
   overlaySvg: string;
   masterStorageKey: string;
   derivatives: readonly PlannedDerivative[];
@@ -160,6 +161,7 @@ function sidePlan(
     templateStorageKey: templateView.storageKey,
     templateWidth: templateView.width,
     templateHeight: templateView.height,
+    background: profile.background,
     overlaySvg: createOverlaySvg(spec.sides[view], templateView, profile),
     masterStorageKey: `${root}/master.png`,
     derivatives: profile.derivatives.map((derivative) => ({
