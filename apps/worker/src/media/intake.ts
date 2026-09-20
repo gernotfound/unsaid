@@ -21,6 +21,8 @@ export interface MasterIntakeManifest {
   createdAt: string;
   status: "prepared-not-ingested" | "ingested";
   provenance: string;
+  ingestedAt?: string;
+  storageBucket?: string;
   views: Record<PreparedMasterView, PreparedMasterDefinition>;
 }
 

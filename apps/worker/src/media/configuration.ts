@@ -57,6 +57,11 @@ function validateMasterIntake(errors: string[], warnings: string[]) {
 
   if (intake.status === "prepared-not-ingested") {
     warnings.push(`Clean masters for ${intake.templateId}@${intake.templateVersion} are prepared and hash-locked, but still require managed-storage ingestion before the template may be marked ready.`);
+  } else {
+    if (!intake.storageBucket?.trim()) errors.push("master-intake.storageBucket is required after ingestion.");
+    if (!intake.ingestedAt || !Number.isFinite(Date.parse(intake.ingestedAt))) {
+      errors.push("master-intake.ingestedAt must be a valid timestamp after ingestion.");
+    }
   }
 }
 
@@ -78,7 +83,7 @@ function validateGeneratedMedia(
 
   const profile = findRenderProfile(MEDIA_REGISTRY, spec.profileId);
   for (const view of ["front", "back"] as const) {
-    const side = manifest.sides[view];
+    const side = manifest.sides?.[view];
     if (!side?.master?.storageKey || !side.master.url) errors.push(`${record.id}: generatedMedia.${view}.master is incomplete.`);
     if (side?.master && side.master.immutable !== true) errors.push(`${record.id}: generatedMedia.${view}.master must be immutable.`);
     if (side?.master && (side.master.width < 1 || side.master.height < 1)) errors.push(`${record.id}: generatedMedia.${view}.master has invalid dimensions.`);
