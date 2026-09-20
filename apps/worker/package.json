@@ -5,7 +5,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "media:validate": "tsx src/media/validate.ts"
+    "media:validate": "tsx src/media/validate.ts",
+    "media:stage-masters": "tsx src/media/stage-masters.ts"
   },
   "dependencies": {
     "@unsaid/domain": "workspace:*"
