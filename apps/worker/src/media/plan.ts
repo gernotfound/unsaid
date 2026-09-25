@@ -30,6 +30,7 @@ export interface ProductSideRenderPlan {
   productId: string;
   view: ProductRenderView;
   templateStorageKey: string;
+  templateSha256: string;
   templateWidth: number;
   templateHeight: number;
   background: string;
@@ -151,7 +152,7 @@ function sidePlan(
   profile: ProductRenderProfile,
 ): ProductSideRenderPlan {
   const templateView = template.views[view];
-  if (templateView.status !== "ready" || !templateView.storageKey) {
+  if (templateView.status !== "ready" || !templateView.storageKey || !templateView.sha256) {
     throw new Error(`Template ${template.id}@${template.version}.${view} is not ready.`);
   }
   const root = `generated/products/${safeSegment(productId)}/${safeSegment(spec.renderVersion)}/${view}`;
@@ -159,6 +160,7 @@ function sidePlan(
     productId,
     view,
     templateStorageKey: templateView.storageKey,
+    templateSha256: templateView.sha256,
     templateWidth: templateView.width,
     templateHeight: templateView.height,
     background: profile.background,

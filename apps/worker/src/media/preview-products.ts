@@ -61,6 +61,7 @@ function readyView(
     height: view.height,
     mimeType: view.mimeType as GarmentTemplateViewDefinition["mimeType"],
     storageKey: view.storageKey,
+    sha256: view.sha256,
     sourceNote: `Local QA master verified from intake sha256=${view.sha256}`,
   };
 }

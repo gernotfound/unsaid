@@ -116,6 +116,7 @@ for (const item of verified) {
     height: item.definition.height,
     mimeType: item.definition.mimeType,
     storageKey: item.storageKey,
+    sha256: item.digest,
     sourceNote: `Hash-locked clean master ingested to Firebase Storage. sha256=${item.digest}`,
   };
 }

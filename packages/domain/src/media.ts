@@ -43,6 +43,7 @@ export interface GarmentTemplateViewDefinition {
   mimeType: ImageMimeType;
   printableArea: NormalizedRect;
   storageKey?: string;
+  sha256?: string;
   sourceNote?: string;
 }
 

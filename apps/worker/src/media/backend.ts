@@ -70,6 +70,12 @@ async function renderSide(
   store: MediaBinaryStore,
 ): Promise<RenderedSideFiles> {
   const source = await store.get(plan.templateStorageKey);
+  const sourceDigest = sha256(source);
+  if (sourceDigest !== plan.templateSha256.toLocaleLowerCase()) {
+    throw new Error(
+      `${plan.productId}.${plan.view}: template sha256 ${sourceDigest} does not match expected ${plan.templateSha256}.`,
+    );
+  }
   const masterBytes = await rasterizer.renderMaster({
     source,
     overlaySvg: plan.overlaySvg,

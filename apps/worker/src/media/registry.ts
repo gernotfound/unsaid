@@ -36,6 +36,9 @@ export function validateMediaRegistry(registry: MediaRegistry) {
       if (definition.width < 1 || definition.height < 1) errors.push(`${key}.${view} has invalid dimensions.`);
       errors.push(...validateNormalizedRect(definition.printableArea, `${key}.${view}.printableArea`));
       if (definition.status === "ready" && !definition.storageKey) errors.push(`${key}.${view} is ready but has no storageKey.`);
+      if (definition.status === "ready" && !/^[a-f0-9]{64}$/i.test(definition.sha256 ?? "")) {
+        errors.push(`${key}.${view} is ready but has no valid sha256.`);
+      }
       if (definition.status === "reference-only") warnings.push(`${key}.${view} is reference-only and cannot be rendered yet.`);
     }
   }

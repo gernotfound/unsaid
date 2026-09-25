@@ -21,6 +21,7 @@ const template: GarmentTemplateDefinition = {
       mimeType: "image/jpeg",
       printableArea: { x: 0.2, y: 0.27, width: 0.6, height: 0.22 },
       storageKey: "masters/templates/white-oversize-v1/front.jpg",
+      sha256: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
     },
     back: {
       status: "ready",
@@ -29,6 +30,7 @@ const template: GarmentTemplateDefinition = {
       mimeType: "image/jpeg",
       printableArea: { x: 0.2, y: 0.27, width: 0.6, height: 0.22 },
       storageKey: "masters/templates/white-oversize-v1/back.jpg",
+      sha256: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
     },
   },
 };

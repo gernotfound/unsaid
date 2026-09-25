@@ -49,6 +49,9 @@ function validateMasterIntake(errors: string[], warnings: string[]) {
       if (definition.storageKey !== expectedMasterKey(view, asset.sha256)) {
         errors.push(`${intake.templateId}@${intake.templateVersion}.${view} storageKey does not match the hash-locked intake key.`);
       }
+      if (definition.sha256 !== asset.sha256.toLocaleLowerCase()) {
+        errors.push(`${intake.templateId}@${intake.templateVersion}.${view} sha256 does not match the hash-locked intake.`);
+      }
       if (definition.width !== asset.width || definition.height !== asset.height || definition.mimeType !== asset.mimeType) {
         errors.push(`${intake.templateId}@${intake.templateVersion}.${view} metadata does not match the ingested master intake.`);
       }

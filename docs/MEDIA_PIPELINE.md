@@ -52,13 +52,15 @@ A template is versioned and has independent front/back masters. Coordinates use 
 Template states:
 
 - `reference-only`: useful for calibration/art direction but forbidden for production rendering;
-- `ready`: clean blank master is present in managed media storage and has a `storageKey`.
+- `ready`: clean blank master is present in managed media storage and has both an immutable `storageKey` and its full SHA-256 fingerprint.
 
 The original 2K white oversized T-shirt references supplied on 2026-09-20 are registered as `white-oversize-v1`. They contain the calibration words `FRONTE` / `RETRO` and therefore remain reference-only inputs.
 
 Clean blank front/back master candidates have now been prepared from those references. Their exact dimensions, byte sizes and SHA-256 digests are recorded in `data/media/master-intake.json`. That intake record is deliberately separate from `templates.json`: preparing a clean file is not the same as ingesting it into production media storage.
 
-The template must remain `reference-only` until both hash-locked files are uploaded to the selected managed storage backend and their immutable storage keys are recorded. `media:validate` rejects a template that is marked ready before the corresponding intake is marked ingested.
+The template must remain `reference-only` until both hash-locked files are uploaded to the selected managed storage backend and their immutable storage keys plus full SHA-256 fingerprints are recorded. `media:validate` rejects a template that is marked ready before the corresponding intake is marked ingested.
+
+Production rendering verifies the SHA-256 of the bytes downloaded from object storage before rasterization. This is a second integrity boundary after ingestion: a manually uploaded or later-corrupted object cannot silently become a production render source even when it exists at the expected storage key.
 
 ## Product render spec
 
@@ -102,12 +104,14 @@ The planner:
 - resolves normalized placement to template pixels;
 - produces deterministic vector text overlays;
 - creates immutable output storage keys;
+- carries the expected template SHA-256 into the render plan;
 - builds a `ProductGeneratedMediaManifest` from backend output.
 
 `createManagedMediaBackend()` further separates two infrastructure concerns:
 
 - `MediaRasterizer` turns a clean source + vector overlay into a PNG master and purpose-specific WebP/AVIF derivatives;
-- `MediaBinaryStore` retrieves clean masters and persists exact immutable output bytes.
+- `MediaBinaryStore` retrieves clean masters and persists exact immutable output bytes;
+- the managed backend hashes every retrieved master and refuses rasterization unless it matches the render plan's full SHA-256 fingerprint.
 
 The first managed object-store adapter is Firebase Storage through `packages/db/src/mediaStorage.ts`. Rasterization remains independently injectable; a Sharp adapter can be introduced without changing domain, catalog, frontend or storage contracts.
 
