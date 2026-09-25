@@ -115,7 +115,7 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
         setBusy(false);
         const code = error instanceof Error ? error.message : "PAYMENT_STATUS_FAILED";
         setNotice(code === "AUTH_REQUIRED"
-          ? "Accedi al tuo account per verificare lo stato dell'ordine."
+          ? "Accedi al tuo profilo per verificare lo stato dell'ordine."
           : "Non riesco a verificare lo stato del pagamento. Riprova tra poco.");
       }
     }
@@ -174,37 +174,37 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
 
   let label = "PAGAMENTO / VERIFICA";
   let title = "Verifica pagamento";
-  let copy = "Stiamo leggendo lo stato autorevole dell'ordine dal server.";
+  let copy = "Stiamo leggendo lo stato verificato dell'ordine dal sistema.";
   let tone: "success" | "warning" | "neutral" = "neutral";
 
   if (refunded) {
     label = "ORDINE / RIMBORSATO";
     title = "Ordine rimborsato";
-    copy = "Il server registra il rimborso come completato. Lo storico dell'ordine resta disponibile nel tuo account.";
+    copy = "Il sistema registra il rimborso come completato. Lo storico dell'ordine resta disponibile nel tuo profilo.";
     tone = "neutral";
   } else if (paid) {
     label = "PAGAMENTO / CONFERMATO";
     title = "Ordine confermato";
-    copy = "Il webhook firmato ha confermato il pagamento. Lo stock è stato impegnato definitivamente e il carrello locale è stato svuotato.";
+    copy = "Il webhook firmato ha confermato il pagamento. Le scorte sono state impegnate definitivamente e il carrello locale è stato svuotato.";
     tone = "success";
   } else if (review) {
     label = "PAGAMENTO / VERIFICA MANUALE";
     title = "Pagamento in verifica";
-    copy = "Il provider ha segnalato un pagamento, ma il server ha rilevato uno stato che richiede verifica. Non ripetere il pagamento: l'ordine resta protetto per il controllo amministrativo.";
+    copy = "Il gestore del pagamento ha segnalato un pagamento, ma il sistema ha rilevato uno stato che richiede verifica. Non ripetere il pagamento: l'ordine resta protetto per il controllo amministrativo.";
     tone = "warning";
   } else if (failed) {
     label = "PAGAMENTO / NON COMPLETATO";
     title = "Pagamento non completato";
-    copy = "La sessione è stata chiusa o l'ordine è stato annullato. Se lo stock è stato rilasciato puoi tornare al carrello e ripartire.";
+    copy = "La sessione è stata chiusa o l'ordine è stato annullato. Se le scorte sono state rilasciate puoi tornare al carrello e ripartire.";
     tone = "warning";
   } else if (pending && mode === "success") {
     label = "PAGAMENTO / CONFERMA IN CORSO";
     title = "Conferma in corso";
-    copy = "Sei tornato da Stripe, ma il redirect del browser non prova il pagamento. Attendiamo il webhook firmato prima di confermare l'ordine.";
+    copy = "Sei tornato da Stripe, ma il reindirizzamento del browser non prova il pagamento. Attendiamo il webhook firmato prima di confermare l'ordine.";
   } else if (pending && mode === "cancelled") {
     label = "PAGAMENTO / INTERROTTO";
     title = "Pagamento interrotto";
-    copy = "Hai lasciato Stripe senza completare il flusso. L'ordine può restare prenotato finché la sessione provider è valida; puoi riprendere la stessa sessione senza creare un nuovo ordine.";
+    copy = "Hai lasciato Stripe senza completare il flusso. L'ordine può restare prenotato finché la sessione del gestore del pagamento è valida; puoi riprendere la stessa sessione senza creare un nuovo ordine.";
     tone = "warning";
   }
 
@@ -224,7 +224,7 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
         </dl>
       ) : null}
 
-      {busy ? <p className={styles.status}>Verifica server in corso…</p> : null}
+      {busy ? <p className={styles.status}>Verifica del sistema in corso…</p> : null}
       {notice ? <p className={styles.problem}>{notice}</p> : null}
 
       <div className={styles.actions}>
@@ -234,7 +234,7 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
         {!paid && !failed ? (
           <button className={styles.secondary} type="button" disabled={busy} onClick={() => void refresh()}>Aggiorna stato</button>
         ) : null}
-        <Link href="/account">Apri account</Link>
+        <Link href="/account">Apri area personale</Link>
         <Link href={paid ? "/shop" : "/cart"}>{paid ? "Torna all'archivio" : "Vai al carrello"}</Link>
       </div>
     </section>
