@@ -54,7 +54,7 @@ export default async function AccountPage() {
           </div>
           <div className={styles.side}>
             <strong>Un profilo personale sarà necessario per acquistare.</strong>
-            <p>Salva i tuoi dati e gli indirizzi italiani. Prezzi, stock, ordini, tracking e resi resteranno verificati dal server.</p>
+            <p>Salva i tuoi dati e gli indirizzi italiani. Prezzi, scorte, ordini, tracciamento e resi resteranno verificati dal sistema.</p>
           </div>
         </header>
 
