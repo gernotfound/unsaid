@@ -86,7 +86,7 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
   return (
     <section className={styles.panel}>
       <div className={styles.header}>
-        <div><p className={styles.kicker}>RETURNS / RMA</p><span>04</span></div>
+        <div><p className={styles.kicker}>RESI / RMA</p><span>04</span></div>
         {returnsEnabled && deliveredWithoutReturn.length ? (
           <button type="button" onClick={() => setActiveOrderId((value) => value ? null : deliveredWithoutReturn[0]!.id)}>
             {activeOrderId ? "Chiudi" : "+ Richiedi reso"}
@@ -105,10 +105,10 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
           {returns.map((entry) => (
             <article key={entry.id} data-state={entry.status}>
               <div><strong>{entry.orderId}</strong><span>{statusLabel(entry.status).toUpperCase()}</span></div>
-              <small>{new Date(entry.createdAt).toLocaleDateString("it-IT")} / {entry.reasonCode}</small>
+              <small>{new Date(entry.createdAt).toLocaleDateString("it-IT")} / {REASONS.find((reason) => reason.value === entry.reasonCode)?.label ?? "Altro"}</small>
               <p>{entry.lines.map((line) => `${line.title} ${line.size} ×${line.quantity}`).join(" · ")}</p>
-              {entry.inboundShipment?.trackingUrl ? <a href={entry.inboundShipment.trackingUrl} target="_blank" rel="noreferrer">Tracking rientro</a> : null}
-              {entry.refundCaseId ? <code>refund: {entry.refundCaseId}</code> : null}
+              {entry.inboundShipment?.trackingUrl ? <a href={entry.inboundShipment.trackingUrl} target="_blank" rel="noreferrer">Tracciamento rientro</a> : null}
+              {entry.refundCaseId ? <code>rimborso: {entry.refundCaseId}</code> : null}
             </article>
           ))}
         </div>
@@ -127,7 +127,7 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
           <div className={styles.lines}>
             {activeOrder.lines.map((line) => (
               <label key={line.variantId}>
-                <span>{line.title} / {line.size} / max {line.quantity}</span>
+                <span>{line.title} / {line.size} / massimo {line.quantity}</span>
                 <input name={`quantity:${line.variantId}`} type="number" inputMode="numeric" min="0" max={line.quantity} defaultValue="0" />
               </label>
             ))}
