@@ -22,7 +22,7 @@ export default function PrivacyPage() {
 
       {!legal.privacyIdentityReady ? (
         <div className="legal-status legal-status--warning">
-          <strong>PRE-LAUNCH / DATI TITOLARE DA COMPLETARE</strong>
+          <strong>PRE-LANCIO / DATI TITOLARE DA COMPLETARE</strong>
           <p>
             Nome/denominazione e contatto del titolare devono essere configurati prima di attivare analytics o
             registrazione cliente. I relativi controlli di attivazione restano chiusi finché questi dati non sono disponibili.
