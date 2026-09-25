@@ -55,6 +55,6 @@ export function getAdminStorageBucketName() {
   return required("FIREBASE_STORAGE_BUCKET");
 }
 
-export function getAdminStorageBucket() {
+export function getAdminStorageBucket(): ReturnType<Storage["bucket"]> {
   return getAdminStorage().bucket(getAdminStorageBucketName());
 }
