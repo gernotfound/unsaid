@@ -75,7 +75,9 @@ test("overlay SVG is deterministic and escapes text", () => {
     template.views.front,
     profile,
   );
-  assert.match(svg, /A &amp; B &lt; C/);
+  assert.match(svg, /A &amp; B &lt;/);
+  assert.match(svg, />C<\/text>/);
+  assert.doesNotMatch(svg, /A & B < C/);
   assert.match(svg, /width="1529"/);
 });
 
