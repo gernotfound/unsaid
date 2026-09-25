@@ -11,8 +11,8 @@ type Props = {
 const TONES = ["pink", "cyan", "violet", "amber", "orange"] as const;
 
 function printLabel(record: CatalogRecord) {
-  if (record.copy.front && record.copy.back) return "FRONT / BACK";
-  return record.copy.back ? "BACK PRINT" : "FRONT PRINT";
+  if (record.copy.front && record.copy.back) return "FRONTE / RETRO";
+  return record.copy.back ? "STAMPA RETRO" : "STAMPA FRONTE";
 }
 
 export function ProductCard({ record, priority = false, sale = null }: Props) {
@@ -20,9 +20,9 @@ export function ProductCard({ record, priority = false, sale = null }: Props) {
   const statement = primaryCopy(record);
   const tone = TONES[(record.sequence - 1) % TONES.length] ?? "pink";
   const saleLabel = !sale
-    ? "ARCHIVE"
+    ? "ARCHIVIO"
     : sale.available < 1
-      ? "SOLD OUT"
+      ? "ESAURITO"
       : `€${(sale.priceCents / 100).toFixed(2).replace(".", ",")}`;
 
   return (
@@ -31,7 +31,7 @@ export function ProductCard({ record, priority = false, sale = null }: Props) {
         {asset ? (
           <Image
             src={asset}
-            alt={`T-shirt ${record.title}, vista ${record.primaryView}`}
+            alt={`T-shirt ${record.title}, vista ${record.primaryView === "front" ? "frontale" : "posteriore"}`}
             fill
             priority={priority}
             unoptimized={asset.startsWith("http")}
