@@ -261,3 +261,26 @@ The default bundle path is `.media-stage/generated-media.json`, which remains ou
 
 `SharpRasterizer` enforces the source-fidelity rule: it validates the exact template dimensions, composites vector print overlays into a PNG master, and creates purpose-specific WebP/AVIF canvases without enlarging source raster pixels. Larger derivative canvases are padded, not upscaled.
 
+## Local visual QA
+
+Visual QA is deliberately available without Firebase credentials and without promoting a template to `ready` in repository metadata.
+
+Run:
+
+```bash
+pnpm media:preview-products -- --source-dir=/absolute/path/to/hash-locked-clean-masters
+```
+
+The command:
+
+1. verifies the exact byte length and SHA-256 values from `master-intake.json`;
+2. stages those masters into an immutable local object store;
+3. creates an in-memory `ready` template only for the QA process;
+4. uses the same `SharpRasterizer`, render planner and derivative profile as production;
+5. writes all generated files under `.media-stage/qa-media`;
+6. writes a local `qa-manifests.json` bundle.
+
+It never changes `templates.json`, `master-intake.json`, catalog data, Firebase Storage or Firestore.
+
+Use `--product=UNS-0001` for focused QA and `--output-dir=/absolute/path` to choose another local output directory. This path is for art-direction review before managed-storage promotion, not a substitute for production ingestion.
+

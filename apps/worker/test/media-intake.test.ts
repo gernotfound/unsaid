@@ -41,6 +41,7 @@ test("filesystem media storage is idempotent for identical bytes and rejects imm
       sha256: abcDefinition.sha256,
     });
     assert.equal((await readFile(join(root, key))).toString("utf8"), "abc");
+    assert.equal(Buffer.from(await store.get(key)).toString("utf8"), "abc");
 
     await assert.rejects(
       store.putImmutable({

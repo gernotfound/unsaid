@@ -7,7 +7,8 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "media:validate": "tsx src/media/validate.ts",
     "media:stage-masters": "tsx src/media/stage-masters.ts",
-    "media:render-products": "tsx src/media/render-products.ts"
+    "media:render-products": "tsx src/media/render-products.ts",
+    "media:preview-products": "tsx src/media/preview-products.ts"
   },
   "dependencies": {
     "@unsaid/domain": "workspace:*",
