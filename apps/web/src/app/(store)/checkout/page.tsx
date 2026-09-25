@@ -16,8 +16,8 @@ import styles from "./CheckoutPage.module.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Checkout",
-  description: "Checkout UNSAID con account verificato, indirizzo italiano, prenotazione stock e pagamento hosted.",
+  title: "Conferma ordine",
+  description: "Conferma ordine UNSAID con profilo verificato, indirizzo italiano, prenotazione scorte e pagamento sicuro.",
 };
 
 type CheckoutPageProps = {
@@ -58,10 +58,10 @@ export default async function CheckoutPage({ searchParams }: CheckoutPageProps) 
       <div className={styles.inner}>
         <header className={styles.hero}>
           <div>
-            <p className={styles.kicker}>UNSAID / CHECKOUT / SERVER VERIFIED</p>
-            <h1>VERIFY.<br /><span>THEN PAY.</span></h1>
+            <p className={styles.kicker}>UNSAID / ORDINE / VERIFICA SERVER</p>
+            <h1>VERIFICA.<br /><span>POI PAGA.</span></h1>
           </div>
-          <p>Account, indirizzo, prezzo e stock vengono verificati dal server. L&apos;ordine prenota atomicamente lo stock; quando il payment gate è attivo, il pagamento prosegue su Stripe Checkout e viene confermato soltanto dal webhook firmato.</p>
+          <p>Profilo, indirizzo, prezzo e scorte vengono verificati dal server. L&apos;ordine prenota le scorte in modo atomico; quando il pagamento è attivo, si prosegue su Stripe e la conferma avviene soltanto tramite webhook firmato.</p>
         </header>
 
         {validReturn ? (
