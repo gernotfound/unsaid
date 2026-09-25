@@ -79,18 +79,18 @@ function newIdempotencyKey() {
 }
 
 function errorLabel(code: string) {
-  if (code === "AUTH_REQUIRED") return "Accedi al tuo account prima di continuare.";
+  if (code === "AUTH_REQUIRED") return "Accedi al tuo profilo prima di continuare.";
   if (code === "EMAIL_NOT_VERIFIED") return "Verifica l'email prima di preparare l'ordine.";
   if (code === "ADDRESS_NOT_FOUND" || code === "INVALID_SHIPPING_ADDRESS") return "L'indirizzo selezionato non è più disponibile o non è valido.";
-  if (code.startsWith("OUT_OF_STOCK:")) return "Lo stock è cambiato. Torna al carrello e ricontrolla le quantità.";
+  if (code.startsWith("OUT_OF_STOCK:")) return "Le scorte sono cambiate. Torna al carrello e ricontrolla le quantità.";
   if (code.startsWith("VARIANT_UNAVAILABLE:") || code.startsWith("PRODUCT_UNAVAILABLE:")) return "Un articolo non è più disponibile alla vendita.";
-  if (code === "CHECKOUT_DISABLED" || code === "CHECKOUT_CONFIGURATION_INCOMPLETE") return "Il checkout non è ancora abilitato per questa installazione.";
+  if (code === "CHECKOUT_DISABLED" || code === "CHECKOUT_CONFIGURATION_INCOMPLETE") return "La conferma dell'ordine non è ancora abilitata per questa installazione.";
   if (code === "PAYMENTS_DISABLED" || code === "PAYMENT_CONFIGURATION_INCOMPLETE") return "Il pagamento non è ancora abilitato per questa installazione.";
   if (code === "PAYMENT_SESSION_IN_PROGRESS") return "Una sessione di pagamento è già in preparazione. Riprova tra pochi secondi.";
   if (code === "PAYMENT_PROVIDER_UNAVAILABLE") return "Il provider di pagamento non è disponibile. Riprova senza creare un nuovo ordine.";
-  if (code === "ORDER_RESERVATION_EXPIRED") return "La prenotazione stock è scaduta. Torna al carrello e prepara un nuovo ordine.";
-  if (code === "PAYMENT_SESSION_ACTIVE") return "Il pagamento è già stato avviato. Lo stock resta protetto fino alla chiusura della sessione.";
-  if (code === "IDEMPOTENCY_CONFLICT") return "La richiesta di checkout non è coerente con il tentativo precedente. Ricarica la pagina.";
+  if (code === "ORDER_RESERVATION_EXPIRED") return "La prenotazione delle scorte è scaduta. Torna al carrello e prepara un nuovo ordine.";
+  if (code === "PAYMENT_SESSION_ACTIVE") return "Il pagamento è già stato avviato. Le scorte restano protette fino alla chiusura della sessione.";
+  if (code === "IDEMPOTENCY_CONFLICT") return "La richiesta di conferma ordine non è coerente con il tentativo precedente. Ricarica la pagina.";
   return "Operazione non riuscita. Riprova.";
 }
 
@@ -137,7 +137,7 @@ export function CheckoutPanel({
       setValidated(payload);
     } catch {
       setValidated(null);
-      setNotice("Impossibile verificare il carrello con il server.");
+      setNotice("Impossibile verificare il carrello con il sistema.");
     } finally {
       setBusy(false);
     }
@@ -234,7 +234,7 @@ export function CheckoutPanel({
     return (
       <section className={styles.blocked}>
         <strong>CARRELLO / VUOTO</strong>
-        <p>Aggiungi almeno una maglia prima di entrare nel checkout.</p>
+        <p>Aggiungi almeno una maglia prima di confermare l'ordine.</p>
         <Link href="/shop">Torna all&apos;archivio →</Link>
       </section>
     );
@@ -249,8 +249,8 @@ export function CheckoutPanel({
         <div className={styles.totalRow}><span>Totale</span><strong>{formatMoney(prepared.totals.total)}</strong></div>
         <p>
           {prepared.status === "pending_payment"
-            ? `Stock prenotato${expires ? ` fino alle ${expires.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}` : ""}.`
-            : "Prenotazione annullata e stock rilasciato."}
+            ? `Scorte prenotate${expires ? ` fino alle ${expires.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}` : ""}.`
+            : "Prenotazione annullata e scorte rilasciate."}
         </p>
 
         {prepared.status === "pending_payment" ? (
@@ -305,9 +305,9 @@ export function CheckoutPanel({
           <strong>Italia soltanto</strong>
         </div>
         {sessionState === "missing" ? (
-          <div className={styles.blocked}><strong>PROFILO RICHIESTO</strong><p>Devi accedere prima del checkout.</p><Link href="/account">Accedi / crea account →</Link></div>
+          <div className={styles.blocked}><strong>PROFILO RICHIESTO</strong><p>Devi accedere prima del checkout.</p><Link href="/account">Accedi / crea profilo →</Link></div>
         ) : sessionState === "unverified" ? (
-          <div className={styles.blocked}><strong>VERIFICA EMAIL RICHIESTA</strong><p>Verifica l&apos;email e aggiorna la sessione dall&apos;area account.</p><Link href="/account">Apri account →</Link></div>
+          <div className={styles.blocked}><strong>VERIFICA EMAIL RICHIESTA</strong><p>Verifica l&apos;email e aggiorna la sessione dall&apos;area personale.</p><Link href="/account">Apri area personale →</Link></div>
         ) : addresses.length ? (
           <div className={styles.addresses}>
             {addresses.map((address) => (
@@ -319,7 +319,7 @@ export function CheckoutPanel({
             <Link href="/account">Gestisci indirizzi →</Link>
           </div>
         ) : (
-          <div className={styles.blocked}><strong>INDIRIZZO DI SPEDIZIONE RICHIESTO</strong><p>Salva almeno un indirizzo italiano nell&apos;account.</p><Link href="/account">Aggiungi indirizzo →</Link></div>
+          <div className={styles.blocked}><strong>INDIRIZZO DI SPEDIZIONE RICHIESTO</strong><p>Salva almeno un indirizzo italiano nel profilo.</p><Link href="/account">Aggiungi indirizzo →</Link></div>
         )}
       </section>
 
@@ -330,7 +330,7 @@ export function CheckoutPanel({
           <div><dt>Spedizione</dt><dd>{shippingPreviewCents == null ? "—" : formatMoney({ amountCents: shippingPreviewCents, currency: "EUR" })}</dd></div>
           <div className={styles.totalRow}><dt>Totale stimato</dt><dd>{validated && shippingPreviewCents != null ? formatMoney({ amountCents: validated.subtotal.amountCents + shippingPreviewCents, currency: "EUR" }) : "—"}</dd></div>
         </dl>
-        <p>IVA inclusa nel prezzo secondo la configurazione fiscale server. Il server ricalcola tutto dentro la transazione che prenota lo stock.</p>
+        <p>IVA inclusa nel prezzo secondo la configurazione fiscale del sistema. Il sistema ricalcola tutto nella transazione che prenota le scorte.</p>
         <p>La prima prenotazione dura {reservationMinutes} minuti. Se avvii il pagamento, il server estende la prenotazione per allinearla alla sessione Stripe e al margine di attesa del webhook.</p>
         {!enabled ? (
           <div className={styles.paymentGate}>
@@ -339,7 +339,7 @@ export function CheckoutPanel({
           </div>
         ) : null}
         <button type="button" disabled={!canPrepare || busy} onClick={() => void prepare()}>
-          {busy ? "Verifica…" : "Prepara ordine e prenota stock"}
+          {busy ? "Verifica…" : "Prepara ordine e prenota le scorte"}
         </button>
         <Link href="/cart">← Torna al carrello</Link>
         {notice ? <p className={styles.problem} role="status">{notice}</p> : null}
