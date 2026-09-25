@@ -32,14 +32,14 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const commerce = await getPublicCommerceState(product.id);
   const statement = primaryCopy(product);
-  const printPlacement = product.copy.front && product.copy.back ? "front / back" : product.copy.back ? "back" : "front";
+  const printPlacement = product.copy.front && product.copy.back ? "fronte / retro" : product.copy.back ? "retro" : "fronte";
   const tone = TONES[(product.sequence - 1) % TONES.length] ?? "pink";
   const price = commerce ? commerce.price.amountCents / 100 : null;
 
   return (
     <main id="main" className="product-page" data-tone={tone}>
       <div className="product-page__nav">
-        <Link className="back-link" href="/shop">← Archive</Link>
+        <Link className="back-link" href="/shop">← Archivio</Link>
         <span>{product.id} / {product.garment.color}</span>
       </div>
 
@@ -56,19 +56,19 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {price != null ? (
             <p className="detail-price">€{price.toFixed(2).replace(".", ",")}</p>
           ) : (
-            <p className="detail-price detail-price--archive">ARCHIVE PIECE</p>
+            <p className="detail-price detail-price--archive">PEZZO D&apos;ARCHIVIO</p>
           )}
 
           <dl className="spec-list">
-            <div><dt>Garment</dt><dd>{product.garment.color}</dd></div>
-            <div><dt>Fit</dt><dd>{product.garment.fit}</dd></div>
-            <div><dt>Print</dt><dd>{printPlacement}</dd></div>
-            <div><dt>Language</dt><dd>{product.language}</dd></div>
+            <div><dt>Capo</dt><dd>{product.garment.color}</dd></div>
+            <div><dt>Vestibilità</dt><dd>{product.garment.fit}</dd></div>
+            <div><dt>Stampa</dt><dd>{printPlacement}</dd></div>
+            <div><dt>Lingua</dt><dd>{product.language === "it" ? "italiano" : product.language === "en" ? "inglese" : "mista"}</dd></div>
           </dl>
 
           <div className="copy-sheet">
-            <div><span>FRONT</span><p>{product.copy.front ?? "—"}</p></div>
-            <div><span>BACK</span><p>{product.copy.back ?? "—"}</p></div>
+            <div><span>FRONTE</span><p>{product.copy.front ?? "—"}</p></div>
+            <div><span>RETRO</span><p>{product.copy.back ?? "—"}</p></div>
           </div>
 
           {commerce ? (
@@ -84,8 +84,8 @@ export default async function ProductPage({ params }: ProductPageProps) {
             />
           ) : (
             <div className="product-state">
-              <strong>ARCHIVE / NOT FOR SALE.</strong>
-              <p>Questo record non ha ancora una configurazione commerce attiva. Il prezzo editoriale non viene usato come prezzo di vendita.</p>
+              <strong>ARCHIVIO / NON IN VENDITA.</strong>
+              <p>Questo record non ha ancora una configurazione commerciale attiva. Il prezzo editoriale non viene usato come prezzo di vendita.</p>
             </div>
           )}
         </section>
