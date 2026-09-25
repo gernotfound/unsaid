@@ -1,3 +1,8 @@
+import type {
+  MediaDerivativeKind,
+  ProductGeneratedMediaManifest,
+  ProductRenderSpec,
+} from "@unsaid/domain";
 import archiveSeed from "../../../data/catalog/archive.json";
 
 export type CatalogStatus = "draft" | "review" | "render_ready" | "published" | "archived";
@@ -31,17 +36,22 @@ export interface CatalogRecord {
     fit: string;
     color: string;
   };
+  /** Legacy approved media. Kept as a fallback while products migrate to generatedMedia. */
   media: {
     front: CatalogMedia;
     back: CatalogMedia;
   };
+  /** Private render recipe. It is excluded from the publicCatalog projection. */
+  render?: ProductRenderSpec;
+  /** Public, immutable output manifest produced by the media pipeline. */
+  generatedMedia?: ProductGeneratedMediaManifest;
   notes: string;
   revision: number;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export type PublicCatalogRecord = Omit<CatalogRecord, "notes" | "revision">;
+export type PublicCatalogRecord = Omit<CatalogRecord, "notes" | "revision" | "render">;
 
 export const ARCHIVE: readonly CatalogRecord[] = (archiveSeed as unknown as readonly CatalogRecord[])
   .slice()
@@ -50,7 +60,8 @@ export const ARCHIVE: readonly CatalogRecord[] = (archiveSeed as unknown as read
 export const PUBLIC_ARCHIVE = ARCHIVE.filter((record) => record.status === "published");
 export const READY_PRODUCTS = PUBLIC_ARCHIVE.filter((record) => hasApprovedMedia(record));
 
-export function hasApprovedMedia(record: Pick<CatalogRecord, "media">) {
+export function hasApprovedMedia(record: Pick<CatalogRecord, "media" | "generatedMedia">) {
+  if (record.generatedMedia?.sides.front.master.url && record.generatedMedia.sides.back.master.url) return true;
   return Boolean(
     record.media.front.asset &&
       record.media.back.asset &&
@@ -59,8 +70,21 @@ export function hasApprovedMedia(record: Pick<CatalogRecord, "media">) {
   );
 }
 
-export function primaryAsset(record: Pick<CatalogRecord, "primaryView" | "media">) {
-  return record.media[record.primaryView].asset ?? record.media.front.asset ?? record.media.back.asset;
+export function assetForView(
+  record: Pick<CatalogRecord, "media" | "generatedMedia">,
+  view: CatalogView,
+  purpose: MediaDerivativeKind = "detail",
+) {
+  const generated = record.generatedMedia?.sides[view];
+  return generated?.derivatives[purpose]?.url ?? generated?.master.url ?? record.media[view].asset;
+}
+
+export function primaryAsset(
+  record: Pick<CatalogRecord, "primaryView" | "media" | "generatedMedia">,
+  purpose: MediaDerivativeKind = "card",
+) {
+  const fallbackView: CatalogView = record.primaryView === "front" ? "back" : "front";
+  return assetForView(record, record.primaryView, purpose) ?? assetForView(record, fallbackView, purpose);
 }
 
 export function primaryCopy(record: Pick<CatalogRecord, "primaryView" | "copy" | "title">) {
@@ -68,7 +92,7 @@ export function primaryCopy(record: Pick<CatalogRecord, "primaryView" | "copy" |
 }
 
 export function toPublicRecord(record: CatalogRecord): PublicCatalogRecord {
-  const { notes: _notes, revision: _revision, ...publicRecord } = record;
+  const { notes: _notes, revision: _revision, render: _render, ...publicRecord } = record;
   return publicRecord;
 }
 

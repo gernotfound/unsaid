@@ -16,7 +16,7 @@ function printLabel(record: CatalogRecord) {
 }
 
 export function ProductCard({ record, priority = false, sale = null }: Props) {
-  const asset = primaryAsset(record);
+  const asset = primaryAsset(record, "card");
   const statement = primaryCopy(record);
   const tone = TONES[(record.sequence - 1) % TONES.length] ?? "pink";
   const saleLabel = !sale

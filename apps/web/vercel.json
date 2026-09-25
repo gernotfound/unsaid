@@ -7,5 +7,16 @@
       "main": true,
       "*": false
     }
-  }
+  },
+  "headers": [
+    {
+      "source": "/generated/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    }
+  ]
 }

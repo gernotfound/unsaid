@@ -2,7 +2,12 @@ import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getAuth, type Auth } from "firebase-admin/auth";
 import { getFirestore, type Firestore } from "firebase-admin/firestore";
 
-function required(name: "FIREBASE_PROJECT_ID" | "FIREBASE_CLIENT_EMAIL" | "FIREBASE_PRIVATE_KEY") {
+type AdminEnvName =
+  | "FIREBASE_PROJECT_ID"
+  | "FIREBASE_CLIENT_EMAIL"
+  | "FIREBASE_PRIVATE_KEY";
+
+function required(name: AdminEnvName) {
   const value = process.env[name];
   if (!value) throw new Error(`Missing required environment variable: ${name}`);
   return value;

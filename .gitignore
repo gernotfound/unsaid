@@ -3,6 +3,7 @@ node_modules/
 .next/
 dist/
 coverage/
+.media-stage/
 .env
 .env.local
 .env.*.local

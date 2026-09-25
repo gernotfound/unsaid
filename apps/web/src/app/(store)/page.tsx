@@ -16,7 +16,7 @@ export default async function HomePage() {
   ]);
   const commerceById = await getPublicCommerceSummaries(latest.items.map((record) => record.id));
 
-  const featuredAsset = featured ? primaryAsset(featured) : null;
+  const featuredAsset = featured ? primaryAsset(featured, "detail") : null;
   const featuredCopy = featured ? primaryCopy(featured) : null;
 
   return (

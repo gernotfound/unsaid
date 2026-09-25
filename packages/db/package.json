@@ -8,7 +8,9 @@
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "build": "tsc -p tsconfig.json",
-    "seed:catalog": "node scripts/seed-catalog.mjs"
+    "seed:catalog": "node scripts/seed-catalog.mjs",
+    "media:attach-manifests": "node scripts/attach-generated-media.mjs",
+    "media:publish-manifests": "node scripts/publish-generated-media.mjs"
   },
   "dependencies": {
     "@unsaid/catalog": "workspace:*",
