@@ -61,16 +61,40 @@ function date(value?: string) {
   return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" });
 }
 
+function shipmentStatusLabel(status?: Shipment["status"]) {
+  if (!status) return "non preparata";
+  return {
+    pending: "in attesa",
+    ready: "pronta",
+    shipped: "spedita",
+    delivered: "consegnata",
+    returned: "rientrata",
+  }[status];
+}
+
+function notificationKindLabel(kind: Notification["kind"]) {
+  return kind === "order_confirmation" ? "conferma ordine" : "conferma spedizione";
+}
+
+function notificationStatusLabel(status: Notification["status"]) {
+  return {
+    queued: "in coda",
+    sending: "in invio",
+    sent: "inviata",
+    failed: "non riuscita",
+  }[status];
+}
+
 function message(code: string) {
-  if (code === "ADMIN_FORBIDDEN") return "Account non autorizzato come admin.";
-  if (code === "ADMIN_AUTH_REQUIRED") return "Sessione admin scaduta.";
-  if (code === "ORDER_NOT_READY_FOR_SPEDIZIONE") return "L'ordine deve essere in processing prima della spedizione.";
-  if (code === "PAYMENT_NOT_CONFIRMED") return "Pagamento non confermato lato server.";
-  if (code === "INVALID_SPEDIZIONE_PROVIDER") return "Inserisci un corriere valido.";
-  if (code === "INVALID_TRACKING_CODE") return "Inserisci un codice tracking valido.";
-  if (code === "INVALID_TRACKING_URL") return "Il link tracking deve essere un URL HTTPS valido.";
-  if (code === "SPEDIZIONE_ALREADY_INVIOED" || code === "SPEDIZIONE_STATE_CONFLICT") return "La spedizione è già in uno stato successivo.";
-  if (code === "SPEDIZIONE_NOT_READY_FOR_DELIVERY") return "La spedizione deve essere prima marcata come shipped.";
+  if (code === "ADMIN_FORBIDDEN") return "Profilo non autorizzato come amministratore.";
+  if (code === "ADMIN_AUTH_REQUIRED") return "Sessione amministratore scaduta.";
+  if (code === "ORDER_NOT_READY_FOR_SHIPMENT") return "L'ordine deve essere in lavorazione prima della spedizione.";
+  if (code === "PAYMENT_NOT_CONFIRMED") return "Pagamento non confermato dal sistema.";
+  if (code === "INVALID_SHIPMENT_PROVIDER") return "Inserisci un corriere valido.";
+  if (code === "INVALID_TRACKING_CODE") return "Inserisci un codice di tracciamento valido.";
+  if (code === "INVALID_TRACKING_URL") return "Il collegamento di tracciamento deve essere un URL HTTPS valido.";
+  if (code === "SHIPMENT_ALREADY_DISPATCHED" || code === "SHIPMENT_STATE_CONFLICT") return "La spedizione è già in uno stato successivo.";
+  if (code === "SHIPMENT_NOT_READY_FOR_DELIVERY") return "La spedizione deve essere prima segnata come spedita.";
   return code === "INTERNAL_ERROR" ? "Errore del sistema. Riprova." : code;
 }
 
@@ -255,7 +279,7 @@ export function AdminFulfillmentPanel() {
 
               <div className={styles.cards}>
                 <section><p className={styles.kicker}>DESTINAZIONE</p><strong>{detail.order.shippingAddress.recipientName}</strong><span>{detail.order.shippingAddress.line1}</span><span>{detail.order.shippingAddress.postalCode} {detail.order.shippingAddress.city} ({detail.order.shippingAddress.province})</span></section>
-                <section><p className={styles.kicker}>SPEDIZIONE</p><strong>{detail.shipment?.status ?? "non preparata"}</strong><span>{detail.shipment?.provider ?? "—"}</span><span>{detail.shipment?.trackingCode ?? "—"}</span>{detail.shipment?.trackingUrl ? <a href={detail.shipment.trackingUrl} target="_blank" rel="noreferrer">Apri tracciamento</a> : null}</section>
+                <section><p className={styles.kicker}>SPEDIZIONE</p><strong>{shipmentStatusLabel(detail.shipment?.status)}</strong><span>{detail.shipment?.provider ?? "—"}</span><span>{detail.shipment?.trackingCode ?? "—"}</span>{detail.shipment?.trackingUrl ? <a href={detail.shipment.trackingUrl} target="_blank" rel="noreferrer">Apri tracciamento</a> : null}</section>
               </div>
 
               {detail.order.status === "processing" ? (
@@ -280,7 +304,7 @@ export function AdminFulfillmentPanel() {
               <section className={styles.notifications}>
                 <div><p className={styles.kicker}>CODA EMAIL CLIENTE</p><h2>Notifiche</h2></div>
                 {detail.notifications.length ? detail.notifications.map((notification) => (
-                  <article key={notification.id}><strong>{notification.kind}</strong><span>{notification.status}</span><small>{notification.attempts} tentativi · {date(notification.sentAt ?? notification.updatedAt)}</small>{notification.lastErrorCode ? <em>{notification.lastErrorCode}</em> : null}</article>
+                  <article key={notification.id}><strong>{notificationKindLabel(notification.kind)}</strong><span>{notificationStatusLabel(notification.status)}</span><small>{notification.attempts} tentativi · {date(notification.sentAt ?? notification.updatedAt)}</small>{notification.lastErrorCode ? <em>{notification.lastErrorCode}</em> : null}</article>
                 )) : <p className={styles.empty}>Nessuna notifica ancora accodata.</p>}
                 <p className={styles.note}>La coda è indipendente dal gestore: nessuna email esterna viene inviata finché non colleghiamo e abilitiamo un gestore.</p>
               </section>
