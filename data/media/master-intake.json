@@ -3,7 +3,7 @@
   "templateId": "white-oversize-v1",
   "templateVersion": 1,
   "createdAt": "2026-09-25T11:08:00.000Z",
-  "status": "prepared-not-ingested",
+  "status": "ingested",
   "provenance": "Clean blank lossless PNG masters generated from the user-supplied upscaled front/back references, preserving garment silhouette, folds, fabric texture and neutral studio lighting while removing calibration text.",
   "views": {
     "front": {
@@ -22,5 +22,7 @@
       "bytes": 2006998,
       "sha256": "300a32370560b6bd35023d9b73a2fcda083c8c1cd08d4aa86d2d5eb21d455200"
     }
-  }
+  },
+  "ingestedAt": "2026-09-25T11:12:00.000Z",
+  "storageBackend": "repository-static"
 }
