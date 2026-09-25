@@ -56,7 +56,7 @@ Template states:
 
 The original 2K white oversized T-shirt references supplied on 2026-09-20 are registered as `white-oversize-v1`. They contain the calibration words `FRONTE` / `RETRO` and therefore remain reference-only inputs.
 
-Clean blank front/back master candidates have now been prepared from those references. Their exact dimensions, byte sizes and SHA-256 digests are recorded in `data/media/master-intake.json`. That intake record is deliberately separate from `templates.json`: preparing a clean file is not the same as ingesting it into production media storage.
+Clean blank front/back master candidates have now been prepared from those references as lossless PNG sources. Their exact dimensions, byte sizes and SHA-256 digests are recorded in `data/media/master-intake.json`. That intake record is deliberately separate from `templates.json`: preparing a clean file is not the same as ingesting it into production media storage.
 
 The template must remain `reference-only` until both hash-locked files are uploaded to the selected managed storage backend and their immutable storage keys plus full SHA-256 fingerprints are recorded. `media:validate` rejects a template that is marked ready before the corresponding intake is marked ingested.
 

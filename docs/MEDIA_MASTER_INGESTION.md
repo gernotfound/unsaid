@@ -18,7 +18,7 @@ The media contracts remain provider-neutral so this backend can be replaced late
 
 `data/media/master-intake.json` is the authoritative intake receipt for `white-oversize-v1@1`.
 
-Expected files:
+Expected canonical lossless files:
 
 - `white-oversize-v1-front-master.webp` — `1536x2048`, `166216` bytes, SHA-256 `e1d79036772c2aabb7de9357f4a87ea24c3dbf1884d51b2e88474918a9ee957d`;
 - `white-oversize-v1-back-master.webp` — `1536x2048`, `165438` bytes, SHA-256 `2f7f5c5527029f9d397cb5cb4e15fe9527f377e2b9a39bb98844d90fa7343984`.
@@ -46,8 +46,8 @@ pnpm media:ingest-masters -- --source-dir=/absolute/path/to/clean-masters --writ
 Canonical paths are digest-derived:
 
 ```text
-data/media/masters/templates/white-oversize-v1/v1/front-e1d79036772c2aab.webp
-data/media/masters/templates/white-oversize-v1/v1/back-2f7f5c5527029f9d.webp
+data/media/masters/templates/white-oversize-v1/v1/front-56709598a3e0a4d1.png
+data/media/masters/templates/white-oversize-v1/v1/back-300a32370560b6bd.png
 ```
 
 Writing identical bytes again is idempotent. Different bytes at an existing immutable key are rejected.
