@@ -41,11 +41,11 @@ export default async function HomePage() {
           </div>
         </div>
 
-        <div className="ff-hero__visual" aria-label="UNSAID MODEL 01 con T-shirt bianca">
+        <div className="ff-hero__visual" aria-label="UNSAID MODELLO 01 con maglia bianca">
           <div className="ff-hero__frame">
             <Image
               src="/editorial/model-01-walk.webp"
-              alt="UNSAID MODEL 01, bot umanoide con T-shirt bianca in studio"
+              alt="UNSAID MODELLO 01, figura umanoide con maglia bianca in studio"
               fill
               priority
               sizes="(max-width: 860px) 100vw, 50vw"
@@ -92,7 +92,7 @@ export default async function HomePage() {
         <div className="model-section__media">
           <Image
             src="/editorial/model-01-detail.webp"
-            alt="Dettaglio di UNSAID MODEL 01 con T-shirt bianca"
+            alt="Dettaglio di UNSAID MODELLO 01 con maglia bianca"
             fill
             sizes="(max-width: 860px) 100vw, 55vw"
           />
@@ -101,7 +101,7 @@ export default async function HomePage() {
         <div className="model-section__copy">
           <p className="eyebrow">IL MODELLO NON CAMBIA</p>
           <h2>LA<br /><span>FRASE</span><br />CAMBIA.</h2>
-          <p>MODEL 01 è il volto senza volto di UNSAID: stessa anatomia e stessa silhouette in ogni uscita. Possono cambiare colorway, luce, posa e maglia. Non cambia il personaggio.</p>
+          <p>MODELLO 01 è il volto senza volto di UNSAID: stessa anatomia e stessa silhouette in ogni uscita. Possono cambiare colorazione, luce, posa e maglia. Non cambia il personaggio.</p>
           <dl className="model-specs">
             <div><dt>Capi</dt><dd>bianco / nero</dd></div>
             <div><dt>Scocca</dt><dd>colorazione variabile</dd></div>
@@ -118,7 +118,7 @@ export default async function HomePage() {
         </div>
         <div className="featured-statement__media">
           {featured && featuredAsset ? (
-            <Image src={featuredAsset} alt={`T-shirt UNSAID ${featured.title}`} fill unoptimized={featuredAsset.startsWith("http")} sizes="(max-width: 860px) 100vw, 44vw" />
+            <Image src={featuredAsset} alt={`maglia UNSAID ${featured.title}`} fill unoptimized={featuredAsset.startsWith("http")} sizes="(max-width: 860px) 100vw, 44vw" />
           ) : (
             <span>UNSAID / ARCHIVIO</span>
           )}
