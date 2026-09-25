@@ -310,7 +310,7 @@ export function AdminCommercePanel() {
               <section className={styles.inventory}>
                 <div className={styles.sectionHead}><div><p className={styles.kicker}>VARIANTI / ITALIA</p><h2>Taglie e scorte</h2></div><p>Le scorte riservate sono in sola lettura e non possono essere sovrascritte dall&apos;amministratore.</p></div>
                 <div className={styles.variantTable} role="table" aria-label="Taglie e inventario">
-                  <div className={styles.variantHeader} role="row"><span>Sell</span><span>Size</span><span>SKU</span><span>In giacenza</span><span>Reserved</span><span>Disponibili</span></div>
+                  <div className={styles.variantHeader} role="row"><span>Vendita</span><span>Taglia</span><span>SKU</span><span>In giacenza</span><span>Riservati</span><span>Disponibili</span></div>
                   {GARMENT_SIZES.map((size) => {
                     const current = draft.sizes[size];
                     const existing = selected.variants.find((entry) => entry.variant.size === size && entry.variant.garmentColor === draft.garmentColor);
