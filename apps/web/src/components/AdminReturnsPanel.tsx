@@ -154,13 +154,13 @@ export function AdminReturnsPanel() {
   }
 
   if (!configured) return <section className={styles.center}><p>Firebase Web SDK non configurato.</p></section>;
-  if (!authReady) return <section className={styles.center}><p>AUTH / CHECKING</p></section>;
+  if (!authReady) return <section className={styles.center}><p>AUTENTICAZIONE / VERIFICA</p></section>;
   if (!user) {
     return (
       <section className={styles.center}>
         <form className={styles.login} onSubmit={login}>
-          <p className={styles.kicker}>UNSAID / RETURN OPERATIONS</p>
-          <h1>Returns.</h1>
+          <p className={styles.kicker}>UNSAID / OPERAZIONI RESI</p>
+          <h1>Resi.</h1>
           <label><span>Email</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label><span>Password</span><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
           <button>Accedi</button>
@@ -173,13 +173,13 @@ export function AdminReturnsPanel() {
   return (
     <section className={styles.shell}>
       <header className={styles.topbar}>
-        <div><p className={styles.kicker}>UNSAID / RETURNS</p><strong>RMA control</strong></div>
+        <div><p className={styles.kicker}>UNSAID / RESI</p><strong>Controllo RMA</strong></div>
         <div className={styles.session}><span>{user.email}</span><button onClick={() => void signOut(getAuth(getFirebaseClientApp()))}>Esci</button></div>
       </header>
 
       <div className={styles.policy}>
-        <strong>PHYSICAL RETURN ≠ REFUND</strong>
-        <span>Ricezione, ispezione, restock e movimento di denaro restano stati distinti.</span>
+        <strong>RESO FISICO ≠ RIMBORSO</strong>
+        <span>Ricezione, ispezione, reintegro scorte e movimento di denaro restano stati distinti.</span>
       </div>
 
       <div className={styles.toolbar}>
@@ -219,28 +219,28 @@ export function AdminReturnsPanel() {
               {entry.status === "approved" ? (
                 <form className={styles.actionForm} onSubmit={(event) => void transit(event, entry.id)}>
                   <input name="provider" placeholder="Corriere rientro (opzionale)" maxLength={80} />
-                  <input name="trackingCode" placeholder="Tracking code (opzionale)" maxLength={120} />
-                  <input name="trackingUrl" placeholder="https:// tracking (opzionale)" maxLength={500} />
+                  <input name="trackingCode" placeholder="Codice di tracciamento (opzionale)" maxLength={120} />
+                  <input name="trackingUrl" placeholder="https:// tracciamento (opzionale)" maxLength={500} />
                   <button disabled={busy}>Segna in rientro</button>
-                  <button type="button" className={styles.secondary} disabled={busy} onClick={() => void runAction(entry.id, { action: "received" }, "Reso ricevuto.")}>Ricevuto senza tracking</button>
+                  <button type="button" className={styles.secondary} disabled={busy} onClick={() => void runAction(entry.id, { action: "received" }, "Reso ricevuto.")}>Ricevuto senza tracciamento</button>
                 </form>
               ) : null}
 
               {entry.status === "in_transit" ? (
                 <div className={styles.actions}>
                   <button disabled={busy} onClick={() => void runAction(entry.id, { action: "received" }, "Reso ricevuto.")}>Segna ricevuto</button>
-                  {entry.inboundShipment?.trackingUrl ? <a href={entry.inboundShipment.trackingUrl} target="_blank" rel="noreferrer">Tracking rientro</a> : null}
+                  {entry.inboundShipment?.trackingUrl ? <a href={entry.inboundShipment.trackingUrl} target="_blank" rel="noreferrer">Tracciamento rientro</a> : null}
                 </div>
               ) : null}
 
               {entry.status === "received" ? (
                 <form className={styles.inspect} onSubmit={(event) => void inspect(event, item)}>
-                  <strong>INSPECTION / RESTOCK</strong>
+                  <strong>ISPEZIONE / REINTEGRO SCORTE</strong>
                   {entry.lines.map((line) => (
                     <div className={styles.inspectLine} key={line.variantId}>
                       <span>{line.sku} / requested {line.quantity}</span>
                       <label>Ricevuti<input name={`received:${line.variantId}`} type="number" min="0" max={line.quantity} defaultValue={line.quantity} required /></label>
-                      <label>Restock<input name={`restock:${line.variantId}`} type="number" min="0" max={line.quantity} defaultValue="0" required /></label>
+                      <label>Reintegro<input name={`restock:${line.variantId}`} type="number" min="0" max={line.quantity} defaultValue="0" required /></label>
                     </div>
                   ))}
                   <button disabled={busy}>Conferma ispezione</button>
@@ -251,11 +251,11 @@ export function AdminReturnsPanel() {
                 <div className={styles.postInspect}>
                   {entry.refundCaseId ? <code>refund: {entry.refundCaseId}</code> : (
                     <form className={styles.linkRefund} onSubmit={(event) => void linkRefund(event, entry.id)}>
-                      <input name="refundCaseId" placeholder="Refund case ID da /admin/refunds" required />
+                      <input name="refundCaseId" placeholder="ID pratica rimborso da /admin/refunds" required />
                       <button disabled={busy}>Collega rimborso</button>
                     </form>
                   )}
-                  {entry.status === "inspected" ? <button className={styles.secondary} disabled={busy} onClick={() => void runAction(entry.id, { action: "close" }, "Pratica reso chiusa.")}>Chiudi RMA</button> : <strong>RMA CLOSED</strong>}
+                  {entry.status === "inspected" ? <button className={styles.secondary} disabled={busy} onClick={() => void runAction(entry.id, { action: "close" }, "Pratica reso chiusa.")}>Chiudi RMA</button> : <strong>RMA CHIUSA</strong>}
                 </div>
               ) : null}
             </article>
