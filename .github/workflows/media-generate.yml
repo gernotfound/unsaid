@@ -51,10 +51,10 @@ jobs:
         run: pnpm media:render-products -- --write
 
       - name: Validate generated manifests
-        run: pnpm media:attach-manifests -- --manifests=.media-stage/generated-media.json
+        run: pnpm media:attach-manifests -- --manifests=${{ github.workspace }}/.media-stage/generated-media.json
 
       - name: Attach manifests to catalog archive
-        run: pnpm media:attach-manifests -- --manifests=.media-stage/generated-media.json --write-archive
+        run: pnpm media:attach-manifests -- --manifests=${{ github.workspace }}/.media-stage/generated-media.json --write-archive
 
       - name: Validate repository
         run: |
