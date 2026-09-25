@@ -70,16 +70,45 @@ type AdminOrderPage = { items: AdminOrderListItem[]; nextCursor: string | null }
 type Filter = "all" | "manual_review" | OrderStatus;
 
 const ORDER_FILTERS: Array<{ value: Filter; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "manual_review", label: "Manual review" },
-  { value: "pending_payment", label: "Pending" },
-  { value: "paid", label: "Paid" },
-  { value: "processing", label: "Processing" },
-  { value: "shipped", label: "Shipped" },
-  { value: "delivered", label: "Delivered" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "refunded", label: "Refunded" },
+  { value: "all", label: "Tutti" },
+  { value: "manual_review", label: "Verifica manuale" },
+  { value: "pending_payment", label: "In attesa" },
+  { value: "paid", label: "Pagati" },
+  { value: "processing", label: "In lavorazione" },
+  { value: "shipped", label: "Spediti" },
+  { value: "delivered", label: "Consegnati" },
+  { value: "cancelled", label: "Annullati" },
+  { value: "refunded", label: "Rimborsati" },
 ];
+
+function technicalStatusLabel(value: string | null | undefined) {
+  if (!value) return "non disponibile";
+  const labels: Record<string, string> = {
+    pending_payment: "in attesa di pagamento",
+    paid: "pagato",
+    processing: "in lavorazione",
+    shipped: "spedito",
+    delivered: "consegnato",
+    cancelled: "annullato",
+    refunded: "rimborsato",
+    requires_action: "azione richiesta",
+    failed: "non riuscito",
+    manual_review: "verifica manuale",
+    creating: "creazione",
+    ready: "pronto",
+    expired: "scaduto",
+    requested: "richiesto",
+    approved: "approvato",
+    rejected: "rifiutato",
+    processed: "elaborato",
+    not_executed: "non eseguita",
+    executed: "eseguita",
+    active: "attiva",
+    released: "rilasciata",
+    converted: "convertita",
+  };
+  return labels[value] ?? value;
+}
 
 function formatMoney(money: Money) {
   return new Intl.NumberFormat("it-IT", { style: "currency", currency: money.currency }).format(money.amountCents / 100);
@@ -99,17 +128,17 @@ function euroInputToCents(value: string) {
 }
 
 function errorMessage(code: string) {
-  if (code === "ADMIN_FORBIDDEN") return "Questo account non è autorizzato come admin.";
-  if (code === "ADMIN_AUTH_REQUIRED") return "Sessione admin scaduta. Accedi di nuovo.";
-  if (code === "ORDER_NOT_READY_FOR_PROCESSING") return "L'ordine deve essere pagato prima di passare in processing.";
-  if (code === "PAYMENT_NOT_CONFIRMED") return "Il pagamento server-side non risulta confermato.";
+  if (code === "ADMIN_FORBIDDEN") return "Questo profilo non è autorizzato come amministratore.";
+  if (code === "ADMIN_AUTH_REQUIRED") return "Sessione amministratore scaduta. Accedi di nuovo.";
+  if (code === "ORDER_NOT_READY_FOR_PROCESSING") return "L'ordine deve essere pagato prima di passare in lavorazione.";
+  if (code === "PAYMENT_NOT_CONFIRMED") return "Il pagamento verificato dal sistema non risulta confermato.";
   if (code === "PAYMENT_SESSION_ACTIVE") return "La sessione di pagamento è ancora attiva: l'ordine non può essere annullato.";
   if (code === "ORDER_NOT_CANCELLABLE") return "Questo ordine non può essere annullato nello stato corrente.";
   if (code === "ORDER_NOT_REFUND_ELIGIBLE" || code === "PAYMENT_NOT_REFUND_ELIGIBLE") return "Questo ordine non è ancora idoneo a una pratica di rimborso.";
   if (code === "REFUND_AMOUNT_EXCEEDS_PAYMENT") return "L'importo supera il pagamento registrato.";
   if (code === "INVALID_REFUND_AMOUNT") return "Importo rimborso non valido.";
   if (code === "INVALID_REFUND_REASON") return "Inserisci una motivazione di almeno 3 caratteri.";
-  if (code === "INTERNAL_ERROR") return "Errore server. Riprova.";
+  if (code === "INTERNAL_ERROR") return "Errore del sistema. Riprova.";
   return code;
 }
 
@@ -259,7 +288,7 @@ export function AdminOrdersPanel() {
         body: JSON.stringify({ action }),
       });
       mergeDetail(next);
-      setNotice(action === "processing" ? "Ordine passato in processing." : "Ordine annullato e stock rilasciato.");
+      setNotice(action === "processing" ? "Ordine passato in lavorazione." : "Ordine annullato e scorte rilasciate.");
     } catch (error) {
       setNotice(errorMessage(error instanceof Error ? error.message : String(error)));
     } finally {
@@ -292,7 +321,7 @@ export function AdminOrdersPanel() {
       );
       mergeDetail(payload.detail);
       setRefundReason("");
-      setNotice("Pratica rimborso registrata. Nessun denaro è stato ancora restituito dal provider.");
+      setNotice("Pratica rimborso registrata. Nessun denaro è stato ancora restituito dal gestore del pagamento.");
     } catch (error) {
       setNotice(errorMessage(error instanceof Error ? error.message : String(error)));
     } finally {
@@ -301,12 +330,12 @@ export function AdminOrdersPanel() {
   }
 
   if (!configured) return <section className={styles.center}><p>Firebase Web SDK non configurato.</p></section>;
-  if (!authReady) return <section className={styles.center}><p>AUTH / CHECKING</p></section>;
+  if (!authReady) return <section className={styles.center}><p>AUTENTICAZIONE / VERIFICA</p></section>;
   if (!user) {
     return (
       <section className={styles.center}>
         <form className={styles.login} onSubmit={login}>
-          <p className={styles.kicker}>UNSAID / ORDER OPERATIONS</p>
+          <p className={styles.kicker}>UNSAID / OPERAZIONI ORDINI</p>
           <h1>Admin.</h1>
           <label><span>Email</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label><span>Password</span><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
@@ -322,15 +351,15 @@ export function AdminOrdersPanel() {
   return (
     <section className={styles.shell}>
       <header className={styles.topbar}>
-        <div><p className={styles.kicker}>UNSAID / ORDERS</p><strong>Payment + fulfillment control</strong></div>
+        <div><p className={styles.kicker}>UNSAID / ORDINI</p><strong>Controllo pagamenti + spedizioni</strong></div>
         <div className={styles.session}><span>{user.email}</span><button onClick={() => void signOut(getAuth(getFirebaseClientApp()))}>Esci</button></div>
       </header>
 
       <div className={styles.metrics}>
-        <div><span>Loaded</span><strong>{metrics.loaded}</strong></div>
-        <div><span>Pending</span><strong>{metrics.pending}</strong></div>
-        <div><span>Paid / process</span><strong>{metrics.paid}</strong></div>
-        <div data-alert={metrics.review > 0}><span>Manual review</span><strong>{metrics.review}</strong></div>
+        <div><span>Caricati</span><strong>{metrics.loaded}</strong></div>
+        <div><span>In attesa</span><strong>{metrics.pending}</strong></div>
+        <div><span>Pagati / lavorazione</span><strong>{metrics.paid}</strong></div>
+        <div data-alert={metrics.review > 0}><span>Verifica manuale</span><strong>{metrics.review}</strong></div>
       </div>
 
       <div className={styles.workspace}>
@@ -344,10 +373,10 @@ export function AdminOrdersPanel() {
           <div className={styles.list}>
             {filtered.map((item) => (
               <button key={item.order.id} data-active={item.order.id === selectedId} data-tone={statusTone(item)} onClick={() => void loadDetail(user, item.order.id)}>
-                <span>{formatDate(item.order.createdAt)} / {item.order.status}</span>
+                <span>{formatDate(item.order.createdAt)} / {technicalStatusLabel(item.order.status)}</span>
                 <strong>{item.order.id}</strong>
                 <small>{item.order.email}</small>
-                <em>{formatMoney(item.order.totals.total)} · {item.payment?.status ?? "no payment"}</em>
+                <em>{formatMoney(item.order.totals.total)} · {technicalStatusLabel(item.payment?.status)}</em>
               </button>
             ))}
             {!filtered.length ? <p className={styles.empty}>Nessun ordine nel filtro corrente.</p> : null}
@@ -359,45 +388,45 @@ export function AdminOrdersPanel() {
           {detail ? (
             <>
               <div className={styles.editorHead}>
-                <div><p className={styles.kicker}>{formatDate(detail.order.createdAt)} / {detail.order.status}</p><h1>{detail.order.id}</h1></div>
-                <div className={styles.total}><span>Total</span><strong>{formatMoney(detail.order.totals.total)}</strong></div>
+                <div><p className={styles.kicker}>{formatDate(detail.order.createdAt)} / {technicalStatusLabel(detail.order.status)}</p><h1>{detail.order.id}</h1></div>
+                <div className={styles.total}><span>Totale</span><strong>{formatMoney(detail.order.totals.total)}</strong></div>
               </div>
 
               {detail.reviewReason || detail.payment?.status === "manual_review" || detail.paymentIntent?.status === "manual_review" ? (
-                <div className={styles.reviewBanner}><strong>MANUAL REVIEW REQUIRED</strong><span>{detail.reviewReason ?? detail.paymentIntent?.errorCode ?? "payment_state_mismatch"}</span><p>Non spedire e non creare un nuovo pagamento finché denaro, ordine e stock non sono riconciliati.</p></div>
+                <div className={styles.reviewBanner}><strong>VERIFICA MANUALE RICHIESTA</strong><span>{detail.reviewReason ?? detail.paymentIntent?.errorCode ?? "payment_state_mismatch"}</span><p>Non spedire e non creare un nuovo pagamento finché denaro, ordine e scorte non sono riconciliati.</p></div>
               ) : null}
 
               <div className={styles.infoGrid}>
-                <section><p className={styles.kicker}>CUSTOMER</p><strong>{detail.order.email}</strong><span>{detail.order.shippingAddress.recipientName}</span><span>{detail.order.shippingAddress.line1}</span><span>{detail.order.shippingAddress.postalCode} {detail.order.shippingAddress.city} ({detail.order.shippingAddress.province})</span></section>
-                <section><p className={styles.kicker}>PAYMENT</p><strong>{detail.payment?.status ?? "not created"}</strong><span>Intent: {detail.paymentIntent?.status ?? "—"}</span><span>Session: {detail.payment?.providerSessionId ?? detail.paymentIntent?.providerSessionId ?? "—"}</span><span>Provider payment: {detail.payment?.providerPaymentId ?? "—"}</span></section>
-                <section><p className={styles.kicker}>TOTALS</p><span>Subtotal {formatMoney(detail.order.totals.subtotal)}</span><span>Shipping {formatMoney(detail.order.totals.shipping)}</span><span>Tax incl. {formatMoney(detail.order.totals.tax)}</span><strong>{formatMoney(detail.order.totals.total)}</strong></section>
+                <section><p className={styles.kicker}>CLIENTE</p><strong>{detail.order.email}</strong><span>{detail.order.shippingAddress.recipientName}</span><span>{detail.order.shippingAddress.line1}</span><span>{detail.order.shippingAddress.postalCode} {detail.order.shippingAddress.city} ({detail.order.shippingAddress.province})</span></section>
+                <section><p className={styles.kicker}>PAGAMENTO</p><strong>{technicalStatusLabel(detail.payment?.status)}</strong><span>Tentativo: {technicalStatusLabel(detail.paymentIntent?.status)}</span><span>Sessione: {detail.payment?.providerSessionId ?? detail.paymentIntent?.providerSessionId ?? "—"}</span><span>Pagamento gestore: {detail.payment?.providerPaymentId ?? "—"}</span></section>
+                <section><p className={styles.kicker}>TOTALI</p><span>Subtotale {formatMoney(detail.order.totals.subtotal)}</span><span>Spedizione {formatMoney(detail.order.totals.shipping)}</span><span>Imposte incl. {formatMoney(detail.order.totals.tax)}</span><strong>{formatMoney(detail.order.totals.total)}</strong></section>
               </div>
 
               <section className={styles.linesSection}>
-                <div className={styles.sectionHead}><p className={styles.kicker}>ORDER LINES</p><span>{detail.order.lines.length} SKU</span></div>
-                <div className={styles.lineHeader}><span>SKU</span><span>Product</span><span>Qty</span><span>Unit</span><span>Reservation</span></div>
+                <div className={styles.sectionHead}><p className={styles.kicker}>RIGHE ORDINE</p><span>{detail.order.lines.length} SKU</span></div>
+                <div className={styles.lineHeader}><span>SKU</span><span>Prodotto</span><span>Qtà</span><span>Unità</span><span>Prenotazione</span></div>
                 {detail.order.lines.map((line) => {
                   const reservation = detail.reservations.find((entry) => entry.variantId === line.variantId);
-                  return <div className={styles.lineRow} key={line.variantId}><code>{line.sku}</code><span>{line.title} / {line.size}</span><strong>{line.quantity}</strong><span>{formatMoney(line.unitPrice)}</span><span>{reservation?.status ?? "missing"}</span></div>;
+                  return <div className={styles.lineRow} key={line.variantId}><code>{line.sku}</code><span>{line.title} / {line.size}</span><strong>{line.quantity}</strong><span>{formatMoney(line.unitPrice)}</span><span>{technicalStatusLabel(reservation?.status)}</span></div>;
                 })}
               </section>
 
               <div className={styles.actions}>
-                {detail.order.status === "paid" && detail.payment?.status === "paid" ? <button disabled={busy} onClick={() => void orderAction("processing")}>Avvia processing</button> : null}
-                {detail.order.status === "pending_payment" ? <button className={styles.danger} disabled={busy} onClick={() => void orderAction("cancel")}>Annulla pending</button> : null}
+                {detail.order.status === "paid" && detail.payment?.status === "paid" ? <button disabled={busy} onClick={() => void orderAction("processing")}>Avvia lavorazione</button> : null}
+                {detail.order.status === "pending_payment" ? <button className={styles.danger} disabled={busy} onClick={() => void orderAction("cancel")}>Annulla ordine in attesa</button> : null}
                 <button className={styles.secondary} disabled={busy} onClick={() => void loadDetail(user, detail.order.id)}>Aggiorna stato</button>
               </div>
 
               <section className={styles.refunds}>
-                <div className={styles.sectionHead}><div><p className={styles.kicker}>REFUND CASES</p><strong>{detail.refundCases.length} pratiche</strong></div><p>Questa fase registra soltanto la pratica operativa. Non invia ancora un rimborso a Stripe.</p></div>
-                {detail.refundCases.map((refund) => <article key={refund.id}><div><strong>{formatMoney(refund.amount)}</strong><span>{refund.status} / {refund.providerAction}</span></div><p>{refund.reason}</p><small>{formatDate(refund.createdAt)} · {refund.id}</small></article>)}
+                <div className={styles.sectionHead}><div><p className={styles.kicker}>PRATICHE RIMBORSO</p><strong>{detail.refundCases.length} pratiche</strong></div><p>Questa fase registra soltanto la pratica operativa. Non invia ancora un rimborso a Stripe.</p></div>
+                {detail.refundCases.map((refund) => <article key={refund.id}><div><strong>{formatMoney(refund.amount)}</strong><span>{technicalStatusLabel(refund.status)} / {technicalStatusLabel(refund.providerAction)}</span></div><p>{refund.reason}</p><small>{formatDate(refund.createdAt)} · {refund.id}</small></article>)}
                 {refundEligible ? (
                   <form className={styles.refundForm} onSubmit={createRefund}>
                     <label><span>Importo EUR</span><input inputMode="decimal" value={refundAmount} onChange={(event) => setRefundAmount(event.target.value)} required /></label>
                     <label className={styles.reason}><span>Motivazione</span><textarea maxLength={500} value={refundReason} onChange={(event) => setRefundReason(event.target.value)} required /></label>
                     <button disabled={busy}>Apri pratica rimborso</button>
                   </form>
-                ) : <p className={styles.muted}>Pratica rimborso disponibile soltanto con pagamento `paid` e ordine in stato operativo compatibile.</p>}
+                ) : <p className={styles.muted}>Pratica rimborso disponibile soltanto con pagamento confermato e ordine in stato operativo compatibile.</p>}
               </section>
             </>
           ) : <p className={styles.empty}>Seleziona un ordine.</p>}
