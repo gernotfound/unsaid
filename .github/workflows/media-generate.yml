@@ -11,6 +11,7 @@ on:
       - "data/media/render-profiles.json"
       - "data/catalog/archive.json"
       - "apps/worker/src/media/**"
+      - "apps/worker/test/**"
       - ".github/workflows/media-generate.yml"
 
 permissions:
