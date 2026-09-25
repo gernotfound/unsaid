@@ -50,6 +50,9 @@ importers:
       '@unsaid/catalog':
         specifier: workspace:*
         version: link:../../packages/catalog
+      '@unsaid/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@unsaid/domain':
         specifier: workspace:*
         version: link:../../packages/domain
@@ -81,9 +84,6 @@ importers:
 
   apps/worker:
     dependencies:
-      '@unsaid/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       '@unsaid/domain':
         specifier: workspace:*
         version: link:../../packages/domain
