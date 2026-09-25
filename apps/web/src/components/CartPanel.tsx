@@ -128,10 +128,10 @@ export function CartPanel({
   if (!localLines.length && !busy) {
     return (
       <section className={styles.empty}>
-        <p className={styles.kicker}>CART / 00</p>
-        <h2>Nothing<br />unsaid yet.</h2>
+        <p className={styles.kicker}>CARRELLO / 00</p>
+        <h2>ANCORA<br />NIENTE.</h2>
         <p>Il carrello è vuoto. L&apos;archivio resta navigabile anche mentre lo shop è chiuso.</p>
-        <Link href="/shop">Apri archive →</Link>
+        <Link href="/shop">Apri archivio →</Link>
       </section>
     );
   }
@@ -153,7 +153,7 @@ export function CartPanel({
                 <span>{line ? `${line.garmentColor} / ${line.size}` : issueLabel(issue)}</span>
               </div>
               <div className={styles.quantity}>
-                <span>QTY</span>
+                <span>QTÀ</span>
                 <div>
                   <button type="button" aria-label="Riduci quantità" disabled={busy || local.quantity <= 1} onClick={() => changeQuantity(local.variantId, local.quantity - 1)}>−</button>
                   <strong>{local.quantity}</strong>
@@ -162,31 +162,31 @@ export function CartPanel({
               </div>
               <div className={styles.price}>
                 <strong>{line ? formatMoney(line.lineTotal) : "—"}</strong>
-                {line ? <span>{formatMoney(line.unitPrice)} / unit</span> : <span className={styles.problem}>{issueLabel(issue)}</span>}
+                {line ? <span>{formatMoney(line.unitPrice)} / unità</span> : <span className={styles.problem}>{issueLabel(issue)}</span>}
               </div>
-              <button className={styles.remove} type="button" disabled={busy} onClick={() => remove(local.variantId)}>Remove</button>
+              <button className={styles.remove} type="button" disabled={busy} onClick={() => remove(local.variantId)}>Rimuovi</button>
             </article>
           );
         })}
-        {busy ? <p className={styles.checking}>SERVER / VERIFYING PRICE + STOCK…</p> : null}
+        {busy ? <p className={styles.checking}>SERVER / VERIFICA PREZZO + SCORTE…</p> : null}
         {notice ? <p className={styles.problem} role="status">{notice}</p> : null}
       </section>
 
       <aside className={styles.summary}>
-        <p className={styles.kicker}>ORDER / PREVIEW</p>
+        <p className={styles.kicker}>ORDINE / ANTEPRIMA</p>
         <div className={styles.total}>
-          <span>Subtotal</span>
+          <span>Subtotale</span>
           <strong>{validated ? formatMoney(validated.subtotal) : "—"}</strong>
         </div>
         <div className={styles.rule} />
         <p>Prezzi e stock mostrati qui arrivano dal server. Il contenuto di localStorage non è mai considerato autorevole.</p>
-        {!shopEnabled ? <div className={styles.gate}><strong>SHOP GATE / OFF</strong><span>Il carrello è strutturalmente pronto, ma gli acquisti restano disattivati.</span></div> : null}
+        {!shopEnabled ? <div className={styles.gate}><strong>VENDITE / DISATTIVATE</strong><span>Il carrello è strutturalmente pronto, ma gli acquisti restano disattivati.</span></div> : null}
         {checkoutPreparationEnabled && cartReady && !busy ? (
           <Link className={styles.checkoutLink} href="/checkout">Continua al checkout →</Link>
         ) : (
           <button type="button" disabled>Checkout non ancora attivo</button>
         )}
-        <Link href="/account">Account cliente →</Link>
+        <Link href="/account">Area personale →</Link>
       </aside>
     </div>
   );
