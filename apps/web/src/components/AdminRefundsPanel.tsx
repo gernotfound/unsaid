@@ -148,7 +148,7 @@ export function AdminRefundsPanel() {
     try {
       await apiRequest(user, `/api/admin/refunds/${encodeURIComponent(refundCaseId)}/execute`, { method: "POST" });
       await load(user);
-      setNotice("Richiesta rimborso inviata a Stripe. Lo stato finale resta vincolato alla risposta provider/webhook.");
+      setNotice("Richiesta rimborso inviata a Stripe. Lo stato finale resta vincolato alla risposta del gestore o del webhook.");
     } catch (error) {
       setNotice(message(error instanceof Error ? error.message : String(error)));
       await load(user);
@@ -174,13 +174,13 @@ export function AdminRefundsPanel() {
   }
 
   if (!configured) return <section className={styles.center}><p>Firebase Web SDK non configurato.</p></section>;
-  if (!authReady) return <section className={styles.center}><p>AUTH / CHECKING</p></section>;
+  if (!authReady) return <section className={styles.center}><p>AUTENTICAZIONE / VERIFICA</p></section>;
   if (!user) {
     return (
       <section className={styles.center}>
         <form className={styles.login} onSubmit={login}>
-          <p className={styles.kicker}>UNSAID / REFUND OPERATIONS</p>
-          <h1>Refunds.</h1>
+          <p className={styles.kicker}>UNSAID / OPERAZIONI RIMBORSI</p>
+          <h1>Rimborsi.</h1>
           <label><span>Email</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label><span>Password</span><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
           <button>Accedi</button>
@@ -193,12 +193,12 @@ export function AdminRefundsPanel() {
   return (
     <section className={styles.shell}>
       <header className={styles.topbar}>
-        <div><p className={styles.kicker}>UNSAID / REFUNDS</p><strong>Stripe refund control</strong></div>
+        <div><p className={styles.kicker}>UNSAID / RIMBORSI</p><strong>Controllo rimborsi Stripe</strong></div>
         <div className={styles.session}><span>{user.email}</span><button onClick={() => void signOut(getAuth(getFirebaseClientApp()))}>Esci</button></div>
       </header>
 
       <div className={enabled ? styles.enabled : styles.disabled}>
-        <strong>{enabled ? "STRIPE REFUNDS / ENABLED" : "STRIPE REFUNDS / DISABLED"}</strong>
+        <strong>{enabled ? "RIMBORSI STRIPE / ATTIVI" : "RIMBORSI STRIPE / DISATTIVATI"}</strong>
         <span>{enabled ? "Le azioni possono muovere denaro reale in base alle chiavi Stripe configurate." : "Le pratiche sono visibili, ma nessun rimborso esterno può essere eseguito."}</span>
       </div>
 
@@ -222,18 +222,18 @@ export function AdminRefundsPanel() {
               <p>{refund.reason}</p>
               <div className={styles.meta}>
                 <span>case: {refund.status}</span>
-                <span>execution: {refund.executionState ?? "idle"}</span>
-                <span>provider: {refund.providerStatus ?? "not started"}</span>
-                <span>payment: {item.payment?.status ?? "missing"}</span>
+                <span>esecuzione: {refund.executionState ?? "inattiva"}</span>
+                <span>gestore: {refund.providerStatus ?? "non avviato"}</span>
+                <span>pagamento: {item.payment?.status ?? "mancante"}</span>
               </div>
               {refund.providerRefundId ? <code>{refund.providerRefundId}</code> : null}
               {refund.providerFailureCode ? <p className={styles.failure}>{refund.providerFailureCode}</p> : null}
               <div className={styles.actions}>
                 {executable ? <button disabled={busyId === refund.id} onClick={() => void executeRefund(refund.id)}>{busyId === refund.id ? "Invio…" : "Esegui rimborso Stripe"}</button> : null}
                 {reconcilable ? <button disabled={busyId === refund.id} onClick={() => void reconcileRefund(refund.id)}>{busyId === refund.id ? "Verifica…" : "Riconcilia con Stripe"}</button> : null}
-                {refund.executionState === "manual_review" ? <strong className={styles.review}>MANUAL REVIEW — usa la riconciliazione; non creare un secondo rimborso.</strong> : null}
-                {refund.executionState === "provider_created" ? <strong className={styles.review}>PROVIDER PENDING — verifica Stripe o attendi il webhook prima di qualsiasi altra azione.</strong> : null}
-                {refund.executionState === "complete" ? <strong>REFUND COMPLETE</strong> : null}
+                {refund.executionState === "manual_review" ? <strong className={styles.review}>VERIFICA MANUALE — usa la riconciliazione; non creare un secondo rimborso.</strong> : null}
+                {refund.executionState === "provider_created" ? <strong className={styles.review}>GESTORE IN ATTESA — verifica Stripe o attendi il webhook prima di qualsiasi altra azione.</strong> : null}
+                {refund.executionState === "complete" ? <strong>RIMBORSO COMPLETATO</strong> : null}
               </div>
             </article>
           );
