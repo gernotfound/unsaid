@@ -71,6 +71,26 @@ async function apiRequest<T>(user: User, url: string, init: RequestInit = {}): P
   return payload;
 }
 
+function statusLabel(value?: string | null) {
+  if (!value) return "non disponibile";
+  const labels: Record<string, string> = {
+    requested: "richiesta",
+    approved: "approvata",
+    rejected: "rifiutata",
+    processed: "elaborata",
+    idle: "inattiva",
+    locked: "bloccata",
+    provider_created: "creata presso il gestore",
+    manual_review: "verifica manuale",
+    complete: "completata",
+    failed: "non riuscita",
+    requires_action: "azione richiesta",
+    paid: "pagato",
+    refunded: "rimborsato",
+  };
+  return labels[value] ?? value;
+}
+
 function message(code: string) {
   if (code === "REFUNDS_DISABLED") return "Esecuzione Stripe disattivata. Le pratiche restano registrate senza movimento di denaro.";
   if (code === "REFUND_PROVIDER_REJECTED") return "Stripe ha rifiutato il rimborso. La pratica resta tracciata e può essere verificata.";
@@ -82,7 +102,7 @@ function message(code: string) {
   if (code === "REFUND_EXECUTION_ALREADY_ACTIVE") return "Questa pratica ha già un'esecuzione Stripe attiva o da riconciliare.";
   if (code === "REFUND_ALREADY_COMPLETE") return "Rimborso già completato.";
   if (code === "REFUND_NOT_RECONCILABLE") return "Questa pratica non è in uno stato riconciliabile.";
-  if (code === "ADMIN_FORBIDDEN") return "Account non autorizzato come admin.";
+  if (code === "ADMIN_FORBIDDEN") return "Profilo non autorizzato come amministratore.";
   return code;
 }
 
@@ -221,10 +241,10 @@ export function AdminRefundsPanel() {
               </div>
               <p>{refund.reason}</p>
               <div className={styles.meta}>
-                <span>case: {refund.status}</span>
-                <span>esecuzione: {refund.executionState ?? "inattiva"}</span>
-                <span>gestore: {refund.providerStatus ?? "non avviato"}</span>
-                <span>pagamento: {item.payment?.status ?? "mancante"}</span>
+                <span>pratica: {statusLabel(refund.status)}</span>
+                <span>esecuzione: {statusLabel(refund.executionState ?? "idle")}</span>
+                <span>gestore: {refund.providerStatus ? statusLabel(refund.providerStatus) : "non avviato"}</span>
+                <span>pagamento: {item.payment?.status ? statusLabel(item.payment.status) : "mancante"}</span>
               </div>
               {refund.providerRefundId ? <code>{refund.providerRefundId}</code> : null}
               {refund.providerFailureCode ? <p className={styles.failure}>{refund.providerFailureCode}</p> : null}
