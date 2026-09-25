@@ -19,5 +19,6 @@
     "tsx": "catalog:",
     "typescript": "catalog:",
     "@types/node": "catalog:"
-  }
+  },
+  "type": "module"
 }
