@@ -8,7 +8,7 @@ export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "Archivio",
-  description: "L'archivio pubblico UNSAID: T-shirt monocromatiche, statement fronte e retro.",
+  description: "L'archivio pubblico UNSAID: T-shirt monocromatiche, frasi sul fronte e sul retro.",
 };
 
 type ShopPageProps = {
