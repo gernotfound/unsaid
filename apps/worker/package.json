@@ -6,10 +6,13 @@
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "media:validate": "tsx src/media/validate.ts",
-    "media:stage-masters": "tsx src/media/stage-masters.ts"
+    "media:stage-masters": "tsx src/media/stage-masters.ts",
+    "media:render-products": "tsx src/media/render-products.ts"
   },
   "dependencies": {
-    "@unsaid/domain": "workspace:*"
+    "@unsaid/domain": "workspace:*",
+    "@unsaid/db": "workspace:*",
+    "sharp": "0.35.4"
   },
   "devDependencies": {
     "tsx": "catalog:",

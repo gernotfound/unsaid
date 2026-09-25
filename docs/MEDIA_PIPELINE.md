@@ -221,3 +221,43 @@ Git should contain:
 - tests and tooling.
 
 Git should not become the long-term binary archive for high-resolution masters and every generated derivative.
+
+## Executing production renders
+
+The concrete raster adapter is `SharpRasterizer`. Sharp is an explicit worker dependency rather than an accidental transitive dependency of Next.js.
+
+Production rendering is composed only at the worker boundary:
+
+```text
+planProductRender
+      |
+      v
+SharpRasterizer + @unsaid/db Firebase media storage adapter
+      |
+      v
+immutable generated objects + generated-media manifest bundle
+```
+
+Use a dry run first:
+
+```bash
+pnpm media:render-products
+```
+
+The dry run performs configuration validation and refuses to plan against a template that is not `ready`.
+
+After the clean hash-locked masters have been ingested and the template metadata has been promoted to `ready`, render and persist immutable outputs:
+
+```bash
+pnpm media:render-products -- --write
+```
+
+Optional flags:
+
+- `--product=UNS-0001` renders one published product for focused QA;
+- `--output=/absolute/path/generated-media.json` changes the local manifest-bundle destination.
+
+The default bundle path is `.media-stage/generated-media.json`, which remains outside Git. Rendering never edits catalog metadata directly. The resulting bundle must pass `media:attach-manifests` before any repository catalog update, and Firestore publication remains a separate reviewed step.
+
+`SharpRasterizer` enforces the source-fidelity rule: it validates the exact template dimensions, composites vector print overlays into a PNG master, and creates purpose-specific WebP/AVIF canvases without enlarging source raster pixels. Larger derivative canvases are padded, not upscaled.
+

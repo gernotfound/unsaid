@@ -84,9 +84,15 @@ importers:
 
   apps/worker:
     dependencies:
+      '@unsaid/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       '@unsaid/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      sharp:
+        specifier: 0.35.4
+        version: 0.35.4(@types/node@22.20.2)
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

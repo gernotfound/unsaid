@@ -2,8 +2,6 @@ import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
 import { extname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { cert, getApps, initializeApp } from "firebase-admin/app";
-import { getStorage } from "firebase-admin/storage";
 
 const root = resolve(fileURLToPath(new URL("../../..", import.meta.url)));
 const intakePath = resolve(root, "data/media/master-intake.json");
@@ -63,6 +61,11 @@ if (!write) {
   console.log("Dry run only. Pass --write to upload the exact bytes to Firebase Storage.");
   process.exit(0);
 }
+
+const [{ cert, getApps, initializeApp }, { getStorage }] = await Promise.all([
+  import("firebase-admin/app"),
+  import("firebase-admin/storage"),
+]);
 
 const app = getApps()[0] ?? initializeApp({
   credential: cert({

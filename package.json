@@ -17,7 +17,8 @@
     "media:stage-masters": "pnpm --filter @unsaid/worker media:stage-masters",
     "media:ingest-masters": "pnpm --filter @unsaid/db media:ingest-masters",
     "media:attach-manifests": "pnpm --filter @unsaid/db media:attach-manifests",
-    "media:publish-manifests": "pnpm --filter @unsaid/db media:publish-manifests"
+    "media:publish-manifests": "pnpm --filter @unsaid/db media:publish-manifests",
+    "media:render-products": "pnpm --filter @unsaid/worker media:render-products"
   },
   "devDependencies": {
     "tsx": "catalog:"
