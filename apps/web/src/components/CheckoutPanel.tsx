@@ -305,7 +305,7 @@ export function CheckoutPanel({
           <strong>Italia soltanto</strong>
         </div>
         {sessionState === "missing" ? (
-          <div className={styles.blocked}><strong>PROFILO RICHIESTO</strong><p>Devi accedere prima del checkout.</p><Link href="/account">Accedi / crea profilo →</Link></div>
+          <div className={styles.blocked}><strong>PROFILO RICHIESTO</strong><p>Devi accedere prima di confermare l'ordine.</p><Link href="/account">Accedi / crea profilo →</Link></div>
         ) : sessionState === "unverified" ? (
           <div className={styles.blocked}><strong>VERIFICA EMAIL RICHIESTA</strong><p>Verifica l&apos;email e aggiorna la sessione dall&apos;area personale.</p><Link href="/account">Apri area personale →</Link></div>
         ) : addresses.length ? (
