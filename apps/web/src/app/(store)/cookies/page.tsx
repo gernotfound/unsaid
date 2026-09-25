@@ -3,7 +3,7 @@ import { AnalyticsPreferences } from "../../../components/AnalyticsPreferences";
 import { getLegalSettings } from "../../../lib/legal";
 
 export const metadata: Metadata = {
-  title: "Cookie policy",
+  title: "Informativa cookie",
   description: "Cookie e strumenti di tracciamento utilizzati da UNSAID.",
 };
 
@@ -12,10 +12,10 @@ export default function CookiesPage() {
 
   return (
     <main id="main" className="legal-page">
-      <p className="eyebrow">LEGAL / COOKIE</p>
+      <p className="eyebrow">NOTE LEGALI / COOKIE</p>
       <h1>Cookie.</h1>
       <p className="legal-lede">
-        UNSAID adotta un approccio privacy-by-default: gli strumenti analytics restano spenti finché non vengono
+        UNSAID adotta un approccio con protezione dei dati predefinita: gli strumenti statistici restano spenti finché non vengono
         accettati esplicitamente.
       </p>
 
@@ -25,10 +25,10 @@ export default function CookiesPage() {
           <h2>Impostazione predefinita</h2>
           <p>
             Alla prima visita il sito usa solo ciò che è necessario per erogare il servizio e ricordare la scelta
-            privacy. Nessun cookie Analytics viene attivato dal codice UNSAID prima del consenso.
+            privacy. Nessun cookie di Google Analytics viene attivato dal codice UNSAID prima del consenso.
           </p>
           <p>
-            Puoi rifiutare dal banner oppure chiuderlo con la X: entrambe le azioni mantengono gli analytics
+            Puoi rifiutare dall&apos;avviso oppure chiuderlo con la X: entrambe le azioni mantengono gli analytics
             disattivati senza limitare la navigazione.
           </p>
         </div>
@@ -51,8 +51,8 @@ export default function CookiesPage() {
               <tbody>
                 <tr>
                   <td><code>unsaid.analytics-consent.v2</code></td>
-                  <td>Local storage</td>
-                  <td>Ricordare accettazione o rifiuto degli analytics.</td>
+                  <td>Archiviazione locale</td>
+                  <td>Ricordare accettazione o rifiuto delle statistiche.</td>
                   <td>180 giorni</td>
                 </tr>
               </tbody>
@@ -73,7 +73,7 @@ export default function CookiesPage() {
             <>
               <p>
                 Se scegli “Accetta analytics”, il sito può attivare Google Analytics. La libreria può impostare
-                cookie proprietari come <code>_ga</code> e <code>_ga_&lt;container-id&gt;</code>, normalmente usati
+                cookie proprietari come <code>_ga</code> e <code>_ga_&lt;id-contenitore&gt;</code>, normalmente usati
                 per distinguere utenti e mantenere lo stato della sessione.
               </p>
               <div className="legal-table-wrap">
@@ -104,7 +104,7 @@ export default function CookiesPage() {
               </div>
               <p>
                 Queste durate sono valori predefiniti documentati da Google; la configurazione effettiva può essere
-                modificata nel tempo. La conservazione dei dati lato Analytics è distinta dalla durata dei cookie e va
+                modificata nel tempo. La conservazione dei dati in Google Analytics è distinta dalla durata dei cookie e va
                 impostata nella proprietà Google Analytics.
               </p>
             </>
@@ -122,14 +122,14 @@ export default function CookiesPage() {
         <div>
           <h2>Cambiare idea</h2>
           <p>
-            Se gli analytics sono attivi puoi revocare la scelta in qualsiasi momento. La revoca interrompe la
-            raccolta tramite il modulo Analytics e il sito prova anche a rimuovere i cookie Analytics proprietari
+            Se le statistiche sono attive puoi revocare la scelta in qualsiasi momento. La revoca interrompe la
+            raccolta tramite il modulo di Google Analytics e il sito prova anche a rimuovere i cookie di Google Analytics proprietari
             presenti sul dominio.
           </p>
           {legal.analyticsConsentEnabled ? (
             <AnalyticsPreferences />
           ) : (
-            <p className="legal-inline-status">Analytics non attivo in questa configurazione.</p>
+            <p className="legal-inline-status">Statistiche non attive in questa configurazione.</p>
           )}
         </div>
       </section>
