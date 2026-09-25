@@ -1,8 +1,8 @@
 export const BRAND = {
   name: "UNSAID",
   slug: "unsaid",
-  tagline: "wear what you wouldn't say.",
-  description: "Independent streetwear archive for the things you wouldn't say out loud.",
+  tagline: "indossa quello che non diresti.",
+  description: "Archivio indipendente di abbigliamento urbano per le cose che non diresti ad alta voce.",
   locale: "it-IT",
 } as const;
 
