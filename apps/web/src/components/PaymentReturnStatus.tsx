@@ -34,6 +34,31 @@ function formatMoney(money: Money) {
   }).format(money.amountCents / 100);
 }
 
+function orderStatusLabel(status: OrderStatus) {
+  const labels: Record<OrderStatus, string> = {
+    pending_payment: "in attesa di pagamento",
+    paid: "pagato",
+    processing: "in lavorazione",
+    shipped: "spedito",
+    delivered: "consegnato",
+    cancelled: "annullato",
+    refunded: "rimborsato",
+  };
+  return labels[status];
+}
+
+function paymentStatusLabel(status: PaymentStatus) {
+  if (!status) return "in attesa";
+  const labels: Record<Exclude<PaymentStatus, null>, string> = {
+    requires_action: "azione richiesta",
+    paid: "pagato",
+    failed: "non riuscito",
+    manual_review: "verifica manuale",
+    refunded: "rimborsato",
+  };
+  return labels[status];
+}
+
 function isPaidOrder(status: OrderStatus) {
   return status === "paid" || status === "processing" || status === "shipped" || status === "delivered" || status === "refunded";
 }
@@ -147,37 +172,37 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
   const pending = snapshot?.orderStatus === "pending_payment" && !review && !failed;
   const expiresAt = snapshot?.providerExpiresAt ?? snapshot?.reservationExpiresAt;
 
-  let label = "PAYMENT / VERIFYING";
+  let label = "PAGAMENTO / VERIFICA";
   let title = "Verifica pagamento";
   let copy = "Stiamo leggendo lo stato autorevole dell'ordine dal server.";
   let tone: "success" | "warning" | "neutral" = "neutral";
 
   if (refunded) {
-    label = "ORDER / REFUNDED";
+    label = "ORDINE / RIMBORSATO";
     title = "Ordine rimborsato";
     copy = "Il server registra il rimborso come completato. Lo storico dell'ordine resta disponibile nel tuo account.";
     tone = "neutral";
   } else if (paid) {
-    label = "PAYMENT / CONFIRMED";
+    label = "PAGAMENTO / CONFERMATO";
     title = "Ordine confermato";
     copy = "Il webhook firmato ha confermato il pagamento. Lo stock è stato impegnato definitivamente e il carrello locale è stato svuotato.";
     tone = "success";
   } else if (review) {
-    label = "PAYMENT / MANUAL REVIEW";
+    label = "PAGAMENTO / VERIFICA MANUALE";
     title = "Pagamento in verifica";
     copy = "Il provider ha segnalato un pagamento, ma il server ha rilevato uno stato che richiede verifica. Non ripetere il pagamento: l'ordine resta protetto per il controllo amministrativo.";
     tone = "warning";
   } else if (failed) {
-    label = "PAYMENT / NOT COMPLETED";
+    label = "PAGAMENTO / NON COMPLETATO";
     title = "Pagamento non completato";
     copy = "La sessione è stata chiusa o l'ordine è stato annullato. Se lo stock è stato rilasciato puoi tornare al carrello e ripartire.";
     tone = "warning";
   } else if (pending && mode === "success") {
-    label = "PAYMENT / CONFIRMING";
+    label = "PAGAMENTO / CONFERMA IN CORSO";
     title = "Conferma in corso";
     copy = "Sei tornato da Stripe, ma il redirect del browser non prova il pagamento. Attendiamo il webhook firmato prima di confermare l'ordine.";
   } else if (pending && mode === "cancelled") {
-    label = "PAYMENT / INTERRUPTED";
+    label = "PAGAMENTO / INTERROTTO";
     title = "Pagamento interrotto";
     copy = "Hai lasciato Stripe senza completare il flusso. L'ordine può restare prenotato finché la sessione provider è valida; puoi riprendere la stessa sessione senza creare un nuovo ordine.";
     tone = "warning";
@@ -192,10 +217,10 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
 
       {snapshot ? (
         <dl className={styles.details}>
-          <div><dt>Ordine</dt><dd>{snapshot.orderStatus}</dd></div>
-          <div><dt>Pagamento</dt><dd>{snapshot.paymentStatus ?? "in attesa"}</dd></div>
+          <div><dt>Ordine</dt><dd>{orderStatusLabel(snapshot.orderStatus)}</dd></div>
+          <div><dt>Pagamento</dt><dd>{paymentStatusLabel(snapshot.paymentStatus)}</dd></div>
           <div><dt>Totale</dt><dd>{formatMoney(snapshot.total)}</dd></div>
-          {expiresAt ? <div><dt>Sessione / hold</dt><dd>{new Date(expiresAt).toLocaleString("it-IT")}</dd></div> : null}
+          {expiresAt ? <div><dt>Sessione / prenotazione</dt><dd>{new Date(expiresAt).toLocaleString("it-IT")}</dd></div> : null}
         </dl>
       ) : null}
 
@@ -210,7 +235,7 @@ export function PaymentReturnStatus({ mode, orderId, paymentEnabled }: Props) {
           <button className={styles.secondary} type="button" disabled={busy} onClick={() => void refresh()}>Aggiorna stato</button>
         ) : null}
         <Link href="/account">Apri account</Link>
-        <Link href={paid ? "/shop" : "/cart"}>{paid ? "Torna all'archive" : "Vai al carrello"}</Link>
+        <Link href={paid ? "/shop" : "/cart"}>{paid ? "Torna all'archivio" : "Vai al carrello"}</Link>
       </div>
     </section>
   );
