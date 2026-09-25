@@ -69,25 +69,25 @@ export function AnalyticsConsent({ enabled }: Props) {
   if (!ready || !enabled || consent !== null) return null;
 
   return (
-    <aside className={styles.panel} aria-label="Preferenze privacy e analytics">
+    <aside className={styles.panel} aria-label="Preferenze privacy e statistiche">
       <button
         type="button"
         className={styles.close}
-        aria-label="Continua senza analytics"
-        title="Continua senza analytics"
+        aria-label="Continua senza statistiche"
+        title="Continua senza statistiche"
         onClick={() => void choose("rejected")}
       >
         ×
       </button>
 
       <div>
-        <p className={styles.kicker}>PRIVACY / ANALYTICS OPTIONAL</p>
+        <p className={styles.kicker}>PRIVACY / STATISTICHE FACOLTATIVE</p>
         <p className={styles.copy}>
-          Per impostazione predefinita non attiviamo strumenti analytics. Google Analytics parte solo se scegli
+          Per impostazione predefinita non attiviamo strumenti statistici. Google Analytics viene attivato solo se scegli
           di accettarlo; rifiutare o chiudere questo pannello non limita il sito.
         </p>
         <p className={styles.links}>
-          <Link href="/cookies">Cookie policy</Link>
+          <Link href="/cookies">Informativa cookie</Link>
           <span aria-hidden="true">/</span>
           <Link href="/privacy">Privacy</Link>
         </p>
@@ -98,7 +98,7 @@ export function AnalyticsConsent({ enabled }: Props) {
           Rifiuta
         </button>
         <button type="button" className={styles.primary} onClick={() => void choose("accepted")}>
-          Accetta analytics
+          Accetta statistiche
         </button>
       </div>
     </aside>
