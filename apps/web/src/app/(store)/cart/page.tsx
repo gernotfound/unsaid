@@ -6,7 +6,7 @@ import styles from "./CartPage.module.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Cart",
+  title: "Carrello",
   description: "Carrello UNSAID con verifica server-side di prezzo e disponibilità.",
 };
 
@@ -16,8 +16,8 @@ export default function CartPage() {
       <div className={styles.inner}>
         <header className={styles.hero}>
           <div>
-            <p className={styles.kicker}>UNSAID / CART</p>
-            <h1>HOLD<br /><span>IT.</span></h1>
+            <p className={styles.kicker}>UNSAID / CARRELLO</p>
+            <h1>TIENILO<br /><span>CON TE.</span></h1>
           </div>
           <p>Il browser ricorda soltanto SKU e quantità. Prezzo, prodotto vendibile e stock vengono ricontrollati dal server ogni volta che apri o modifichi il carrello.</p>
         </header>
