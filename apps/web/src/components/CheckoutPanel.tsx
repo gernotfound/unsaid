@@ -61,6 +61,19 @@ function formatMoney(money: Money | { amountCents: number; currency: "EUR" }) {
   return new Intl.NumberFormat("it-IT", { style: "currency", currency: money.currency }).format(money.amountCents / 100);
 }
 
+function orderStatusLabel(status: Order["status"]) {
+  const labels: Record<Order["status"], string> = {
+    pending_payment: "in attesa di pagamento",
+    paid: "pagato",
+    processing: "in lavorazione",
+    shipped: "spedito",
+    delivered: "consegnato",
+    cancelled: "annullato",
+    refunded: "rimborsato",
+  };
+  return labels[status];
+}
+
 function newIdempotencyKey() {
   return globalThis.crypto.randomUUID();
 }
@@ -220,9 +233,9 @@ export function CheckoutPanel({
   if (!localLines.length && !busy) {
     return (
       <section className={styles.blocked}>
-        <strong>CART / EMPTY</strong>
+        <strong>CARRELLO / VUOTO</strong>
         <p>Aggiungi almeno una maglia prima di entrare nel checkout.</p>
-        <Link href="/shop">Torna all&apos;archive →</Link>
+        <Link href="/shop">Torna all&apos;archivio →</Link>
       </section>
     );
   }
@@ -231,7 +244,7 @@ export function CheckoutPanel({
     const expires = prepared.reservationExpiresAt ? new Date(prepared.reservationExpiresAt) : null;
     return (
       <section className={styles.prepared}>
-        <p className={styles.kicker}>ORDER / {prepared.status}</p>
+        <p className={styles.kicker}>ORDINE / {orderStatusLabel(prepared.status).toUpperCase()}</p>
         <h2>{prepared.id}</h2>
         <div className={styles.totalRow}><span>Totale</span><strong>{formatMoney(prepared.totals.total)}</strong></div>
         <p>
@@ -243,13 +256,13 @@ export function CheckoutPanel({
         {prepared.status === "pending_payment" ? (
           <>
             <div className={styles.paymentGate}>
-              <strong>{paymentEnabled ? "PAYMENT / STRIPE CHECKOUT" : "PAYMENT GATE / OFF"}</strong>
+              <strong>{paymentEnabled ? "PAGAMENTO / STRIPE" : "PAGAMENTO / DISATTIVATO"}</strong>
               <span>
                 {paymentEnabled
-                  ? `Il pagamento si apre sul Checkout hosted di Stripe. La sessione dura circa ${paymentSessionMinutes} minuti; il ritorno del browser non viene mai usato come prova di pagamento.`
+                  ? `Il pagamento si apre sulla pagina sicura di Stripe. La sessione dura circa ${paymentSessionMinutes} minuti; il ritorno del browser non viene mai usato come prova di pagamento.`
                   : paymentProblems.length
                     ? `Configurazione pagamento incompleta: ${paymentProblems.join(", ")}.`
-                    : "Il pagamento resta disattivato tramite feature gate."}
+                    : "Il pagamento resta disattivato tramite il controllo di attivazione."}
               </span>
             </div>
             {paymentEnabled ? (
@@ -273,7 +286,7 @@ export function CheckoutPanel({
     <div className={styles.grid}>
       <section className={styles.main}>
         <div className={styles.sectionHead}>
-          <p className={styles.kicker}>01 / CART SERVER CHECK</p>
+          <p className={styles.kicker}>01 / CARRELLO / VERIFICA SERVER</p>
           <strong>{validated ? `${validated.lines.length} linee validate` : "Verifica in corso"}</strong>
         </div>
         <div className={styles.lines}>
@@ -288,13 +301,13 @@ export function CheckoutPanel({
         {validated?.issues.length ? <p className={styles.problem}>Il carrello contiene righe non più valide. Torna al carrello per correggerle.</p> : null}
 
         <div className={styles.sectionHead}>
-          <p className={styles.kicker}>02 / SHIPPING ADDRESS</p>
+          <p className={styles.kicker}>02 / INDIRIZZO DI SPEDIZIONE</p>
           <strong>Italia soltanto</strong>
         </div>
         {sessionState === "missing" ? (
-          <div className={styles.blocked}><strong>ACCOUNT REQUIRED</strong><p>Devi accedere prima del checkout.</p><Link href="/account">Accedi / crea account →</Link></div>
+          <div className={styles.blocked}><strong>PROFILO RICHIESTO</strong><p>Devi accedere prima del checkout.</p><Link href="/account">Accedi / crea account →</Link></div>
         ) : sessionState === "unverified" ? (
-          <div className={styles.blocked}><strong>EMAIL VERIFICATION REQUIRED</strong><p>Verifica l&apos;email e aggiorna la sessione dall&apos;area account.</p><Link href="/account">Apri account →</Link></div>
+          <div className={styles.blocked}><strong>VERIFICA EMAIL RICHIESTA</strong><p>Verifica l&apos;email e aggiorna la sessione dall&apos;area account.</p><Link href="/account">Apri account →</Link></div>
         ) : addresses.length ? (
           <div className={styles.addresses}>
             {addresses.map((address) => (
@@ -306,23 +319,23 @@ export function CheckoutPanel({
             <Link href="/account">Gestisci indirizzi →</Link>
           </div>
         ) : (
-          <div className={styles.blocked}><strong>SHIPPING ADDRESS REQUIRED</strong><p>Salva almeno un indirizzo italiano nell&apos;account.</p><Link href="/account">Aggiungi indirizzo →</Link></div>
+          <div className={styles.blocked}><strong>INDIRIZZO DI SPEDIZIONE RICHIESTO</strong><p>Salva almeno un indirizzo italiano nell&apos;account.</p><Link href="/account">Aggiungi indirizzo →</Link></div>
         )}
       </section>
 
       <aside className={styles.summary}>
-        <p className={styles.kicker}>03 / AUTHORITATIVE SUMMARY</p>
+        <p className={styles.kicker}>03 / RIEPILOGO VERIFICATO</p>
         <dl>
-          <div><dt>Subtotal</dt><dd>{validated ? formatMoney(validated.subtotal) : "—"}</dd></div>
-          <div><dt>Shipping</dt><dd>{shippingPreviewCents == null ? "—" : formatMoney({ amountCents: shippingPreviewCents, currency: "EUR" })}</dd></div>
-          <div className={styles.totalRow}><dt>Total preview</dt><dd>{validated && shippingPreviewCents != null ? formatMoney({ amountCents: validated.subtotal.amountCents + shippingPreviewCents, currency: "EUR" }) : "—"}</dd></div>
+          <div><dt>Subtotale</dt><dd>{validated ? formatMoney(validated.subtotal) : "—"}</dd></div>
+          <div><dt>Spedizione</dt><dd>{shippingPreviewCents == null ? "—" : formatMoney({ amountCents: shippingPreviewCents, currency: "EUR" })}</dd></div>
+          <div className={styles.totalRow}><dt>Totale stimato</dt><dd>{validated && shippingPreviewCents != null ? formatMoney({ amountCents: validated.subtotal.amountCents + shippingPreviewCents, currency: "EUR" }) : "—"}</dd></div>
         </dl>
         <p>IVA inclusa nel prezzo secondo la configurazione fiscale server. Il server ricalcola tutto dentro la transazione che prenota lo stock.</p>
-        <p>La prima prenotazione dura {reservationMinutes} minuti. Se avvii il pagamento, il server estende il hold per allinearlo alla sessione Stripe e al grace period del webhook.</p>
+        <p>La prima prenotazione dura {reservationMinutes} minuti. Se avvii il pagamento, il server estende la prenotazione per allinearla alla sessione Stripe e al margine di attesa del webhook.</p>
         {!enabled ? (
           <div className={styles.paymentGate}>
-            <strong>CHECKOUT GATE / OFF</strong>
-            <span>{configurationProblems.length ? `Configurazione incompleta: ${configurationProblems.join(", ")}.` : "Lo shop o il checkout pre-payment non sono ancora abilitati."}</span>
+            <strong>CONFERMA ORDINE / DISATTIVATA</strong>
+            <span>{configurationProblems.length ? `Configurazione incompleta: ${configurationProblems.join(", ")}.` : "Le vendite o la conferma ordine prima del pagamento non sono ancora abilitate."}</span>
           </div>
         ) : null}
         <button type="button" disabled={!canPrepare || busy} onClick={() => void prepare()}>
