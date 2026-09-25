@@ -23,21 +23,21 @@ export default async function HomePage() {
     <main id="main">
       <section className="ff-hero">
         <div className="ff-hero__copy">
-          <p className="eyebrow">UNSAID / FASHION FLUO / MODEL 01</p>
+          <p className="eyebrow">UNSAID / MODA FLUO / MODELLO 01</p>
           <h1>
-            WEAR WHAT<br />
-            <span>YOU WOULDN&apos;T</span><br />
-            SAY.
+            INDOSSA QUELLO<br />
+            <span>CHE NON</span><br />
+            DIRESTI.
           </h1>
           <p className="ff-hero__lede">{BRAND.tagline} Maglie monocromatiche, pensieri molto meno neutrali.</p>
           <div className="ff-hero__actions">
-            <Link className="button button--signal" href="/shop">Open archive <span aria-hidden="true">↘</span></Link>
-            {featured ? <Link className="text-link" href={`/product/${featured.slug}`}>Latest / {featured.id}</Link> : null}
+            <Link className="button button--signal" href="/shop">Apri archivio <span aria-hidden="true">↘</span></Link>
+            {featured ? <Link className="text-link" href={`/product/${featured.slug}`}>Ultimo / {featured.id}</Link> : null}
           </div>
           <div className="ff-hero__micro">
-            <span>{String(stats.public).padStart(2, "0")} published</span>
-            <span>white / black garments</span>
-            <span>continuous archive</span>
+            <span>{String(stats.public).padStart(2, "0")} pubblicati</span>
+            <span>capi bianchi / neri</span>
+            <span>archivio continuo</span>
           </div>
         </div>
 
@@ -52,8 +52,8 @@ export default async function HomePage() {
             />
           </div>
           <div className="ff-hero__model-tag">
-            <span>MODEL / 01</span>
-            <strong>SAME BODY.<br />DIFFERENT THOUGHT.</strong>
+            <span>MODELLO / 01</span>
+            <strong>STESSO CORPO.<br />PENSIERO DIVERSO.</strong>
           </div>
           <span className="ff-hero__pink" aria-hidden="true" />
           <span className="ff-hero__cyan" aria-hidden="true" />
@@ -61,22 +61,22 @@ export default async function HomePage() {
       </section>
 
       <section className="signal-rail" aria-label="Colori UNSAID">
-        <div className="signal-rail__pink"><span>PINK</span><strong>#F472B6</strong></div>
-        <div className="signal-rail__cyan"><span>CYAN</span><strong>#22D3EE</strong></div>
-        <div className="signal-rail__violet"><span>VIOLET</span><strong>#7C3AED</strong></div>
-        <div className="signal-rail__amber"><span>AMBER</span><strong>#FBBF24</strong></div>
-        <div className="signal-rail__orange"><span>ORANGE</span><strong>#EA580C</strong></div>
+        <div className="signal-rail__pink"><span>ROSA</span><strong>#F472B6</strong></div>
+        <div className="signal-rail__cyan"><span>CIANO</span><strong>#22D3EE</strong></div>
+        <div className="signal-rail__violet"><span>VIOLA</span><strong>#7C3AED</strong></div>
+        <div className="signal-rail__amber"><span>AMBRA</span><strong>#FBBF24</strong></div>
+        <div className="signal-rail__orange"><span>ARANCIONE</span><strong>#EA580C</strong></div>
       </section>
 
       <section className="latest-section">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">LATEST / PUBLIC ARCHIVE</p>
-            <h2>THOUGHTS,<br />NOW WEARABLE.</h2>
+            <p className="eyebrow">ULTIMI / ARCHIVIO PUBBLICO</p>
+            <h2>PENSIERI,<br />ORA INDOSSABILI.</h2>
           </div>
           <div className="section-heading__aside">
             <p>Il capo resta semplice. La frase cambia carattere, peso e posizione da una maglia all&apos;altra.</p>
-            <Link className="text-link" href="/shop">See all {stats.public} pieces ↗</Link>
+            <Link className="text-link" href="/shop">Vedi tutti i {stats.public} pezzi ↗</Link>
           </div>
         </div>
         {latest.items.length ? (
@@ -84,7 +84,7 @@ export default async function HomePage() {
             {latest.items.map((record) => <ProductCard key={record.id} record={record} sale={commerceById[record.id] ?? null} />)}
           </div>
         ) : (
-          <div className="archive-empty"><span>ARCHIVE / EMPTY</span><strong>EMPTY<br />FOR NOW.</strong></div>
+          <div className="archive-empty"><span>ARCHIVIO / VUOTO</span><strong>VUOTO<br />PER ORA.</strong></div>
         )}
       </section>
 
@@ -96,31 +96,31 @@ export default async function HomePage() {
             fill
             sizes="(max-width: 860px) 100vw, 55vw"
           />
-          <span className="model-section__index">MODEL 01 / CANONICAL</span>
+          <span className="model-section__index">MODELLO 01 / CANONICO</span>
         </div>
         <div className="model-section__copy">
-          <p className="eyebrow">THE MODEL DOESN&apos;T CHANGE</p>
-          <h2>THE<br /><span>STATEMENT</span><br />DOES.</h2>
+          <p className="eyebrow">IL MODELLO NON CAMBIA</p>
+          <h2>LA<br /><span>FRASE</span><br />CAMBIA.</h2>
           <p>MODEL 01 è il volto senza volto di UNSAID: stessa anatomia e stessa silhouette in ogni uscita. Possono cambiare colorway, luce, posa e maglia. Non cambia il personaggio.</p>
           <dl className="model-specs">
-            <div><dt>Garments</dt><dd>white / black</dd></div>
-            <div><dt>Shell</dt><dd>variable colorway</dd></div>
-            <div><dt>Identity</dt><dd>fixed</dd></div>
+            <div><dt>Capi</dt><dd>bianco / nero</dd></div>
+            <div><dt>Scocca</dt><dd>colorazione variabile</dd></div>
+            <div><dt>Identità</dt><dd>fissa</dd></div>
           </dl>
         </div>
       </section>
 
       <section className="featured-statement" aria-label="Prodotto in evidenza">
         <div className="featured-statement__copy">
-          <p className="eyebrow">CURRENT STATEMENT</p>
-          <h2>{featuredCopy ?? "SOME THINGS LOOK BETTER ON A T-SHIRT."}</h2>
-          {featured ? <Link className="button button--dark-on-signal" href={`/product/${featured.slug}`}>View {featured.id} ↗</Link> : <Link className="button button--dark-on-signal" href="/shop">Archive ↗</Link>}
+          <p className="eyebrow">FRASE ATTUALE</p>
+          <h2>{featuredCopy ?? "CERTE COSE STANNO MEGLIO SU UNA T-SHIRT."}</h2>
+          {featured ? <Link className="button button--dark-on-signal" href={`/product/${featured.slug}`}>Vedi {featured.id} ↗</Link> : <Link className="button button--dark-on-signal" href="/shop">Archivio ↗</Link>}
         </div>
         <div className="featured-statement__media">
           {featured && featuredAsset ? (
             <Image src={featuredAsset} alt={`T-shirt UNSAID ${featured.title}`} fill unoptimized={featuredAsset.startsWith("http")} sizes="(max-width: 860px) 100vw, 44vw" />
           ) : (
-            <span>UNSAID / ARCHIVE</span>
+            <span>UNSAID / ARCHIVIO</span>
           )}
         </div>
       </section>
@@ -128,11 +128,11 @@ export default async function HomePage() {
       <section className="manifesto-v2" id="manifesto">
         <p className="eyebrow">MANIFESTO / 01</p>
         <div className="manifesto-v2__grid">
-          <h2>DON&apos;T<br />EXPLAIN IT.<br /><span>WEAR IT.</span></h2>
+          <h2>NON<br />SPIEGARLO.<br /><span>INDOSSALO.</span></h2>
           <div>
             <p>UNSAID raccoglie frasi che di solito restano in testa e le trasforma in oggetti semplici: una maglia, un fronte, un retro, una scelta tipografica.</p>
             <p>Il sito può essere rumoroso. Il prodotto no. Bianco o nero, e una frase che si prende lo spazio che le serve.</p>
-            <Link className="text-link" href="/shop">Enter the archive ↗</Link>
+            <Link className="text-link" href="/shop">Entra nell&apos;archivio ↗</Link>
           </div>
         </div>
       </section>
