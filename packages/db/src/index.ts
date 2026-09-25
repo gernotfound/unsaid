@@ -8,7 +8,6 @@ export * from "./customer";
 export * from "./customerExport";
 export * from "./firebase";
 export * from "./fulfillment";
-export * from "./mediaStorage";
 export * from "./notifications";
 export * from "./payments";
 export * from "./paymentStatus";

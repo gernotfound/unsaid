@@ -61,7 +61,9 @@ function validateMasterIntake(errors: string[], warnings: string[]) {
   if (intake.status === "prepared-not-ingested") {
     warnings.push(`Clean masters for ${intake.templateId}@${intake.templateVersion} are prepared and hash-locked, but still require managed-storage ingestion before the template may be marked ready.`);
   } else {
-    if (!intake.storageBucket?.trim()) errors.push("master-intake.storageBucket is required after ingestion.");
+    if (intake.storageBackend !== "repository-static") {
+      errors.push("master-intake.storageBackend must be repository-static after ingestion.");
+    }
     if (!intake.ingestedAt || !Number.isFinite(Date.parse(intake.ingestedAt))) {
       errors.push("master-intake.ingestedAt must be a valid timestamp after ingestion.");
     }

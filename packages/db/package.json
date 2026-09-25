@@ -9,7 +9,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "build": "tsc -p tsconfig.json",
     "seed:catalog": "node scripts/seed-catalog.mjs",
-    "media:ingest-masters": "node scripts/ingest-media-masters.mjs",
     "media:attach-manifests": "node scripts/attach-generated-media.mjs",
     "media:publish-manifests": "node scripts/publish-generated-media.mjs"
   },

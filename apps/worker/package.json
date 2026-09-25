@@ -8,11 +8,11 @@
     "media:validate": "tsx src/media/validate.ts",
     "media:stage-masters": "tsx src/media/stage-masters.ts",
     "media:render-products": "tsx src/media/render-products.ts",
-    "media:preview-products": "tsx src/media/preview-products.ts"
+    "media:preview-products": "tsx src/media/preview-products.ts",
+    "media:ingest-masters": "tsx src/media/ingest-repository-masters.ts"
   },
   "dependencies": {
     "@unsaid/domain": "workspace:*",
-    "@unsaid/db": "workspace:*",
     "sharp": "0.35.4"
   },
   "devDependencies": {

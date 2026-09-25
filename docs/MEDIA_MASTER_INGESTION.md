@@ -2,109 +2,92 @@
 
 This runbook covers the boundary between an approved clean garment image and the production render pipeline.
 
+## Deployment constraint
+
+UNSAID currently uses Firebase Spark. Cloud Storage is not part of the production architecture.
+
+For the current catalog, canonical media is repository-backed:
+
+- private render inputs: `data/media/masters/**`;
+- public generated storefront files: `apps/web/public/generated/**`;
+- Vercel serves only the generated public directory.
+
+The media contracts remain provider-neutral so this backend can be replaced later without changing catalog or storefront semantics.
+
 ## Current clean masters
 
 `data/media/master-intake.json` is the authoritative intake receipt for `white-oversize-v1@1`.
 
-The prepared files are:
+Expected files:
 
 - `white-oversize-v1-front-master.webp` — `1536x2048`, `166216` bytes, SHA-256 `e1d79036772c2aabb7de9357f4a87ea24c3dbf1884d51b2e88474918a9ee957d`;
 - `white-oversize-v1-back-master.webp` — `1536x2048`, `165438` bytes, SHA-256 `2f7f5c5527029f9d397cb5cb4e15fe9527f377e2b9a39bb98844d90fa7343984`.
 
-The hashes are part of the media contract. A visually similar regenerated file is a different master and requires a new intake/version rather than silently replacing these bytes.
+A visually similar regenerated file is a different master and requires a new template version.
 
-## Verification and staging
+## Verification
 
-The worker verifies byte length and SHA-256 before any storage write:
-
-```bash
-pnpm media:stage-masters -- /absolute/path/to/clean-masters
-```
-
-An optional second argument changes the local staging root:
-
-```bash
-pnpm media:stage-masters -- /absolute/path/to/clean-masters /tmp/unsaid-media-stage
-```
-
-The default staging root is `.media-stage/`, which is ignored by Git.
-
-Staged keys are immutable and include a digest prefix, for example:
-
-```text
-masters/templates/white-oversize-v1/v1/front-e1d79036772c2aab.webp
-masters/templates/white-oversize-v1/v1/back-2f7f5c5527029f9d.webp
-```
-
-Writing the same bytes to the same key is idempotent. Writing different bytes to an existing immutable key is rejected.
-
-## Production adapter: Firebase Storage
-
-The first production storage adapter is the existing Firebase project. This is an infrastructure adapter, not a domain dependency: render specs, manifests and storefront code remain provider-neutral.
-
-Server-side media operations require:
-
-- `FIREBASE_PROJECT_ID`;
-- `FIREBASE_CLIENT_EMAIL`;
-- `FIREBASE_PRIVATE_KEY`;
-- `FIREBASE_STORAGE_BUCKET`.
-
-`packages/db/src/mediaStorage.ts` provides immutable Firebase Storage writes using an object-generation precondition. If an object key already exists, the adapter verifies the existing bytes have the same SHA-256; different content at an immutable key is rejected.
-
-Storage Security Rules are deliberately narrow:
-
-- `masters/**` is never public;
-- `generated/products/**` is public-read for storefront delivery;
-- browser/client writes are denied everywhere;
-- every other path fails closed.
-
-The Admin SDK is the only write path for this media pipeline.
-
-## Managed ingestion
-
-First perform a dry run against the exact source directory:
+Dry-run the exact files first:
 
 ```bash
 pnpm media:ingest-masters -- --source-dir=/absolute/path/to/clean-masters
 ```
 
-This verifies both files and prints the immutable destination keys without writing remotely.
+The command verifies byte length and full SHA-256 and performs no write.
 
-To upload the exact hash-locked bytes:
+## Repository ingestion
+
+Copy the exact verified bytes into their immutable canonical paths:
 
 ```bash
 pnpm media:ingest-masters -- --source-dir=/absolute/path/to/clean-masters --write
 ```
 
-To upload and then promote the repository metadata in the same local working branch:
+Canonical paths are digest-derived:
+
+```text
+data/media/masters/templates/white-oversize-v1/v1/front-e1d79036772c2aab.webp
+data/media/masters/templates/white-oversize-v1/v1/back-2f7f5c5527029f9d.webp
+```
+
+Writing identical bytes again is idempotent. Different bytes at an existing immutable key are rejected.
+
+After reviewing the binary diff, promote metadata on the same feature branch:
 
 ```bash
 pnpm media:ingest-masters -- --source-dir=/absolute/path/to/clean-masters --write --promote-template
 ```
 
-`--promote-template` is rejected unless `--write` is also present. Promotion occurs only after both uploads have completed and been verified. It updates `templates.json` with the immutable keys and marks the intake `ingested`; the resulting repository diff must still be reviewed, validated and committed on a branch.
+Promotion records the full SHA-256 in `templates.json` and marks the intake backend as `repository-static`.
 
-## Promotion to `ready`
+## Rendering
 
-Preparing or locally staging a master does **not** make a template production-ready. Promotion remains a reviewed repository operation:
+Once the template is `ready`:
 
-1. verify both clean files against `master-intake.json`;
-2. dry-run the managed ingestion command;
-3. upload those exact bytes to Firebase Storage using immutable keys;
-4. verify the stored objects;
-5. promote both `white-oversize-v1@1` views to `ready` and record their immutable `storageKey` values;
-6. change the intake status to `ingested` without altering its fingerprints;
-7. run `pnpm media:validate`, tests, typecheck and build;
-8. render every published product to a new immutable generated-media manifest;
-9. verify front/back copy, complete garment silhouette, responsive delivery and image sharpness;
-10. merge through PR only after validation succeeds.
+```bash
+pnpm media:render-products -- --write
+```
 
-Until step 5 is complete, `planProductRender()` fails closed by design. Legacy approved storefront images remain the migration fallback.
+The renderer:
 
-## Firebase rules deployment
+1. loads master bytes from `data/media/masters/**`;
+2. verifies their full SHA-256 again before rasterization;
+3. applies deterministic vector artwork with Sharp;
+4. writes immutable derivatives to `apps/web/public/generated/**`;
+5. produces the generated-media manifest bundle separately.
 
-`firebase.json` now includes `storage.rules`. Before generated media can be consumed publicly, deploy the reviewed Storage Rules to the same Firebase project. Do not broaden the catch-all rule to public write access.
+Generated files are served by Vercel with an immutable cache header. A new render must use a new render version/path; never replace different bytes at an existing generated key.
 
-## Git policy
+## Promotion checklist
 
-Do not commit the high-resolution source masters or a growing derivative library to Git as the permanent media store. Git contains the contracts, hashes, render specifications and migration tooling; managed object storage contains production binary media.
+Before merge:
+
+1. master byte lengths and SHA-256 match `master-intake.json`;
+2. template is `ready` only after canonical master files exist;
+3. all six products render front/back successfully;
+4. visual QA confirms copy, placement, silhouette and sharpness;
+5. generated manifest attachment validates;
+6. tests, typecheck and production build pass;
+7. merge through PR only; never work directly on `main`.
+
+Firebase Storage rules and Firebase Storage credentials are not part of this pipeline.

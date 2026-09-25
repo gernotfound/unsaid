@@ -22,7 +22,7 @@ export interface MasterIntakeManifest {
   status: "prepared-not-ingested" | "ingested";
   provenance: string;
   ingestedAt?: string;
-  storageBucket?: string;
+  storageBackend?: "repository-static";
   views: Record<PreparedMasterView, PreparedMasterDefinition>;
 }
 
@@ -115,7 +115,7 @@ function immutableMasterKey(intake: MasterIntakeManifest, master: VerifiedPrepar
 /**
  * Ingests the exact hash-locked clean masters. This function deliberately does
  * not mutate templates.json: promoting a template to `ready` remains a reviewed
- * repository change after object-storage ingestion succeeds.
+ * repository change after the exact bytes have been committed to the canonical repository media path.
  */
 export async function ingestPreparedMasters(
   masterDirectory: string,

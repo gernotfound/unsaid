@@ -11,6 +11,8 @@ import {
   findTemplate,
   MEDIA_REGISTRY,
   planProductRender,
+  RepositoryMediaObjectStore,
+  repositoryPublicMediaUrlForStorageKey,
   validateMediaConfiguration,
 } from "./index";
 
@@ -74,24 +76,14 @@ for (const plan of plans) {
 }
 
 if (!write) {
-  console.log("Dry run only. Pass --write to rasterize and persist immutable generated media.");
+  console.log("Dry run only. Pass --write to rasterize immutable generated media into apps/web/public/generated.");
   process.exit(0);
 }
 
-const {
-  downloadStorageObject,
-  publicMediaUrlForStorageKey,
-  putImmutableStorageObject,
-} = await import("@unsaid/db");
-
+const store = new RepositoryMediaObjectStore(root);
 const backend = createManagedMediaBackend({
   rasterizer: createSharpRasterizer(),
-  store: {
-    get: downloadStorageObject,
-    async putImmutable(input) {
-      await putImmutableStorageObject(input);
-    },
-  },
+  store,
 });
 
 const generatedAt = new Date().toISOString();
@@ -102,7 +94,7 @@ for (const plan of plans) {
     await executeProductRender(
       plan,
       backend,
-      publicMediaUrlForStorageKey,
+      repositoryPublicMediaUrlForStorageKey,
       generatedAt,
     ),
   );

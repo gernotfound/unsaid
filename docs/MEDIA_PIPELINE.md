@@ -52,7 +52,7 @@ A template is versioned and has independent front/back masters. Coordinates use 
 Template states:
 
 - `reference-only`: useful for calibration/art direction but forbidden for production rendering;
-- `ready`: clean blank master is present in managed media storage and has both an immutable `storageKey` and its full SHA-256 fingerprint.
+- `ready`: clean blank master is present in canonical repository media storage and has both an immutable `storageKey` and its full SHA-256 fingerprint.
 
 The original 2K white oversized T-shirt references supplied on 2026-09-20 are registered as `white-oversize-v1`. They contain the calibration words `FRONTE` / `RETRO` and therefore remain reference-only inputs.
 
@@ -113,9 +113,9 @@ The planner:
 - `MediaBinaryStore` retrieves clean masters and persists exact immutable output bytes;
 - the managed backend hashes every retrieved master and refuses rasterization unless it matches the render plan's full SHA-256 fingerprint.
 
-The first managed object-store adapter is Firebase Storage through `packages/db/src/mediaStorage.ts`. Rasterization remains independently injectable; a Sharp adapter can be introduced without changing domain, catalog, frontend or storage contracts.
+`RepositoryMediaObjectStore` is the production adapter for the current Spark/Hobby architecture. It maps private render inputs under `data/media/masters/**` and public generated outputs under `apps/web/public/generated/**`. Vercel serves only the latter as static assets. Rasterization remains independently injectable, so a future object-store adapter can replace the repository adapter without changing domain, catalog or frontend contracts.
 
-This separation is deliberate: catalog/domain/frontend must not depend on Sharp, Firebase Storage, S3, R2, Vercel Blob or another provider.
+This separation is deliberate: catalog/domain/frontend do not depend on Sharp, Firebase Storage, S3, R2, Vercel Blob or another provider. At the current catalog size, repository-backed binaries avoid a paid storage dependency while retaining deterministic generation and versioned review.
 
 ## Generated media manifest
 
@@ -183,7 +183,7 @@ Migration is intentionally staged so public catalog availability is preserved.
 1. Register template references and render profiles.
 2. Add render specs to catalog records.
 3. Prepare clean blank template masters and lock their hashes in `master-intake.json`.
-4. Upload those exact files to managed object storage/CDN and only then mark template views `ready`.
+4. Commit those exact files to `data/media/masters/**` through the verified ingestion command and only then mark template views `ready`.
 5. Connect a concrete rasterizer to the provider-neutral managed backend.
 6. Render every catalog product to a new immutable manifest.
 7. Validate and attach `generatedMedia` to the repository catalog.
@@ -212,19 +212,18 @@ CI runs media validation before tests/typecheck/build.
 
 ## Storage policy
 
-Master templates and generated derivatives belong in managed object storage/CDN before the legacy repository assets are retired.
+For the current six-product catalog, Git is intentionally the canonical binary store as well as the metadata store. This is a bounded architectural choice for the Spark/Hobby deployment, not a frontend workaround.
 
-Git should contain:
+Git contains:
 
-- contracts;
-- render specs;
-- render profiles;
-- template metadata;
-- master intake hashes/metadata;
-- generated-media manifests;
+- clean hash-locked masters under `data/media/masters/**`;
+- generated storefront derivatives under `apps/web/public/generated/**`;
+- contracts, render specs, profiles and manifests;
 - tests and tooling.
 
-Git should not become the long-term binary archive for high-resolution masters and every generated derivative.
+Masters remain outside the public Next.js directory. Generated derivatives are public static assets and are served by Vercel with a one-year immutable cache header. A new render version must use a new path; existing immutable paths are never overwritten with different bytes.
+
+If catalog/media volume later makes Git history materially large, only the `MediaBinaryStore` adapter should change. The render specs, manifests and storefront selection contract remain unchanged.
 
 ## Executing production renders
 
@@ -236,7 +235,7 @@ Production rendering is composed only at the worker boundary:
 planProductRender
       |
       v
-SharpRasterizer + @unsaid/db Firebase media storage adapter
+SharpRasterizer + RepositoryMediaObjectStore
       |
       v
 immutable generated objects + generated-media manifest bundle
@@ -250,7 +249,7 @@ pnpm media:render-products
 
 The dry run performs configuration validation and refuses to plan against a template that is not `ready`.
 
-After the clean hash-locked masters have been ingested and the template metadata has been promoted to `ready`, render and persist immutable outputs:
+After the clean hash-locked masters have been committed to the canonical repository master paths and template metadata has been promoted to `ready`, render and persist immutable static outputs:
 
 ```bash
 pnpm media:render-products -- --write
@@ -261,7 +260,7 @@ Optional flags:
 - `--product=UNS-0001` renders one published product for focused QA;
 - `--output=/absolute/path/generated-media.json` changes the local manifest-bundle destination.
 
-The default bundle path is `.media-stage/generated-media.json`, which remains outside Git. Rendering never edits catalog metadata directly. The resulting bundle must pass `media:attach-manifests` before any repository catalog update, and Firestore publication remains a separate reviewed step.
+The generated image files are written under `apps/web/public/generated/**`. The default manifest bundle path is `.media-stage/generated-media.json`; rendering never edits catalog metadata directly. The resulting bundle must pass `media:attach-manifests` before any repository catalog update, and Firestore publication remains a separate reviewed step.
 
 `SharpRasterizer` enforces the source-fidelity rule: it validates the exact template dimensions, composites vector print overlays into a PNG master, and creates purpose-specific WebP/AVIF canvases without enlarging source raster pixels. Larger derivative canvases are padded, not upscaled.
 
@@ -284,7 +283,7 @@ The command:
 5. writes all generated files under `.media-stage/qa-media`;
 6. writes a local `qa-manifests.json` bundle.
 
-It never changes `templates.json`, `master-intake.json`, catalog data, Firebase Storage or Firestore.
+It never changes `templates.json`, `master-intake.json`, catalog data or Firestore.
 
 Use `--product=UNS-0001` for focused QA and `--output-dir=/absolute/path` to choose another local output directory. This path is for art-direction review before managed-storage promotion, not a substitute for production ingestion.
 
