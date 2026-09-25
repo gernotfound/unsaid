@@ -9,7 +9,7 @@ import type {
   ProductRenderProfile,
   ProductRenderSpec,
   ProductSideRenderSpec,
-  ProductView,
+  ProductRenderView,
   PrintTextLayer,
   PrintTextStyle,
 } from "@unsaid/domain";
@@ -28,7 +28,7 @@ export interface PlannedDerivative extends MediaDerivativeDefinition {
 
 export interface ProductSideRenderPlan {
   productId: string;
-  view: ProductView;
+  view: ProductRenderView;
   templateStorageKey: string;
   templateWidth: number;
   templateHeight: number;
@@ -43,7 +43,7 @@ export interface ProductRenderPlan {
   spec: ProductRenderSpec;
   template: GarmentTemplateDefinition;
   profile: ProductRenderProfile;
-  sides: Record<ProductView, ProductSideRenderPlan>;
+  sides: Record<ProductRenderView, ProductSideRenderPlan>;
 }
 
 export interface RenderedFile {
@@ -145,7 +145,7 @@ export function createOverlaySvg(
 
 function sidePlan(
   productId: string,
-  view: ProductView,
+  view: ProductRenderView,
   spec: ProductRenderSpec,
   template: GarmentTemplateDefinition,
   profile: ProductRenderProfile,
@@ -193,7 +193,7 @@ export function planProductRender(input: ProductRenderPlanInput): ProductRenderP
   };
 }
 
-function generatedRef(productId: string, view: ProductView, suffix: string, file: RenderedFile, url: string): GeneratedImageRef {
+function generatedRef(productId: string, view: ProductRenderView, suffix: string, file: RenderedFile, url: string): GeneratedImageRef {
   return {
     id: `${productId}:${view}:${suffix}`,
     storageKey: file.storageKey,
@@ -207,7 +207,7 @@ function generatedRef(productId: string, view: ProductView, suffix: string, file
 
 function generatedSide(
   productId: string,
-  view: ProductView,
+  view: ProductRenderView,
   files: RenderedSideFiles,
   publicUrlForKey: (storageKey: string) => string,
 ): GeneratedMediaSide {

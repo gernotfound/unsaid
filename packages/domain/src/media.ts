@@ -6,7 +6,7 @@ export type ProductMediaRole =
   | "campaign"
   | "video";
 
-export type ProductView = "front" | "back";
+export type ProductRenderView = "front" | "back";
 export type BrandModelId = "MODEL-01";
 export type ImageMimeType = "image/jpeg" | "image/png" | "image/webp" | "image/avif";
 export type MediaDerivativeKind = "detail" | "card" | "thumbnail" | "social";
@@ -51,7 +51,7 @@ export interface GarmentTemplateDefinition {
   version: number;
   garmentColor: string;
   fit: string;
-  views: Record<ProductView, GarmentTemplateViewDefinition>;
+  views: Record<ProductRenderView, GarmentTemplateViewDefinition>;
 }
 
 export interface PrintTextStyle {
@@ -84,7 +84,7 @@ export interface ProductRenderSpec {
   templateVersion: number;
   profileId: string;
   renderVersion: string;
-  sides: Record<ProductView, ProductSideRenderSpec>;
+  sides: Record<ProductRenderView, ProductSideRenderSpec>;
 }
 
 export interface MediaDerivativeDefinition {
@@ -125,7 +125,7 @@ export interface ProductGeneratedMediaManifest {
   templateVersion: number;
   profileId: string;
   generatedAt: string;
-  sides: Record<ProductView, GeneratedMediaSide>;
+  sides: Record<ProductRenderView, GeneratedMediaSide>;
 }
 
 function inUnitInterval(value: number) {
