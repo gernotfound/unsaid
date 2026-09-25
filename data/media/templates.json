@@ -6,20 +6,34 @@
     "fit": "oversize",
     "views": {
       "front": {
-        "status": "reference-only",
-        "width": 1529,
+        "status": "ready",
+        "width": 1536,
         "height": 2048,
-        "mimeType": "image/jpeg",
-        "printableArea": { "x": 0.2, "y": 0.27, "width": 0.6, "height": 0.22 },
-        "sourceNote": "2K reference supplied 2026-09-20. Contains the calibration word FRONTE; create a clean blank master before marking ready."
+        "mimeType": "image/png",
+        "printableArea": {
+          "x": 0.2,
+          "y": 0.27,
+          "width": 0.6,
+          "height": 0.22
+        },
+        "sourceNote": "Hash-locked clean lossless PNG master committed to canonical repository media.",
+        "storageKey": "masters/templates/white-oversize-v1/v1/front-56709598a3e0a4d1.png",
+        "sha256": "56709598a3e0a4d1e10638b004a74ba945a33c71c5e05d2f40280d031af1884b"
       },
       "back": {
-        "status": "reference-only",
-        "width": 1529,
+        "status": "ready",
+        "width": 1536,
         "height": 2048,
-        "mimeType": "image/jpeg",
-        "printableArea": { "x": 0.2, "y": 0.27, "width": 0.6, "height": 0.22 },
-        "sourceNote": "2K reference supplied 2026-09-20. Contains the calibration word RETRO; create a clean blank master before marking ready."
+        "mimeType": "image/png",
+        "printableArea": {
+          "x": 0.2,
+          "y": 0.27,
+          "width": 0.6,
+          "height": 0.22
+        },
+        "sourceNote": "Hash-locked clean lossless PNG master committed to canonical repository media.",
+        "storageKey": "masters/templates/white-oversize-v1/v1/back-300a32370560b6bd.png",
+        "sha256": "300a32370560b6bd35023d9b73a2fcda083c8c1cd08d4aa86d2d5eb21d455200"
       }
     }
   }

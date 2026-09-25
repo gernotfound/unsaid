@@ -2,25 +2,27 @@
   "schemaVersion": 1,
   "templateId": "white-oversize-v1",
   "templateVersion": 1,
-  "createdAt": "2026-09-20T12:00:00.000Z",
-  "status": "prepared-not-ingested",
-  "provenance": "Clean blank masters prepared from the user-supplied 2K front/back references using ChatGPT image generation, then normalized to the canonical portrait canvas.",
+  "createdAt": "2026-09-25T11:08:00.000Z",
+  "status": "ingested",
+  "provenance": "Clean blank lossless PNG masters generated from the user-supplied upscaled front/back references, preserving garment silhouette, folds, fabric texture and neutral studio lighting while removing calibration text.",
   "views": {
     "front": {
-      "fileName": "white-oversize-v1-front-master.webp",
+      "fileName": "white-oversize-v1-front-master.png",
       "width": 1536,
       "height": 2048,
-      "mimeType": "image/webp",
-      "bytes": 166216,
-      "sha256": "e1d79036772c2aabb7de9357f4a87ea24c3dbf1884d51b2e88474918a9ee957d"
+      "mimeType": "image/png",
+      "bytes": 2002784,
+      "sha256": "56709598a3e0a4d1e10638b004a74ba945a33c71c5e05d2f40280d031af1884b"
     },
     "back": {
-      "fileName": "white-oversize-v1-back-master.webp",
+      "fileName": "white-oversize-v1-back-master.png",
       "width": 1536,
       "height": 2048,
-      "mimeType": "image/webp",
-      "bytes": 165438,
-      "sha256": "2f7f5c5527029f9d397cb5cb4e15fe9527f377e2b9a39bb98844d90fa7343984"
+      "mimeType": "image/png",
+      "bytes": 2006998,
+      "sha256": "300a32370560b6bd35023d9b73a2fcda083c8c1cd08d4aa86d2d5eb21d455200"
     }
-  }
+  },
+  "ingestedAt": "2026-09-25T11:12:00.000Z",
+  "storageBackend": "repository-static"
 }

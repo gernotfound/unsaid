@@ -70,6 +70,115 @@
           ]
         }
       }
+    },
+    "generatedMedia": {
+      "schemaVersion": 1,
+      "productId": "UNS-0001",
+      "renderVersion": "r1",
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "generatedAt": "2026-09-25T11:25:12.464Z",
+      "sides": {
+        "front": {
+          "master": {
+            "id": "UNS-0001:front:master",
+            "storageKey": "generated/products/UNS-0001/r1/front/master.png",
+            "url": "/generated/products/UNS-0001/r1/front/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0001:front:detail",
+              "storageKey": "generated/products/UNS-0001/r1/front/detail.webp",
+              "url": "/generated/products/UNS-0001/r1/front/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0001:front:card",
+              "storageKey": "generated/products/UNS-0001/r1/front/card.webp",
+              "url": "/generated/products/UNS-0001/r1/front/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0001:front:thumbnail",
+              "storageKey": "generated/products/UNS-0001/r1/front/thumbnail.webp",
+              "url": "/generated/products/UNS-0001/r1/front/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0001:front:social",
+              "storageKey": "generated/products/UNS-0001/r1/front/social.webp",
+              "url": "/generated/products/UNS-0001/r1/front/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        },
+        "back": {
+          "master": {
+            "id": "UNS-0001:back:master",
+            "storageKey": "generated/products/UNS-0001/r1/back/master.png",
+            "url": "/generated/products/UNS-0001/r1/back/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0001:back:detail",
+              "storageKey": "generated/products/UNS-0001/r1/back/detail.webp",
+              "url": "/generated/products/UNS-0001/r1/back/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0001:back:card",
+              "storageKey": "generated/products/UNS-0001/r1/back/card.webp",
+              "url": "/generated/products/UNS-0001/r1/back/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0001:back:thumbnail",
+              "storageKey": "generated/products/UNS-0001/r1/back/thumbnail.webp",
+              "url": "/generated/products/UNS-0001/r1/back/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0001:back:social",
+              "storageKey": "generated/products/UNS-0001/r1/back/social.webp",
+              "url": "/generated/products/UNS-0001/r1/back/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        }
+      }
     }
   },
   {
@@ -129,6 +238,115 @@
               }
             }
           ]
+        }
+      }
+    },
+    "generatedMedia": {
+      "schemaVersion": 1,
+      "productId": "UNS-0002",
+      "renderVersion": "r1",
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "generatedAt": "2026-09-25T11:25:12.464Z",
+      "sides": {
+        "front": {
+          "master": {
+            "id": "UNS-0002:front:master",
+            "storageKey": "generated/products/UNS-0002/r1/front/master.png",
+            "url": "/generated/products/UNS-0002/r1/front/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0002:front:detail",
+              "storageKey": "generated/products/UNS-0002/r1/front/detail.webp",
+              "url": "/generated/products/UNS-0002/r1/front/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0002:front:card",
+              "storageKey": "generated/products/UNS-0002/r1/front/card.webp",
+              "url": "/generated/products/UNS-0002/r1/front/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0002:front:thumbnail",
+              "storageKey": "generated/products/UNS-0002/r1/front/thumbnail.webp",
+              "url": "/generated/products/UNS-0002/r1/front/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0002:front:social",
+              "storageKey": "generated/products/UNS-0002/r1/front/social.webp",
+              "url": "/generated/products/UNS-0002/r1/front/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        },
+        "back": {
+          "master": {
+            "id": "UNS-0002:back:master",
+            "storageKey": "generated/products/UNS-0002/r1/back/master.png",
+            "url": "/generated/products/UNS-0002/r1/back/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0002:back:detail",
+              "storageKey": "generated/products/UNS-0002/r1/back/detail.webp",
+              "url": "/generated/products/UNS-0002/r1/back/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0002:back:card",
+              "storageKey": "generated/products/UNS-0002/r1/back/card.webp",
+              "url": "/generated/products/UNS-0002/r1/back/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0002:back:thumbnail",
+              "storageKey": "generated/products/UNS-0002/r1/back/thumbnail.webp",
+              "url": "/generated/products/UNS-0002/r1/back/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0002:back:social",
+              "storageKey": "generated/products/UNS-0002/r1/back/social.webp",
+              "url": "/generated/products/UNS-0002/r1/back/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
         }
       }
     }
@@ -192,6 +410,115 @@
           ]
         }
       }
+    },
+    "generatedMedia": {
+      "schemaVersion": 1,
+      "productId": "UNS-0003",
+      "renderVersion": "r1",
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "generatedAt": "2026-09-25T11:25:12.464Z",
+      "sides": {
+        "front": {
+          "master": {
+            "id": "UNS-0003:front:master",
+            "storageKey": "generated/products/UNS-0003/r1/front/master.png",
+            "url": "/generated/products/UNS-0003/r1/front/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0003:front:detail",
+              "storageKey": "generated/products/UNS-0003/r1/front/detail.webp",
+              "url": "/generated/products/UNS-0003/r1/front/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0003:front:card",
+              "storageKey": "generated/products/UNS-0003/r1/front/card.webp",
+              "url": "/generated/products/UNS-0003/r1/front/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0003:front:thumbnail",
+              "storageKey": "generated/products/UNS-0003/r1/front/thumbnail.webp",
+              "url": "/generated/products/UNS-0003/r1/front/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0003:front:social",
+              "storageKey": "generated/products/UNS-0003/r1/front/social.webp",
+              "url": "/generated/products/UNS-0003/r1/front/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        },
+        "back": {
+          "master": {
+            "id": "UNS-0003:back:master",
+            "storageKey": "generated/products/UNS-0003/r1/back/master.png",
+            "url": "/generated/products/UNS-0003/r1/back/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0003:back:detail",
+              "storageKey": "generated/products/UNS-0003/r1/back/detail.webp",
+              "url": "/generated/products/UNS-0003/r1/back/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0003:back:card",
+              "storageKey": "generated/products/UNS-0003/r1/back/card.webp",
+              "url": "/generated/products/UNS-0003/r1/back/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0003:back:thumbnail",
+              "storageKey": "generated/products/UNS-0003/r1/back/thumbnail.webp",
+              "url": "/generated/products/UNS-0003/r1/back/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0003:back:social",
+              "storageKey": "generated/products/UNS-0003/r1/back/social.webp",
+              "url": "/generated/products/UNS-0003/r1/back/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        }
+      }
     }
   },
   {
@@ -251,6 +578,115 @@
               }
             }
           ]
+        }
+      }
+    },
+    "generatedMedia": {
+      "schemaVersion": 1,
+      "productId": "UNS-0004",
+      "renderVersion": "r1",
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "generatedAt": "2026-09-25T11:25:12.464Z",
+      "sides": {
+        "front": {
+          "master": {
+            "id": "UNS-0004:front:master",
+            "storageKey": "generated/products/UNS-0004/r1/front/master.png",
+            "url": "/generated/products/UNS-0004/r1/front/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0004:front:detail",
+              "storageKey": "generated/products/UNS-0004/r1/front/detail.webp",
+              "url": "/generated/products/UNS-0004/r1/front/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0004:front:card",
+              "storageKey": "generated/products/UNS-0004/r1/front/card.webp",
+              "url": "/generated/products/UNS-0004/r1/front/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0004:front:thumbnail",
+              "storageKey": "generated/products/UNS-0004/r1/front/thumbnail.webp",
+              "url": "/generated/products/UNS-0004/r1/front/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0004:front:social",
+              "storageKey": "generated/products/UNS-0004/r1/front/social.webp",
+              "url": "/generated/products/UNS-0004/r1/front/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        },
+        "back": {
+          "master": {
+            "id": "UNS-0004:back:master",
+            "storageKey": "generated/products/UNS-0004/r1/back/master.png",
+            "url": "/generated/products/UNS-0004/r1/back/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0004:back:detail",
+              "storageKey": "generated/products/UNS-0004/r1/back/detail.webp",
+              "url": "/generated/products/UNS-0004/r1/back/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0004:back:card",
+              "storageKey": "generated/products/UNS-0004/r1/back/card.webp",
+              "url": "/generated/products/UNS-0004/r1/back/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0004:back:thumbnail",
+              "storageKey": "generated/products/UNS-0004/r1/back/thumbnail.webp",
+              "url": "/generated/products/UNS-0004/r1/back/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0004:back:social",
+              "storageKey": "generated/products/UNS-0004/r1/back/social.webp",
+              "url": "/generated/products/UNS-0004/r1/back/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
         }
       }
     }
@@ -314,6 +750,115 @@
           ]
         }
       }
+    },
+    "generatedMedia": {
+      "schemaVersion": 1,
+      "productId": "UNS-0005",
+      "renderVersion": "r1",
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "generatedAt": "2026-09-25T11:25:12.464Z",
+      "sides": {
+        "front": {
+          "master": {
+            "id": "UNS-0005:front:master",
+            "storageKey": "generated/products/UNS-0005/r1/front/master.png",
+            "url": "/generated/products/UNS-0005/r1/front/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0005:front:detail",
+              "storageKey": "generated/products/UNS-0005/r1/front/detail.webp",
+              "url": "/generated/products/UNS-0005/r1/front/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0005:front:card",
+              "storageKey": "generated/products/UNS-0005/r1/front/card.webp",
+              "url": "/generated/products/UNS-0005/r1/front/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0005:front:thumbnail",
+              "storageKey": "generated/products/UNS-0005/r1/front/thumbnail.webp",
+              "url": "/generated/products/UNS-0005/r1/front/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0005:front:social",
+              "storageKey": "generated/products/UNS-0005/r1/front/social.webp",
+              "url": "/generated/products/UNS-0005/r1/front/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        },
+        "back": {
+          "master": {
+            "id": "UNS-0005:back:master",
+            "storageKey": "generated/products/UNS-0005/r1/back/master.png",
+            "url": "/generated/products/UNS-0005/r1/back/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0005:back:detail",
+              "storageKey": "generated/products/UNS-0005/r1/back/detail.webp",
+              "url": "/generated/products/UNS-0005/r1/back/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0005:back:card",
+              "storageKey": "generated/products/UNS-0005/r1/back/card.webp",
+              "url": "/generated/products/UNS-0005/r1/back/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0005:back:thumbnail",
+              "storageKey": "generated/products/UNS-0005/r1/back/thumbnail.webp",
+              "url": "/generated/products/UNS-0005/r1/back/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0005:back:social",
+              "storageKey": "generated/products/UNS-0005/r1/back/social.webp",
+              "url": "/generated/products/UNS-0005/r1/back/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        }
+      }
     }
   },
   {
@@ -373,6 +918,115 @@
               }
             }
           ]
+        }
+      }
+    },
+    "generatedMedia": {
+      "schemaVersion": 1,
+      "productId": "UNS-0006",
+      "renderVersion": "r1",
+      "templateId": "white-oversize-v1",
+      "templateVersion": 1,
+      "profileId": "product-standard-v1",
+      "generatedAt": "2026-09-25T11:25:12.464Z",
+      "sides": {
+        "front": {
+          "master": {
+            "id": "UNS-0006:front:master",
+            "storageKey": "generated/products/UNS-0006/r1/front/master.png",
+            "url": "/generated/products/UNS-0006/r1/front/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0006:front:detail",
+              "storageKey": "generated/products/UNS-0006/r1/front/detail.webp",
+              "url": "/generated/products/UNS-0006/r1/front/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0006:front:card",
+              "storageKey": "generated/products/UNS-0006/r1/front/card.webp",
+              "url": "/generated/products/UNS-0006/r1/front/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0006:front:thumbnail",
+              "storageKey": "generated/products/UNS-0006/r1/front/thumbnail.webp",
+              "url": "/generated/products/UNS-0006/r1/front/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0006:front:social",
+              "storageKey": "generated/products/UNS-0006/r1/front/social.webp",
+              "url": "/generated/products/UNS-0006/r1/front/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
+        },
+        "back": {
+          "master": {
+            "id": "UNS-0006:back:master",
+            "storageKey": "generated/products/UNS-0006/r1/back/master.png",
+            "url": "/generated/products/UNS-0006/r1/back/master.png",
+            "mimeType": "image/png",
+            "width": 1536,
+            "height": 2048,
+            "immutable": true
+          },
+          "derivatives": {
+            "detail": {
+              "id": "UNS-0006:back:detail",
+              "storageKey": "generated/products/UNS-0006/r1/back/detail.webp",
+              "url": "/generated/products/UNS-0006/r1/back/detail.webp",
+              "mimeType": "image/webp",
+              "width": 1600,
+              "height": 2000,
+              "immutable": true
+            },
+            "card": {
+              "id": "UNS-0006:back:card",
+              "storageKey": "generated/products/UNS-0006/r1/back/card.webp",
+              "url": "/generated/products/UNS-0006/r1/back/card.webp",
+              "mimeType": "image/webp",
+              "width": 960,
+              "height": 1200,
+              "immutable": true
+            },
+            "thumbnail": {
+              "id": "UNS-0006:back:thumbnail",
+              "storageKey": "generated/products/UNS-0006/r1/back/thumbnail.webp",
+              "url": "/generated/products/UNS-0006/r1/back/thumbnail.webp",
+              "mimeType": "image/webp",
+              "width": 480,
+              "height": 600,
+              "immutable": true
+            },
+            "social": {
+              "id": "UNS-0006:back:social",
+              "storageKey": "generated/products/UNS-0006/r1/back/social.webp",
+              "url": "/generated/products/UNS-0006/r1/back/social.webp",
+              "mimeType": "image/webp",
+              "width": 1200,
+              "height": 1500,
+              "immutable": true
+            }
+          }
         }
       }
     }
