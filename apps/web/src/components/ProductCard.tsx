@@ -31,7 +31,7 @@ export function ProductCard({ record, priority = false, sale = null }: Props) {
         {asset ? (
           <Image
             src={asset}
-            alt={`T-shirt ${record.title}, vista ${record.primaryView === "front" ? "frontale" : "posteriore"}`}
+            alt={`Maglia ${record.title}, vista ${record.primaryView === "front" ? "frontale" : "posteriore"}`}
             fill
             priority={priority}
             unoptimized={asset.startsWith("http")}
