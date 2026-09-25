@@ -130,7 +130,7 @@ export function CartPanel({
       <section className={styles.empty}>
         <p className={styles.kicker}>CARRELLO / 00</p>
         <h2>ANCORA<br />NIENTE.</h2>
-        <p>Il carrello è vuoto. L&apos;archivio resta navigabile anche mentre lo shop è chiuso.</p>
+        <p>Il carrello è vuoto. L&apos;archivio resta navigabile anche mentre le vendite sono chiuse.</p>
         <Link href="/shop">Apri archivio →</Link>
       </section>
     );
@@ -168,7 +168,7 @@ export function CartPanel({
             </article>
           );
         })}
-        {busy ? <p className={styles.checking}>SERVER / VERIFICA PREZZO + SCORTE…</p> : null}
+        {busy ? <p className={styles.checking}>SISTEMA / VERIFICA PREZZO + SCORTE…</p> : null}
         {notice ? <p className={styles.problem} role="status">{notice}</p> : null}
       </section>
 
@@ -179,12 +179,12 @@ export function CartPanel({
           <strong>{validated ? formatMoney(validated.subtotal) : "—"}</strong>
         </div>
         <div className={styles.rule} />
-        <p>Prezzi e stock mostrati qui arrivano dal server. Il contenuto di localStorage non è mai considerato autorevole.</p>
+        <p>Prezzi e scorte mostrati qui arrivano dal sistema. Il contenuto di localStorage non è mai considerato autorevole.</p>
         {!shopEnabled ? <div className={styles.gate}><strong>VENDITE / DISATTIVATE</strong><span>Il carrello è strutturalmente pronto, ma gli acquisti restano disattivati.</span></div> : null}
         {checkoutPreparationEnabled && cartReady && !busy ? (
-          <Link className={styles.checkoutLink} href="/checkout">Continua al checkout →</Link>
+          <Link className={styles.checkoutLink} href="/checkout">Continua alla conferma ordine →</Link>
         ) : (
-          <button type="button" disabled>Checkout non ancora attivo</button>
+          <button type="button" disabled>Conferma ordine non ancora attiva</button>
         )}
         <Link href="/account">Area personale →</Link>
       </aside>
