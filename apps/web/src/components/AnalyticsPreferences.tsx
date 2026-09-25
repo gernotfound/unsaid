@@ -13,7 +13,7 @@ type Props = {
 
 export function AnalyticsPreferences({
   className = "button",
-  label = "Gestisci preferenze analytics",
+  label = "Gestisci preferenze statistiche",
 }: Props) {
   async function reopenPreferences() {
     const previous = readAnalyticsConsent();
