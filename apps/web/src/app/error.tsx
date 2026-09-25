@@ -19,8 +19,8 @@ export default function AppError({
 
   return (
     <main className="shell">
-      <p className="eyebrow">SYSTEM / RECOVERABLE ERROR</p>
-      <h1>Something broke.</h1>
+      <p className="eyebrow">SISTEMA / ERRORE RECUPERABILE</p>
+      <h1>Qualcosa è andato storto.</h1>
       <p>La pagina non è stata completata correttamente. Puoi riprovare senza perdere l&apos;intero sito.</p>
       <button type="button" onClick={reset}>Riprova</button>
     </main>

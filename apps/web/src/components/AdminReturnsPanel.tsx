@@ -44,12 +44,34 @@ async function apiRequest<T>(user: User, url: string, init: RequestInit = {}): P
   return payload;
 }
 
+function returnStatusLabel(status: ReturnCase["status"]) {
+  return {
+    requested: "RICHIESTO",
+    approved: "APPROVATO",
+    rejected: "RIFIUTATO",
+    in_transit: "IN RIENTRO",
+    received: "RICEVUTO",
+    inspected: "ISPEZIONATO",
+    closed: "CHIUSO",
+  }[status];
+}
+
+function reasonLabel(code: ReturnCase["reasonCode"]) {
+  return {
+    changed_mind: "Ho cambiato idea",
+    size_issue: "Taglia / vestibilità",
+    damaged: "Articolo danneggiato",
+    wrong_item: "Articolo errato",
+    other: "Altro",
+  }[code];
+}
+
 function message(code: string) {
   if (code === "RETURN_STATE_CONFLICT") return "Transizione non valida per lo stato attuale del reso.";
   if (code === "RETURN_REFUND_MISMATCH") return "La pratica rimborso non appartiene allo stesso ordine/cliente.";
   if (code === "RETURN_REFUND_ALREADY_LINKED") return "Questo reso è già collegato a una pratica rimborso diversa.";
-  if (code === "RETURN_INVENTORY_MISSING") return "Inventario SKU mancante: nessun restock è stato applicato.";
-  if (code === "ADMIN_FORBIDDEN") return "Account non autorizzato come admin.";
+  if (code === "RETURN_INVENTORY_MISSING") return "Inventario SKU mancante: nessun reintegro delle scorte è stato applicato.";
+  if (code === "ADMIN_FORBIDDEN") return "Profilo non autorizzato come amministratore.";
   return code;
 }
 
@@ -144,7 +166,7 @@ export function AdminReturnsPanel() {
       receivedQuantity: Number(form.get(`received:${line.variantId}`) ?? 0),
       restockQuantity: Number(form.get(`restock:${line.variantId}`) ?? 0),
     }));
-    await runAction(item.returnCase.id, { action: "inspect", lines }, "Ispezione registrata. Solo le quantità restock sono rientrate nell'inventario.");
+    await runAction(item.returnCase.id, { action: "inspect", lines }, "Ispezione registrata. Solo le quantità indicate per il reintegro sono rientrate nell'inventario.");
   }
 
   async function linkRefund(event: FormEvent<HTMLFormElement>, id: string) {
@@ -154,13 +176,13 @@ export function AdminReturnsPanel() {
   }
 
   if (!configured) return <section className={styles.center}><p>Firebase Web SDK non configurato.</p></section>;
-  if (!authReady) return <section className={styles.center}><p>AUTH / CHECKING</p></section>;
+  if (!authReady) return <section className={styles.center}><p>AUTENTICAZIONE / VERIFICA</p></section>;
   if (!user) {
     return (
       <section className={styles.center}>
         <form className={styles.login} onSubmit={login}>
-          <p className={styles.kicker}>UNSAID / RETURN OPERATIONS</p>
-          <h1>Returns.</h1>
+          <p className={styles.kicker}>UNSAID / OPERAZIONI RESI</p>
+          <h1>Resi.</h1>
           <label><span>Email</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label><span>Password</span><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
           <button>Accedi</button>
@@ -173,13 +195,13 @@ export function AdminReturnsPanel() {
   return (
     <section className={styles.shell}>
       <header className={styles.topbar}>
-        <div><p className={styles.kicker}>UNSAID / RETURNS</p><strong>RMA control</strong></div>
+        <div><p className={styles.kicker}>UNSAID / RESI</p><strong>Controllo RMA</strong></div>
         <div className={styles.session}><span>{user.email}</span><button onClick={() => void signOut(getAuth(getFirebaseClientApp()))}>Esci</button></div>
       </header>
 
       <div className={styles.policy}>
-        <strong>PHYSICAL RETURN ≠ REFUND</strong>
-        <span>Ricezione, ispezione, restock e movimento di denaro restano stati distinti.</span>
+        <strong>RESO FISICO ≠ RIMBORSO</strong>
+        <span>Ricezione, ispezione, reintegro scorte e movimento di denaro restano stati distinti.</span>
       </div>
 
       <div className={styles.toolbar}>
@@ -195,16 +217,16 @@ export function AdminReturnsPanel() {
             <article key={entry.id} data-state={entry.status}>
               <div className={styles.head}>
                 <div><small>{formatDate(entry.createdAt)}</small><strong>{entry.orderId}</strong><span>{entry.email}</span></div>
-                <strong>{entry.status.toUpperCase()}</strong>
+                <strong>{returnStatusLabel(entry.status)}</strong>
               </div>
-              <p>{entry.reasonCode}{entry.note ? ` / ${entry.note}` : ""}</p>
+              <p>{reasonLabel(entry.reasonCode)}{entry.note ? ` / ${entry.note}` : ""}</p>
               <div className={styles.lines}>
                 {entry.lines.map((line) => (
                   <div key={line.variantId}>
                     <strong>{line.title} / {line.size}</strong>
                     <span>{line.sku}</span>
-                    <span>requested ×{line.quantity} / {formatMoney(line.unitPrice)}</span>
-                    {line.receivedQuantity !== undefined ? <span>received ×{line.receivedQuantity} / restocked ×{line.restockedQuantity ?? 0}</span> : null}
+                    <span>richiesti ×{line.quantity} / {formatMoney(line.unitPrice)}</span>
+                    {line.receivedQuantity !== undefined ? <span>ricevuti ×{line.receivedQuantity} / reintegrati ×{line.restockedQuantity ?? 0}</span> : null}
                   </div>
                 ))}
               </div>
@@ -219,28 +241,28 @@ export function AdminReturnsPanel() {
               {entry.status === "approved" ? (
                 <form className={styles.actionForm} onSubmit={(event) => void transit(event, entry.id)}>
                   <input name="provider" placeholder="Corriere rientro (opzionale)" maxLength={80} />
-                  <input name="trackingCode" placeholder="Tracking code (opzionale)" maxLength={120} />
-                  <input name="trackingUrl" placeholder="https:// tracking (opzionale)" maxLength={500} />
+                  <input name="trackingCode" placeholder="Codice di tracciamento (opzionale)" maxLength={120} />
+                  <input name="trackingUrl" placeholder="https:// tracciamento (opzionale)" maxLength={500} />
                   <button disabled={busy}>Segna in rientro</button>
-                  <button type="button" className={styles.secondary} disabled={busy} onClick={() => void runAction(entry.id, { action: "received" }, "Reso ricevuto.")}>Ricevuto senza tracking</button>
+                  <button type="button" className={styles.secondary} disabled={busy} onClick={() => void runAction(entry.id, { action: "received" }, "Reso ricevuto.")}>Ricevuto senza tracciamento</button>
                 </form>
               ) : null}
 
               {entry.status === "in_transit" ? (
                 <div className={styles.actions}>
                   <button disabled={busy} onClick={() => void runAction(entry.id, { action: "received" }, "Reso ricevuto.")}>Segna ricevuto</button>
-                  {entry.inboundShipment?.trackingUrl ? <a href={entry.inboundShipment.trackingUrl} target="_blank" rel="noreferrer">Tracking rientro</a> : null}
+                  {entry.inboundShipment?.trackingUrl ? <a href={entry.inboundShipment.trackingUrl} target="_blank" rel="noreferrer">Tracciamento rientro</a> : null}
                 </div>
               ) : null}
 
               {entry.status === "received" ? (
                 <form className={styles.inspect} onSubmit={(event) => void inspect(event, item)}>
-                  <strong>INSPECTION / RESTOCK</strong>
+                  <strong>ISPEZIONE / REINTEGRO SCORTE</strong>
                   {entry.lines.map((line) => (
                     <div className={styles.inspectLine} key={line.variantId}>
-                      <span>{line.sku} / requested {line.quantity}</span>
+                      <span>{line.sku} / richiesti {line.quantity}</span>
                       <label>Ricevuti<input name={`received:${line.variantId}`} type="number" min="0" max={line.quantity} defaultValue={line.quantity} required /></label>
-                      <label>Restock<input name={`restock:${line.variantId}`} type="number" min="0" max={line.quantity} defaultValue="0" required /></label>
+                      <label>Reintegro<input name={`restock:${line.variantId}`} type="number" min="0" max={line.quantity} defaultValue="0" required /></label>
                     </div>
                   ))}
                   <button disabled={busy}>Conferma ispezione</button>
@@ -249,13 +271,13 @@ export function AdminReturnsPanel() {
 
               {(entry.status === "inspected" || entry.status === "closed") ? (
                 <div className={styles.postInspect}>
-                  {entry.refundCaseId ? <code>refund: {entry.refundCaseId}</code> : (
+                  {entry.refundCaseId ? <code>rimborso: {entry.refundCaseId}</code> : (
                     <form className={styles.linkRefund} onSubmit={(event) => void linkRefund(event, entry.id)}>
-                      <input name="refundCaseId" placeholder="Refund case ID da /admin/refunds" required />
+                      <input name="refundCaseId" placeholder="ID pratica rimborso da /admin/refunds" required />
                       <button disabled={busy}>Collega rimborso</button>
                     </form>
                   )}
-                  {entry.status === "inspected" ? <button className={styles.secondary} disabled={busy} onClick={() => void runAction(entry.id, { action: "close" }, "Pratica reso chiusa.")}>Chiudi RMA</button> : <strong>RMA CLOSED</strong>}
+                  {entry.status === "inspected" ? <button className={styles.secondary} disabled={busy} onClick={() => void runAction(entry.id, { action: "close" }, "Pratica reso chiusa.")}>Chiudi RMA</button> : <strong>RMA CHIUSA</strong>}
                 </div>
               ) : null}
             </article>

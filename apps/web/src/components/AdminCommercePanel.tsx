@@ -89,7 +89,7 @@ function errorMessage(code: string) {
   if (code.startsWith("STOCK_BELOW_RESERVED:")) return "Lo stock non può scendere sotto la quantità già riservata.";
   if (code.includes("ACTIVE_PRODUCT_REQUIRES_PRICE")) return "Inserisci un prezzo maggiore di zero prima di attivare la vendita.";
   if (code.includes("ACTIVE_PRODUCT_REQUIRES_VARIANT")) return "Attiva almeno una taglia prima di attivare la vendita.";
-  return code === "INTERNAL_ERROR" ? "Errore server. Riprova." : code;
+  return code === "INTERNAL_ERROR" ? "Errore del sistema. Riprova." : code;
 }
 
 async function apiRequest<T>(user: User, url: string, init: RequestInit = {}): Promise<T> {
@@ -239,12 +239,12 @@ export function AdminCommercePanel() {
   if (!configured) {
     return <section className={styles.center}><p>Firebase Web SDK non configurato.</p></section>;
   }
-  if (!authReady) return <section className={styles.center}><p>AUTH / CHECKING</p></section>;
+  if (!authReady) return <section className={styles.center}><p>AUTENTICAZIONE / VERIFICA</p></section>;
   if (!user) {
     return (
       <section className={styles.center}>
         <form className={styles.login} onSubmit={login}>
-          <p className={styles.kicker}>UNSAID / COMMERCE CONTROL</p>
+          <p className={styles.kicker}>UNSAID / CONTROLLO VENDITE</p>
           <h1>Admin.</h1>
           <label><span>Email</span><input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></label>
           <label><span>Password</span><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required /></label>
@@ -258,16 +258,16 @@ export function AdminCommercePanel() {
   return (
     <section className={styles.shell}>
       <header className={styles.topbar}>
-        <div><p className={styles.kicker}>UNSAID / COMMERCE</p><strong>SKU + inventory control</strong></div>
+        <div><p className={styles.kicker}>UNSAID / VENDITE</p><strong>SKU + controllo inventario</strong></div>
         <div className={styles.session}><span>{user.email}</span><button onClick={() => void signOut(getAuth(getFirebaseClientApp()))}>Esci</button></div>
       </header>
 
       <div className={styles.metrics}>
-        <div><span>Loaded</span><strong>{items.length}</strong></div>
-        <div><span>Configured</span><strong>{metrics.configuredCount}</strong></div>
-        <div><span>Active</span><strong>{metrics.activeCount}</strong></div>
-        <div><span>On hand</span><strong>{metrics.totalOnHand}</strong></div>
-        <div><span>Available</span><strong>{metrics.totalAvailable}</strong></div>
+        <div><span>Caricati</span><strong>{items.length}</strong></div>
+        <div><span>Configurati</span><strong>{metrics.configuredCount}</strong></div>
+        <div><span>Attivi</span><strong>{metrics.activeCount}</strong></div>
+        <div><span>In giacenza</span><strong>{metrics.totalOnHand}</strong></div>
+        <div><span>Disponibili</span><strong>{metrics.totalAvailable}</strong></div>
       </div>
 
       <div className={styles.workspace}>
@@ -280,7 +280,7 @@ export function AdminCommercePanel() {
                 <button key={item.catalog.id} data-active={item.catalog.id === selectedId} onClick={() => select(item)}>
                   <span>{item.catalog.id} / {item.catalog.status}</span>
                   <strong>{item.catalog.title}</strong>
-                  <small>{item.sellable?.active ? "SALE ACTIVE" : item.sellable ? "CONFIGURED" : "NOT CONFIGURED"} · {stock} available</small>
+                  <small>{item.sellable?.active ? "VENDITA ATTIVA" : item.sellable ? "CONFIGURATO" : "NON CONFIGURATO"} · {stock} disponibili</small>
                 </button>
               );
             })}
@@ -295,7 +295,7 @@ export function AdminCommercePanel() {
                 <div><p className={styles.kicker}>{selected.catalog.id} / {selected.catalog.status}</p><h1>{selected.catalog.title}</h1></div>
                 <label className={styles.saleToggle}>
                   <input type="checkbox" checked={draft.active} disabled={selected.catalog.status !== "published"} onChange={(event) => setDraft({ ...draft, active: event.target.checked })} />
-                  <span>{draft.active ? "SALE ACTIVE" : "SALE OFF"}</span>
+                  <span>{draft.active ? "VENDITA ATTIVA" : "VENDITA DISATTIVATA"}</span>
                 </label>
               </div>
 
@@ -303,14 +303,14 @@ export function AdminCommercePanel() {
 
               <div className={styles.settingsGrid}>
                 <label><span>Prezzo vendita / EUR</span><input inputMode="decimal" value={draft.price} placeholder="39,00" onChange={(event) => setDraft({ ...draft, price: event.target.value })} /></label>
-                <label><span>Colore capo</span><select value={draft.garmentColor} onChange={(event) => setDraft({ ...draft, garmentColor: event.target.value as GarmentColor })}><option value="white">White</option><option value="black">Black</option></select></label>
-                <label><span>Tax class</span><input value={draft.taxClass} maxLength={64} onChange={(event) => setDraft({ ...draft, taxClass: event.target.value })} /></label>
+                <label><span>Colore capo</span><select value={draft.garmentColor} onChange={(event) => setDraft({ ...draft, garmentColor: event.target.value as GarmentColor })}><option value="white">Bianco</option><option value="black">Nero</option></select></label>
+                <label><span>Classe fiscale</span><input value={draft.taxClass} maxLength={64} onChange={(event) => setDraft({ ...draft, taxClass: event.target.value })} /></label>
               </div>
 
               <section className={styles.inventory}>
-                <div className={styles.sectionHead}><div><p className={styles.kicker}>VARIANTS / ITALY</p><h2>Taglie e stock</h2></div><p>Lo stock riservato è read-only e non può essere sovrascritto dall&apos;admin.</p></div>
+                <div className={styles.sectionHead}><div><p className={styles.kicker}>VARIANTI / ITALIA</p><h2>Taglie e scorte</h2></div><p>Le scorte riservate sono in sola lettura e non possono essere sovrascritte dall&apos;amministratore.</p></div>
                 <div className={styles.variantTable} role="table" aria-label="Taglie e inventario">
-                  <div className={styles.variantHeader} role="row"><span>Sell</span><span>Size</span><span>SKU</span><span>On hand</span><span>Reserved</span><span>Available</span></div>
+                  <div className={styles.variantHeader} role="row"><span>Vendita</span><span>Taglia</span><span>SKU</span><span>In giacenza</span><span>Riservati</span><span>Disponibili</span></div>
                   {GARMENT_SIZES.map((size) => {
                     const current = draft.sizes[size];
                     const existing = selected.variants.find((entry) => entry.variant.size === size && entry.variant.garmentColor === draft.garmentColor);
@@ -331,8 +331,8 @@ export function AdminCommercePanel() {
               </section>
 
               <div className={styles.actions}>
-                <button className={styles.save} disabled={busy} onClick={() => void save()}>{busy ? "Salvataggio…" : "Salva commerce"}</button>
-                <span>Checkout e pagamenti restano disattivati.</span>
+                <button className={styles.save} disabled={busy} onClick={() => void save()}>{busy ? "Salvataggio…" : "Salva vendite"}</button>
+                <span>Ordini e pagamenti restano disattivati.</span>
               </div>
             </>
           ) : <div className={styles.empty}>Nessun prodotto disponibile.</div>}

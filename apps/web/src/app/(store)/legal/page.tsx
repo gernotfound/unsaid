@@ -11,7 +11,7 @@ export default function LegalPage() {
 
   return (
     <main id="main" className="legal-page">
-      <p className="eyebrow">LEGAL / IMPRINT</p>
+      <p className="eyebrow">NOTE LEGALI / DATI DEL PRESTATORE</p>
       <h1>Note legali.</h1>
       <p className="legal-lede">
         Informazioni sul soggetto responsabile del sito e sullo stato operativo del progetto UNSAID.
@@ -19,7 +19,7 @@ export default function LegalPage() {
 
       {!legal.commerceIdentityReady ? (
         <div className="legal-status legal-status--warning">
-          <strong>PRE-LAUNCH / NO CHECKOUT</strong>
+          <strong>PRE-LANCIO / ORDINI DISATTIVATI</strong>
           <p>
             Il sito è attualmente un archivio editoriale. La vendita resta tecnicamente e legalmente bloccata finché
             non vengono completati i dati del prestatore e le condizioni di vendita.
@@ -50,7 +50,7 @@ export default function LegalPage() {
         <div>
           <h2>Stato commerciale</h2>
           <p>
-            Il checkout è disattivato. Le pagine prodotto e gli eventuali prezzi mostrati durante il pre-lancio hanno
+            Il sistema di ordine è disattivato. Le pagine prodotto e gli eventuali prezzi mostrati durante il pre-lancio hanno
             funzione editoriale/dimostrativa e non costituiscono un ordine accettabile attraverso il sito.
           </p>
           <p>
@@ -66,7 +66,7 @@ export default function LegalPage() {
         <div>
           <h2>Proprietà intellettuale</h2>
           <p>
-            Marchio, art direction, interfaccia, fotografie, render, testi di prodotto e altri contenuti originali
+            Marchio, direzione artistica, interfaccia, fotografie, immagini renderizzate, testi di prodotto e altri contenuti originali
             presenti sul sito sono protetti dalle norme applicabili sulla proprietà intellettuale e possono essere
             utilizzati solo nei limiti consentiti dalla legge o previa autorizzazione del rispettivo titolare.
           </p>
@@ -83,7 +83,7 @@ export default function LegalPage() {
           <h2>Contatti</h2>
           <p>
             Per comunicazioni relative al sito utilizza l&apos;indirizzo indicato nei dati del prestatore. Le richieste
-            relative ai dati personali seguono invece le modalità indicate nella Privacy policy.
+            relative ai dati personali seguono invece le modalità indicate nella informativa privacy.
           </p>
           <p className="legal-updated">Ultimo aggiornamento: 14 settembre 2026.</p>
         </div>

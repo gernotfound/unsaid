@@ -39,8 +39,8 @@ export function CommerceControls({ productId, garmentColor, variants, shopEnable
   return (
     <div className={styles.commerce} data-shop-enabled={shopEnabled ? "true" : "false"}>
       <div className={styles.heading}>
-        <p className={styles.label}>Taglia / {garmentColor === "white" ? "white" : "black"}</p>
-        <span>IT only</span>
+        <p className={styles.label}>Taglia / {garmentColor === "white" ? "bianco" : "nero"}</p>
+        <span>Solo Italia</span>
       </div>
       <div className={styles.sizes} role="group" aria-label="Seleziona taglia">
         {GARMENT_SIZES.map((item) => {
@@ -62,7 +62,7 @@ export function CommerceControls({ productId, garmentColor, variants, shopEnable
               }}
             >
               <span>{item}</span>
-              {soldOut ? <small>SOLD</small> : null}
+              {soldOut ? <small>ESAURITA</small> : null}
             </button>
           );
         })}
@@ -73,12 +73,12 @@ export function CommerceControls({ productId, garmentColor, variants, shopEnable
         disabled={!shopEnabled || !selected || selected.available < 1}
         onClick={addToCart}
       >
-        {shopEnabled ? (selected ? "Aggiungi al carrello" : "Seleziona una taglia") : "Shop opening soon"}
+        {shopEnabled ? (selected ? "Aggiungi al carrello" : "Seleziona una taglia") : "Vendite in apertura prossimamente"}
       </button>
       <p className={styles.note}>
         {shopEnabled
-          ? "Prezzo e disponibilità verranno ricontrollati dal server nel carrello e al checkout."
-          : "Taglie e stock arrivano dal sistema commerce reale; acquisto e checkout restano disattivati dal gate di lancio."}
+          ? "Prezzo e disponibilità verranno ricontrollati dal server nel carrello e alla conferma dell'ordine."
+          : "Taglie e scorte arrivano dal sistema commerciale reale; acquisto e conferma ordine restano disattivati dal controllo di lancio."}
       </p>
       {feedback ? (
         <p className={styles.feedback} aria-live="polite">

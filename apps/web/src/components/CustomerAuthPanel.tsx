@@ -33,7 +33,7 @@ async function exchangeSession(user: User, displayName?: string) {
 function messageFor(error: unknown) {
   const code = error instanceof Error ? error.message : String(error);
   if (code.includes("auth/invalid-credential")) return "Email o password non corretti.";
-  if (code.includes("auth/email-already-in-use")) return "Esiste già un account con questa email.";
+  if (code.includes("auth/email-already-in-use")) return "Esiste già un profilo con questa email.";
   if (code.includes("auth/weak-password")) return "La password non soddisfa i requisiti di sicurezza.";
   if (code.includes("auth/too-many-requests")) return "Troppi tentativi. Riprova più tardi.";
   if (code.includes("RECENT_SIGN_IN_REQUIRED")) return "Accedi di nuovo per creare la sessione.";
@@ -85,7 +85,7 @@ export function CustomerAuthPanel() {
     setBusy(true);
     try {
       await sendPasswordResetEmail(getAuth(getFirebaseClientApp()), email);
-      setFeedback("Se l'account esiste, riceverai una mail per reimpostare la password.");
+      setFeedback("Se il profilo esiste, riceverai una mail per reimpostare la password.");
     } catch (error) {
       setFeedback(messageFor(error));
     } finally {
@@ -95,9 +95,9 @@ export function CustomerAuthPanel() {
 
   return (
     <section className={styles.authPanel}>
-      <div className={styles.switcher} role="tablist" aria-label="Accesso account">
+      <div className={styles.switcher} role="tablist" aria-label="Accesso al profilo">
         <button type="button" data-active={mode === "login"} onClick={() => setMode("login")}>Accedi</button>
-        <button type="button" data-active={mode === "register"} onClick={() => setMode("register")}>Crea account</button>
+        <button type="button" data-active={mode === "register"} onClick={() => setMode("register")}>Crea profilo</button>
       </div>
 
       <form onSubmit={submit} className={styles.form}>
@@ -122,7 +122,7 @@ export function CustomerAuthPanel() {
           />
         </label>
         <button className={styles.primary} type="submit" disabled={busy}>
-          {busy ? "Attendi…" : mode === "register" ? "Crea account" : "Accedi"}
+          {busy ? "Attendi…" : mode === "register" ? "Crea profilo" : "Accedi"}
         </button>
       </form>
 

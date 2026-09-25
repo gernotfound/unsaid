@@ -20,7 +20,7 @@ export function ProductGallery({ title, front, back, initialView = "front" }: Pr
       <div className="product-gallery__stage">
         <Image
           src={src}
-          alt={`T-shirt ${title}, vista ${view === "front" ? "frontale" : "posteriore"}`}
+          alt={`Maglia ${title}, vista ${view === "front" ? "frontale" : "posteriore"}`}
           fill
           priority
           unoptimized={src.startsWith("http")}

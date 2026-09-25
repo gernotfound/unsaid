@@ -13,19 +13,19 @@ export default function PrivacyPage() {
 
   return (
     <main id="main" className="legal-page">
-      <p className="eyebrow">LEGAL / PRIVACY</p>
+      <p className="eyebrow">NOTE LEGALI / DATI PERSONALI</p>
       <h1>Privacy.</h1>
       <p className="legal-lede">
         Questa informativa descrive i trattamenti connessi alla navigazione e, quando abilitato, all&apos;account cliente UNSAID.
-        Checkout, pagamenti e newsletter restano disattivati nella configurazione attuale.
+        Conferma ordine, pagamenti e comunicazioni periodiche restano disattivati nella configurazione attuale.
       </p>
 
       {!legal.privacyIdentityReady ? (
         <div className="legal-status legal-status--warning">
-          <strong>PRE-LAUNCH / DATI TITOLARE DA COMPLETARE</strong>
+          <strong>PRE-LANCIO / DATI TITOLARE DA COMPLETARE</strong>
           <p>
             Nome/denominazione e contatto del titolare devono essere configurati prima di attivare analytics o
-            registrazione cliente. I relativi feature gate restano chiusi finché questi dati non sono disponibili.
+            registrazione cliente. I relativi controlli di attivazione restano chiusi finché questi dati non sono disponibili.
           </p>
         </div>
       ) : null}
@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <h2>Titolare del trattamento</h2>
           <dl className="legal-data">
             <div><dt>Titolare</dt><dd>{publicLegalValue(legal.controllerName)}</dd></div>
-            <div><dt>Brand</dt><dd>{legal.tradingName}</dd></div>
+            <div><dt>Marchio</dt><dd>{legal.tradingName}</dd></div>
             <div><dt>Contatto privacy</dt><dd>{publicLegalValue(legal.contactEmail)}</dd></div>
             <div><dt>Sede / indirizzo</dt><dd>{publicLegalValue(legal.registeredAddress)}</dd></div>
             <div><dt>Paese</dt><dd>{legal.country}</dd></div>
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           <h2>Dati tecnici di navigazione</h2>
           <p>
             Per consegnare le pagine e proteggere il servizio, l&apos;infrastruttura di hosting può trattare dati tecnici
-            generati dalle richieste HTTP, come indirizzo IP, data e ora, URL richiesto, user agent, informazioni di rete
+            generati dalle richieste HTTP, come indirizzo IP, data e ora, URL richiesto, agente utente, informazioni di rete
             e log di sicurezza. Questi dati non vengono utilizzati da UNSAID per creare profili pubblicitari propri.
           </p>
           <p>
@@ -65,11 +65,11 @@ export default function PrivacyPage() {
       <section className="legal-section">
         <p className="legal-index">03</p>
         <div>
-          <h2>Account cliente</h2>
+          <h2>Profilo cliente</h2>
           {FEATURES.customerAccountsEnabled ? (
             <>
               <p>
-                Se crei un account trattiamo l&apos;identificativo tecnico Firebase, indirizzo email, stato di verifica
+                Se crei un profilo trattiamo l&apos;identificativo tecnico Firebase, indirizzo email, stato di verifica
                 dell&apos;email, eventuale nome visualizzato e gli indirizzi di spedizione italiani che scegli di salvare.
                 Le credenziali/password sono gestite da Firebase Authentication e non vengono memorizzate nel database
                 applicativo UNSAID.
@@ -86,8 +86,8 @@ export default function PrivacyPage() {
             </>
           ) : (
             <p>
-              La funzionalità account è predisposta tecnicamente ma la registrazione pubblica non è attiva in questa
-              configurazione; il sito non raccoglie quindi dati di profilo o indirizzi cliente attraverso l&apos;area account.
+              La funzionalità del profilo è predisposta tecnicamente ma la registrazione pubblica non è attiva in questa
+              configurazione; il sito non raccoglie quindi dati di profilo o indirizzi cliente attraverso l&apos;area personale.
             </p>
           )}
         </div>
@@ -96,7 +96,7 @@ export default function PrivacyPage() {
       <section className="legal-section">
         <p className="legal-index">04</p>
         <div>
-          <h2>Analytics opzionali</h2>
+          <h2>Statistiche facoltative</h2>
           {legal.analyticsConsentEnabled ? (
             <>
               <p>
@@ -113,8 +113,8 @@ export default function PrivacyPage() {
             </>
           ) : (
             <p>
-              Nella configurazione attuale gli analytics opzionali restano disattivati finché i dati identificativi
-              minimi del titolare non vengono configurati. Nessun consenso analytics viene quindi richiesto.
+              Nella configurazione attuale le statistiche facoltative restano disattivate finché i dati identificativi
+              minimi del titolare non vengono configurati. Non viene quindi richiesto alcun consenso per le statistiche.
             </p>
           )}
         </div>
@@ -125,8 +125,8 @@ export default function PrivacyPage() {
         <div>
           <h2>Fornitori e destinatari</h2>
           <ul className="legal-list">
-            <li><strong>Vercel</strong> — hosting, CDN, delivery del sito e relativi servizi tecnici.</li>
-            <li><strong>Google Firebase</strong> — database applicativo, autenticazione amministrativa e, quando abilitata, autenticazione cliente.</li>
+            <li><strong>Vercel</strong> — ospitalità web, CDN, distribuzione del sito e relativi servizi tecnici.</li>
+            <li><strong>Google Firebase</strong> — banca dati applicativa, autenticazione amministrativa e, quando abilitata, autenticazione cliente.</li>
             <li><strong>Google Analytics</strong> — solo se l&apos;utente presta il consenso e la funzione è abilitata.</li>
           </ul>
           <p>
@@ -143,13 +143,13 @@ export default function PrivacyPage() {
           <h2>Conservazione</h2>
           <p>
             UNSAID applica il principio di minimizzazione. I dati tecnici vengono mantenuti per il periodo necessario a
-            erogare e proteggere il servizio. I dati dell&apos;account vengono mantenuti finché l&apos;account resta attivo o per
+            erogare e proteggere il servizio. I dati del profilo vengono mantenuti finché il profilo resta attivo o per
             il tempo necessario a gestire richieste, sicurezza e obblighi applicabili. Quando verranno attivati gli ordini,
-            alcuni dati documentali e fiscali potranno dover essere conservati anche dopo la chiusura dell&apos;account nei
+            alcuni dati documentali e fiscali potranno dover essere conservati anche dopo la chiusura del profilo nei
             limiti previsti dalla legge.
           </p>
           <p>
-            La preferenza analytics salvata nel browser scade dopo 180 giorni. I dati Analytics, quando la funzione è
+            La preferenza sulle statistiche salvata nel browser scade dopo 180 giorni. I dati di Google Analytics, quando la funzione è
             attiva, seguono la configurazione di conservazione della proprietà Google Analytics.
           </p>
         </div>
@@ -166,7 +166,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             Puoi inoltre proporre reclamo al Garante per la protezione dei dati personali. Per esercitare i diritti usa
-            il contatto privacy indicato sopra. La gestione tecnica di esportazione/chiusura account deve essere completata
+            il contatto privacy indicato sopra. La gestione tecnica di esportazione/chiusura del profilo deve essere completata
             prima dell&apos;apertura commerciale definitiva.
           </p>
         </div>
@@ -178,7 +178,7 @@ export default function PrivacyPage() {
           <h2>Decisioni automatizzate e profilazione</h2>
           <p>
             Nella configurazione pubblica attuale UNSAID non adotta decisioni automatizzate che producano effetti
-            giuridici o analogamente significativi sugli utenti e non utilizza i dati dell&apos;account o di navigazione per
+            giuridici o analogamente significativi sugli utenti e non utilizza i dati del profilo o di navigazione per
             profilazione pubblicitaria propria.
           </p>
         </div>
@@ -190,7 +190,7 @@ export default function PrivacyPage() {
           <h2>Aggiornamenti</h2>
           <p>
             Questa informativa viene aggiornata quando cambiano finalità, fornitori o funzionalità. L&apos;attivazione di
-            checkout, pagamenti, newsletter o ulteriori strumenti di marketing richiederà un aggiornamento coerente con
+            conferma ordine, pagamenti, comunicazioni periodiche o ulteriori strumenti promozionali richiederà un aggiornamento coerente con
             la configurazione realmente rilasciata.
           </p>
           <p className="legal-updated">Ultimo aggiornamento: 14 settembre 2026.</p>

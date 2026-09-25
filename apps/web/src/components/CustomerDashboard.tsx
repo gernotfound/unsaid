@@ -51,6 +51,30 @@ function errorMessage(error: unknown) {
   return "Operazione non riuscita. Riprova.";
 }
 
+function orderStatusLabel(status: Order["status"]) {
+  const labels: Record<Order["status"], string> = {
+    pending_payment: "in attesa di pagamento",
+    paid: "pagato",
+    processing: "in lavorazione",
+    shipped: "spedito",
+    delivered: "consegnato",
+    cancelled: "annullato",
+    refunded: "rimborsato",
+  };
+  return labels[status];
+}
+
+function shipmentStatusLabel(status: NonNullable<CustomerFulfillment["shipment"]>["status"]) {
+  const labels: Record<NonNullable<CustomerFulfillment["shipment"]>["status"], string> = {
+    pending: "in attesa",
+    ready: "pronta",
+    shipped: "spedita",
+    delivered: "consegnata",
+    returned: "rientrata",
+  };
+  return labels[status];
+}
+
 export function CustomerDashboard({ profile, addresses, orders, fulfillment, returns, returnsEnabled, returnsRequested, emailVerified }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -179,20 +203,20 @@ export function CustomerDashboard({ profile, addresses, orders, fulfillment, ret
     <div className={styles.dashboard}>
       <section className={styles.identityCard}>
         <div>
-          <p className={styles.kicker}>IDENTITY</p>
+          <p className={styles.kicker}>IDENTITÀ</p>
           <h2>{profile.displayName ?? profile.email}</h2>
           <p>{profile.email}</p>
         </div>
         <div className={emailVerified ? styles.statusOk : styles.statusWarn}>
-          {emailVerified ? "EMAIL VERIFIED" : "VERIFY EMAIL"}
+          {emailVerified ? "EMAIL VERIFICATA" : "VERIFICA EMAIL"}
         </div>
       </section>
 
       {!emailVerified ? (
         <section className={styles.notice}>
           <div>
-            <strong>Verifica la tua email prima del checkout.</strong>
-            <p>L&apos;account può essere configurato subito, ma per acquistare richiederemo un indirizzo email verificato.</p>
+            <strong>Verifica la tua email prima di confermare l&apos;ordine.</strong>
+            <p>Il profilo può essere configurato subito, ma per acquistare richiederemo un indirizzo email verificato.</p>
           </div>
           <div className={styles.inlineActions}>
             <button type="button" disabled={busy} onClick={() => void resendVerification()}>Reinvia email</button>
@@ -203,7 +227,7 @@ export function CustomerDashboard({ profile, addresses, orders, fulfillment, ret
 
       <div className={styles.grid}>
         <section className={styles.panel}>
-          <div className={styles.panelHeader}><p className={styles.kicker}>PROFILE</p><span>01</span></div>
+          <div className={styles.panelHeader}><p className={styles.kicker}>PROFILO</p><span>01</span></div>
           <form className={styles.form} onSubmit={updateProfile}>
             <label><span>Nome</span><input name="displayName" defaultValue={profile.displayName ?? ""} minLength={2} maxLength={80} required /></label>
             <label><span>Email</span><input value={profile.email} disabled /></label>
@@ -213,7 +237,7 @@ export function CustomerDashboard({ profile, addresses, orders, fulfillment, ret
 
         <section className={styles.panel}>
           <div className={styles.panelHeader}>
-            <div><p className={styles.kicker}>SHIPPING / IT ONLY</p><span>02</span></div>
+            <div><p className={styles.kicker}>SPEDIZIONE / SOLO ITALIA</p><span>02</span></div>
             <button className={styles.textButton} type="button" onClick={() => setShowAddressForm((value) => !value)}>
               {showAddressForm ? "Chiudi" : "+ Aggiungi"}
             </button>
@@ -225,7 +249,7 @@ export function CustomerDashboard({ profile, addresses, orders, fulfillment, ret
               return (
                 <article className={styles.address} key={address.id}>
                   <div>
-                    <strong>{address.label}{isDefault ? " / DEFAULT" : ""}</strong>
+                    <strong>{address.label}{isDefault ? " / PREDEFINITO" : ""}</strong>
                     <p>{address.recipientName}<br />{address.line1}{address.line2 ? <><br />{address.line2}</> : null}<br />{address.postalCode} {address.city} ({address.province})</p>
                   </div>
                   <div className={styles.inlineActions}>
@@ -256,7 +280,7 @@ export function CustomerDashboard({ profile, addresses, orders, fulfillment, ret
       </div>
 
       <section className={styles.panel}>
-        <div className={styles.panelHeader}><p className={styles.kicker}>ORDERS / TRACKING</p><span>03</span></div>
+        <div className={styles.panelHeader}><p className={styles.kicker}>ORDINI / TRACCIAMENTO</p><span>03</span></div>
         {orders.length ? (
           <div className={styles.orders}>
             {orders.map((order) => {
@@ -264,21 +288,21 @@ export function CustomerDashboard({ profile, addresses, orders, fulfillment, ret
               return (
                 <article key={order.id}>
                   <strong>{order.id}</strong>
-                  <span>{order.status}</span>
+                  <span>{orderStatusLabel(order.status)}</span>
                   <span>€{(order.totals.total.amountCents / 100).toFixed(2).replace(".", ",")}</span>
                   <small>{new Date(order.createdAt).toLocaleDateString("it-IT")}</small>
                   {shipment ? (
                     <small>
-                      {shipment.provider} / {shipment.status}
+                      {shipment.provider} / {shipmentStatusLabel(shipment.status)}
                       {shipment.trackingCode ? ` / ${shipment.trackingCode}` : ""}
-                      {shipment.trackingUrl ? <> / <a href={shipment.trackingUrl} target="_blank" rel="noreferrer">Tracking</a></> : null}
+                      {shipment.trackingUrl ? <> / <a href={shipment.trackingUrl} target="_blank" rel="noreferrer">Traccia spedizione</a></> : null}
                     </small>
                   ) : null}
                 </article>
               );
             })}
           </div>
-        ) : <p className={styles.empty}>Nessun ordine. Il checkout non è ancora attivo.</p>}
+        ) : <p className={styles.empty}>Nessun ordine. Gli acquisti non sono ancora attivi.</p>}
       </section>
 
       <CustomerReturnsPanel
@@ -290,7 +314,7 @@ export function CustomerDashboard({ profile, addresses, orders, fulfillment, ret
 
       <div className={styles.footerActions}>
         <a href="/api/account/export">Esporta i miei dati</a>
-        <button type="button" disabled={busy} onClick={() => void logout()}>Esci dall&apos;account</button>
+        <button type="button" disabled={busy} onClick={() => void logout()}>Esci dal profilo</button>
       </div>
       {feedback ? <p className={styles.feedback} aria-live="polite">{feedback}</p> : null}
     </div>

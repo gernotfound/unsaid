@@ -7,8 +7,8 @@ import { catalog } from "../../../server/catalog";
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: "Archive",
-  description: "L'archivio pubblico UNSAID: T-shirt monocromatiche, statement fronte e retro.",
+  title: "Archivio",
+  description: "L'archivio pubblico UNSAID: T-shirt monocromatiche, frasi sul fronte e sul retro.",
 };
 
 type ShopPageProps = {
@@ -34,11 +34,11 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
   return (
     <main id="main" className="shop-page">
       <header className="shop-intro">
-        <p className="eyebrow">UNSAID / CONTINUOUS ARCHIVE</p>
-        <h1>EVERYTHING<br />WE <span>WORE</span><br />OUT LOUD.</h1>
+        <p className="eyebrow">UNSAID / ARCHIVIO CONTINUO</p>
+        <h1>TUTTO<br />QUELLO CHE <span>ABBIAMO</span><br />INDOSSATO AD ALTA VOCE.</h1>
         <div className="shop-intro__side">
           <strong>{String(stats.public).padStart(2, "0")}</strong>
-          <p>White and black garments. Front and back statements. One continuous archive.</p>
+          <p>Capi bianchi e neri. Frasi sul fronte e sul retro. Un unico archivio continuo.</p>
         </div>
       </header>
 

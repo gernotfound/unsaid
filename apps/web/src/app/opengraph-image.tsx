@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { BRAND } from "@unsaid/domain";
 
-export const alt = "UNSAID — independent statement-wear archive";
+export const alt = "UNSAID — archivio indipendente di frasi da indossare";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -58,10 +58,10 @@ export default function OpenGraphImage() {
         <img src={WORDMARK} alt={BRAND.name} width={1010} height={181} />
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", fontSize: 30, fontWeight: 900, letterSpacing: 1.5 }}>
-            INDEPENDENT STATEMENT-WEAR ARCHIVE
+            ARCHIVIO INDIPENDENTE DI FRASI DA INDOSSARE
           </div>
           <div style={{ display: "flex", color: "#8b95a7", fontSize: 22, fontWeight: 700 }}>
-            Continuous archive · Italy · {BRAND.tagline}
+            Archivio continuo · Italia · {BRAND.tagline}
           </div>
         </div>
       </div>

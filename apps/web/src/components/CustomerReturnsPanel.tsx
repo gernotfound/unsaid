@@ -74,7 +74,7 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
       const payload = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) throw new Error(payload.error ?? "RETURN_REQUEST_FAILED");
       setActiveOrderId(null);
-      setFeedback("Richiesta di reso registrata. Lo stato sarà aggiornato nel tuo account.");
+      setFeedback("Richiesta di reso registrata. Lo stato sarà aggiornato nel tuo profilo.");
       router.refresh();
     } catch (error) {
       setFeedback(errorMessage(error instanceof Error ? error.message : String(error)));
@@ -86,7 +86,7 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
   return (
     <section className={styles.panel}>
       <div className={styles.header}>
-        <div><p className={styles.kicker}>RETURNS / RMA</p><span>04</span></div>
+        <div><p className={styles.kicker}>RESI / RMA</p><span>04</span></div>
         {returnsEnabled && deliveredWithoutReturn.length ? (
           <button type="button" onClick={() => setActiveOrderId((value) => value ? null : deliveredWithoutReturn[0]!.id)}>
             {activeOrderId ? "Chiudi" : "+ Richiedi reso"}
@@ -97,7 +97,7 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
       {!returnsRequested ? (
         <p className={styles.muted}>Il flusso resi è predisposto ma non è ancora aperto.</p>
       ) : !returnsEnabled ? (
-        <p className={styles.warning}>Le richieste reso resteranno bloccate finché la policy commerciale e legale non sarà approvata.</p>
+        <p className={styles.warning}>Le richieste reso resteranno bloccate finché la politica commerciale e legale non sarà approvata.</p>
       ) : null}
 
       {returns.length ? (
@@ -105,10 +105,10 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
           {returns.map((entry) => (
             <article key={entry.id} data-state={entry.status}>
               <div><strong>{entry.orderId}</strong><span>{statusLabel(entry.status).toUpperCase()}</span></div>
-              <small>{new Date(entry.createdAt).toLocaleDateString("it-IT")} / {entry.reasonCode}</small>
+              <small>{new Date(entry.createdAt).toLocaleDateString("it-IT")} / {REASONS.find((reason) => reason.value === entry.reasonCode)?.label ?? "Altro"}</small>
               <p>{entry.lines.map((line) => `${line.title} ${line.size} ×${line.quantity}`).join(" · ")}</p>
-              {entry.inboundShipment?.trackingUrl ? <a href={entry.inboundShipment.trackingUrl} target="_blank" rel="noreferrer">Tracking rientro</a> : null}
-              {entry.refundCaseId ? <code>refund: {entry.refundCaseId}</code> : null}
+              {entry.inboundShipment?.trackingUrl ? <a href={entry.inboundShipment.trackingUrl} target="_blank" rel="noreferrer">Tracciamento rientro</a> : null}
+              {entry.refundCaseId ? <code>rimborso: {entry.refundCaseId}</code> : null}
             </article>
           ))}
         </div>
@@ -127,7 +127,7 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
           <div className={styles.lines}>
             {activeOrder.lines.map((line) => (
               <label key={line.variantId}>
-                <span>{line.title} / {line.size} / max {line.quantity}</span>
+                <span>{line.title} / {line.size} / massimo {line.quantity}</span>
                 <input name={`quantity:${line.variantId}`} type="number" inputMode="numeric" min="0" max={line.quantity} defaultValue="0" />
               </label>
             ))}
