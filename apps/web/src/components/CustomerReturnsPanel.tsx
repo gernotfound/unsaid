@@ -74,7 +74,7 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
       const payload = (await response.json().catch(() => ({}))) as { error?: string };
       if (!response.ok) throw new Error(payload.error ?? "RETURN_REQUEST_FAILED");
       setActiveOrderId(null);
-      setFeedback("Richiesta di reso registrata. Lo stato sarà aggiornato nel tuo account.");
+      setFeedback("Richiesta di reso registrata. Lo stato sarà aggiornato nel tuo profilo.");
       router.refresh();
     } catch (error) {
       setFeedback(errorMessage(error instanceof Error ? error.message : String(error)));
@@ -97,7 +97,7 @@ export function CustomerReturnsPanel({ orders, returns, returnsEnabled, returnsR
       {!returnsRequested ? (
         <p className={styles.muted}>Il flusso resi è predisposto ma non è ancora aperto.</p>
       ) : !returnsEnabled ? (
-        <p className={styles.warning}>Le richieste reso resteranno bloccate finché la policy commerciale e legale non sarà approvata.</p>
+        <p className={styles.warning}>Le richieste reso resteranno bloccate finché la politica commerciale e legale non sarà approvata.</p>
       ) : null}
 
       {returns.length ? (
