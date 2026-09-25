@@ -65,10 +65,10 @@ const spec: ProductRenderSpec = {
   },
 };
 
-test("media configuration is structurally valid while reference masters remain gated", () => {
+test("media configuration accepts the promoted canonical masters", () => {
   const result = validateMediaConfiguration();
   assert.deepEqual(result.errors, []);
-  assert.ok(result.warnings.some((warning) => warning.includes("reference-only")));
+  assert.ok(!result.warnings.some((warning) => warning.includes("reference-only")));
 });
 
 test("overlay SVG is deterministic and escapes text", () => {
