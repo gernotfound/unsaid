@@ -105,7 +105,7 @@ test("managed backend refuses empty raster outputs before publishing them", asyn
   const backend = createManagedMediaBackend({
     store: {
       async get() {
-        return new Uint8Array([1]);
+        return sourceBytes;
       },
       async putImmutable() {
         throw new Error("should not write");
